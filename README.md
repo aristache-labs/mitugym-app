@@ -12,15 +12,20 @@
 
 ## 📱 Overview
 
-MITUGYM is a production-quality UI-only prototype for a modern gym check-in mobile application. Built with React Native, Expo, and TypeScript, it showcases a complete gym management experience including QR code entry, class booking, and membership management.
+MITUGYM is a production-quality gym management mobile application built with React Native, Expo, TypeScript, and Supabase. It provides a complete gym experience including secure authentication, profile management, QR code entry, class booking, and membership management with real-time data storage.
 
 ### ✨ Key Features
 
+- **🔐 Secure Authentication**: Supabase-powered email/password registration and login
+- **👤 Complete User Profiles**: Personal information with database persistence
+- **📝 Advanced Registration**: Native date picker, dropdown gender selection, and comprehensive forms
 - **🔐 Quick Check-In**: Secure QR code system for fast gym entry
 - **📅 Class Booking**: Reserve spots in fitness classes with real-time availability
 - **💳 Membership Management**: Track status, view history, and easy renewal
 - **📱 Modern UI**: Dark theme with premium design and smooth animations
 - **🎯 User-Friendly**: Intuitive navigation with floating action buttons
+- **🗄️ Real-time Data**: Live profile data with Supabase integration
+- **🛡️ Password Recovery**: Secure password reset functionality
 
 ## 🚀 Quick Start
 
@@ -44,7 +49,17 @@ MITUGYM is a production-quality UI-only prototype for a modern gym check-in mobi
    npm install
    ```
 
-3. **Font files included**
+3. **Setup Supabase environment**
+   
+   Create a `.env.local` file in the project root with your Supabase credentials:
+   ```bash
+   EXPO_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   EXPO_PUBLIC_SUPABASE_KEY=your_supabase_anon_key
+   ```
+   
+   The database schema and RLS policies are automatically configured. See the **Database Setup** section below for details.
+
+4. **Font files included**
    
    The Inter font family is already included in `assets/fonts/` with all required weights:
    - ✅ `Inter-Regular.ttf` 
@@ -52,12 +67,12 @@ MITUGYM is a production-quality UI-only prototype for a modern gym check-in mobi
    - ✅ `Inter-SemiBold.ttf` 
    - ✅ `Inter-Bold.ttf`
 
-4. **Start the development server**
+5. **Start the development server**
    ```bash
    npm start
    ```
 
-5. **Run on device**
+6. **Run on device**
    - Scan the QR code with Expo Go (Android) or Camera app (iOS)
    - Or run on simulator: `npm run ios` or `npm run android`
 
@@ -74,6 +89,60 @@ MITUGYM is a production-quality UI-only prototype for a modern gym check-in mobi
 | `npm run format` | Format code with Prettier |
 | `npm run test` | Run Jest tests |
 
+## 🗄️ Database Setup (Supabase)
+
+The app uses Supabase for authentication and data storage. The following components are configured:
+
+### Database Schema
+
+**Profiles Table (`profiles`)**
+```sql
+CREATE TABLE profiles (
+  id UUID REFERENCES auth.users PRIMARY KEY,
+  first_name TEXT,
+  last_name TEXT,
+  date_of_birth DATE,
+  email TEXT,
+  phone TEXT,
+  address TEXT,
+  city TEXT,
+  county TEXT,
+  gender TEXT,
+  avatar_url TEXT,
+  membership_status TEXT DEFAULT 'active',
+  membership_plan TEXT DEFAULT 'Basic',
+  join_date TIMESTAMPTZ DEFAULT NOW(),
+  expiry_date TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '30 days'),
+  visits_left INTEGER DEFAULT 10,
+  days_left INTEGER,
+  last_check_in TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### Row Level Security (RLS)
+
+- **Users can view own profile**: `auth.uid() = id`
+- **Users can update own profile**: `auth.uid() = id` 
+- **Users can insert own profile**: `auth.uid() = id`
+
+### Database Functions
+
+**`create_user_profile()`** - Securely creates user profiles during registration:
+```sql
+CREATE OR REPLACE FUNCTION create_user_profile(...)
+RETURNS UUID SECURITY DEFINER
+```
+
+### Environment Configuration
+
+Add these environment variables to your `.env.local`:
+```bash
+EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+EXPO_PUBLIC_SUPABASE_KEY=your-anon-key
+```
+
 ## 🏗️ Project Structure
 
 ```
@@ -87,9 +156,12 @@ mitugym-app/
 ├── components/            # Reusable UI components
 │   ├── AppHeader.tsx      # App header component
 │   ├── ClassCard.tsx      # Class card component
-│   ├── PillButton.tsx     # Button component
+│   ├── PillButton.tsx     # Modern button component
 │   ├── QRCard.tsx         # QR code display
 │   ├── StatusCard.tsx     # Membership status
+│   ├── NativeDatePicker.tsx # Native iOS/Android date picker
+│   ├── DropdownPicker.tsx  # Custom dropdown selection
+│   ├── Toast.tsx          # Toast notifications
 │   └── ...
 ├── lib/                   # Core logic and utilities
 │   ├── store.ts           # Zustand state management
@@ -97,6 +169,10 @@ mitugym-app/
 │   ├── mock.ts            # Mock data
 │   ├── utils.ts           # Utility functions
 │   └── navigation.ts      # Navigation helpers
+├── utils/                 # Utility modules
+│   ├── supabase.ts        # Supabase client configuration
+│   ├── authManager.ts     # Standalone authentication manager
+│   └── useSupabaseAuth.ts # Auth state management hook
 ├── assets/                # Static assets
 │   ├── fonts/             # Font files
 │   └── images/            # Image assets
@@ -143,11 +219,18 @@ mitugym-app/
 - **TypeScript** 5.9.2 - Type safety
 - **Expo Router** 6.0.5 - File-based navigation
 
+### Backend & Database
+- **Supabase** - Backend-as-a-Service with PostgreSQL
+- **@supabase/supabase-js** - Supabase JavaScript client
+- **React Native Async Storage** - Local data persistence
+- **React Native URL Polyfill** - URL support for Supabase
+
 ### UI & Styling
 - **NativeWind** 2.0.11 - Tailwind CSS for React Native
 - **Expo Linear Gradient** 15.0.7 - Gradient effects
 - **Lucide React Native** 0.544.0 - Modern icon library
 - **React Native Safe Area Context** 5.6.0 - Safe area handling
+- **React Native DateTimePicker** - Native date/time selection
 
 ### State Management
 - **Zustand** 4.5.4 - Lightweight state management
@@ -181,9 +264,12 @@ npm test -- --coverage
 ## 📱 App Features
 
 ### 🔐 Authentication
-- **Magic Link**: Email-based passwordless login
-- **Social Auth**: Apple ID and Google Sign-In (UI only)
-- **Onboarding**: 3-slide introduction carousel
+- **Email/Password**: Secure Supabase authentication
+- **User Registration**: Comprehensive profile creation with validation
+- **Password Recovery**: Secure password reset via email
+- **Profile Management**: Complete user information with database persistence
+- **Form Validation**: Real-time validation for all user inputs
+- **Native UI Components**: iOS/Android native date picker and dropdowns
 
 ### 🏠 Home Dashboard
 - **Membership Status**: Active/expired with days/visits remaining
@@ -210,7 +296,11 @@ npm test -- --coverage
 - **Plan Comparison**: Feature matrix for different tiers
 
 ### 👤 Profile Center
-- **Account Management**: Personal information display
+- **Live Profile Data**: Real-time data from Supabase database
+- **Personal Information**: Name, date of birth, contact details, address
+- **Age Calculation**: Dynamic age calculation from date of birth
+- **Membership Details**: Plan, status, and expiry information
+- **Contact Information**: Email, phone, and address management
 - **Notification Settings**: Granular preference controls
 - **App Settings**: Terms, privacy, support access
 - **Session Management**: Secure logout functionality
@@ -229,17 +319,29 @@ npm test -- --coverage
 - **Booking**: Reservation history and status
 - **Plans**: Membership tier options with features
 
-## 🚀 Backend Integration Guide
+## 🚀 Backend Integration
 
-The app is designed for easy backend integration. Key integration points:
+The app is fully integrated with Supabase for authentication and data management:
 
-### Authentication
+### Current Supabase Integration
+
+**Authentication (✅ Implemented)**
 ```typescript
-// Replace in lib/store.ts - login function
-const response = await fetch('/api/auth/magic-link', {
-  method: 'POST',
-  body: JSON.stringify({ email })
+// Supabase authentication in lib/store.ts
+const { data, error } = await supabase.auth.signInWithPassword({
+  email,
+  password,
 });
+```
+
+**Profile Management (✅ Implemented)**
+```typescript
+// Real-time profile data from Supabase
+const { data, error } = await supabase
+  .from('profiles')
+  .select('*')
+  .eq('id', session.user.id)
+  .single();
 ```
 
 ### QR Token Generation
@@ -346,6 +448,9 @@ Expo Router configuration in:
 - **ESLint Rules**: Code quality enforcement
 - **Component Memoization**: React.memo where appropriate
 - **Efficient Re-renders**: Optimized state selectors
+- **Standalone Auth Manager**: Prevents React re-render loops
+- **Global State Coordination**: Prevents navigation conflicts
+- **Robust Error Handling**: Comprehensive try-catch blocks
 
 ## 🚢 Deployment
 

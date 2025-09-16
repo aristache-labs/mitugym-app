@@ -14,9 +14,8 @@ interface AuthState {
   isAuthenticated: boolean;
   member: Member | null;
   session: any; // Supabase session
-  login: (email: string) => Promise<void>;
   loginWithSupabase: (email: string, password: string) => Promise<void>;
-  signUpWithSupabase: (email: string, password: string) => Promise<void>;
+  signUpWithSupabase: (email: string, password: string, profileData?: any) => Promise<void>;
   logout: () => Promise<void>;
   checkAuthState: () => Promise<void>;
 }
@@ -60,94 +59,134 @@ export const useAppStore = create<AppState>((set, get) => ({
   member: null,
   session: null,
 
-  login: async (email: string) => {
-    // Mock login - for demo purposes
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    set({
-      isAuthenticated: true,
-      member: { ...mockMember, email },
-    });
-    get().showToast('Welcome back!', 'success');
-  },
 
   loginWithSupabase: async (email: string, password: string) => {
     try {
+      console.log('Attempting login for:', email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        console.log('Login error:', error.message);
         get().showToast(error.message, 'error');
-        return;
+        throw error;
       }
 
       if (data.session) {
-        set({
-          isAuthenticated: true,
-          session: data.session,
-          member: {
-            ...mockMember,
-            email: data.session.user.email || email,
-            id: data.session.user.id,
-          },
-        });
+        console.log('Login successful for:', data.session.user.email);
+        // Don't set state here - let useSupabaseAuth handle it to prevent conflicts
         get().showToast('Welcome back!', 'success');
       }
     } catch (error: any) {
+      console.log('Login failed:', error.message);
       get().showToast(error.message || 'Login failed', 'error');
+      throw error;
     }
   },
 
-  signUpWithSupabase: async (email: string, password: string) => {
+  signUpWithSupabase: async (email: string, password: string, profileData?: any) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+      console.log('SignUp with profile data:', profileData);
+      const signUpParams: any = { email, password };
+      if (profileData) {
+        signUpParams.options = { data: profileData };
+      }
+      const { data, error } = await supabase.auth.signUp(signUpParams);
 
       if (error) {
+        console.error('Signup error:', error);
         get().showToast(error.message, 'error');
-        return;
+        throw error;
       }
 
+      console.log('Signup data:', data);
+
       if (data.session) {
-        set({
-          isAuthenticated: true,
-          session: data.session,
-          member: {
-            ...mockMember,
-            email: data.session.user.email || email,
-            id: data.session.user.id,
-          },
-        });
+        console.log('Session exists, creating profile...');
+        // Create profile record using the database function
+        if (profileData) {
+          console.log('Creating profile with data:', profileData);
+
+          const { data: profileResult, error: profileError } = await supabase
+            .rpc('create_user_profile', {
+              user_id: data.session.user.id,
+              user_email: email,
+              first_name: profileData.first_name,
+              last_name: profileData.last_name,
+              date_of_birth: profileData.date_of_birth,
+              phone: profileData.phone,
+              address: profileData.address || null,
+              city: profileData.city || null,
+              county: profileData.county || null,
+              gender: profileData.gender,
+            });
+
+          if (profileError) {
+            console.error('Error creating profile:', profileError);
+            get().showToast('Failed to save profile data', 'error');
+          } else {
+            console.log('Profile created successfully:', profileResult);
+          }
+        }
+
+        // Don't set state here - let useSupabaseAuth handle it to prevent conflicts
         get().showToast('Account created successfully!', 'success');
+      } else if (data.user && !data.session) {
+        console.log('User created but no session (email confirmation required)');
+        // Email confirmation required - still create profile for when they confirm
+        if (profileData) {
+          console.log('Creating profile for unconfirmed user with data:', profileData);
+
+          const { data: profileResult, error: profileError } = await supabase
+            .rpc('create_user_profile', {
+              user_id: data.user.id,
+              user_email: email,
+              first_name: profileData.first_name,
+              last_name: profileData.last_name,
+              date_of_birth: profileData.date_of_birth,
+              phone: profileData.phone,
+              address: profileData.address || null,
+              city: profileData.city || null,
+              county: profileData.county || null,
+              gender: profileData.gender,
+            });
+
+          if (profileError) {
+            console.error('Error creating profile for unconfirmed user:', profileError);
+          } else {
+            console.log('Profile created for unconfirmed user:', profileResult);
+          }
+        }
+        get().showToast('Please check your email to confirm your account', 'info');
       } else {
+        console.log('No user or session created');
         get().showToast('Please check your email to confirm your account', 'info');
       }
     } catch (error: any) {
+      console.error('SignUp failed:', error);
       get().showToast(error.message || 'Sign up failed', 'error');
+      throw error;
     }
   },
 
   logout: async () => {
     try {
+      console.log('Initiating logout...');
       const { error } = await supabase.auth.signOut();
 
       if (error) {
+        console.log('Logout error:', error.message);
         get().showToast(error.message, 'error');
         return;
       }
 
-      set({
-        isAuthenticated: false,
-        member: null,
-        session: null,
-        bookings: new Set(),
-        bookingHistory: [],
-      });
+      console.log('Logout successful - auth state will be handled by useSupabaseAuth');
+      // Don't set state here - let useSupabaseAuth handle the SIGNED_OUT event
       get().showToast('Logged out successfully', 'info');
     } catch (error: any) {
+      console.log('Logout failed:', error.message);
       get().showToast(error.message || 'Logout failed', 'error');
     }
   },
@@ -161,7 +200,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         return;
       }
 
-      if (session) {
+      const currentState = get();
+      // Only update if session state has actually changed
+      if (session && (!currentState.isAuthenticated || currentState.session?.user?.id !== session.user.id)) {
         set({
           isAuthenticated: true,
           session,
@@ -169,7 +210,15 @@ export const useAppStore = create<AppState>((set, get) => ({
             ...mockMember,
             email: session.user.email || '',
             id: session.user.id,
+            name: session.user.user_metadata?.full_name || mockMember.name,
           },
+        });
+      } else if (!session && currentState.isAuthenticated) {
+        // Clear auth state if no session but currently authenticated
+        set({
+          isAuthenticated: false,
+          session: null,
+          member: null,
         });
       }
     } catch (error) {

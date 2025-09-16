@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,11 +12,16 @@ import {
   LogOut,
   ChevronRight,
   Settings,
+  MapPin,
+  Calendar,
+  User,
+  Edit,
 } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { AppHeader } from '../../components/AppHeader';
 import { PillButton } from '../../components/PillButton';
+import { supabase } from '../../utils/supabase';
 
 interface SettingItem {
   id: string;
@@ -28,13 +33,89 @@ interface SettingItem {
   onToggle?: (value: boolean) => void;
 }
 
+interface Profile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  county?: string;
+  date_of_birth?: string;
+  gender?: string;
+  avatar_url?: string;
+  membership_status: string;
+  membership_plan: string;
+  join_date: string;
+  expiry_date?: string;
+  visits_left?: number;
+  days_left?: number;
+  last_check_in?: string;
+}
+
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(false);
   const [classReminders, setClassReminders] = useState(true);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const { member, logout } = useAppStore();
+  const { member, logout, session, showToast } = useAppStore();
+
+  // Load profile data from Supabase
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!session?.user?.id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (error) {
+          console.error('Error loading profile:', error);
+          showToast('Failed to load profile data', 'error');
+        } else if (data) {
+          setProfile(data);
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        showToast('Failed to load profile data', 'error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [session?.user?.id, showToast]);
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) {return 'Not set';}
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  const calculateAge = (dateOfBirth?: string) => {
+    if (!dateOfBirth) {return null;}
+    const today = new Date();
+    const birth = new Date(dateOfBirth);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -131,7 +212,25 @@ export default function ProfileScreen() {
     },
   ];
 
-  if (!member) {
+  if (loading) {
+    return (
+      <View style={{
+        flex: 1,
+        backgroundColor: theme.colors.background.DEFAULT,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+        <Text style={{
+          fontSize: theme.typography.body.fontSize,
+          color: theme.colors.text.secondary,
+        }}>
+          Loading profile...
+        </Text>
+      </View>
+    );
+  }
+
+  if (!member || !profile) {
     return null;
   }
 
@@ -194,7 +293,8 @@ export default function ProfileScreen() {
                 fontWeight: '700',
                 color: '#ffffff',
               }}>
-                {member.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                {profile.first_name?.[0]?.toUpperCase() || ''}
+                {profile.last_name?.[0]?.toUpperCase() || ''}
               </Text>
             </View>
 
@@ -206,21 +306,45 @@ export default function ProfileScreen() {
                 color: theme.colors.text.primary,
                 marginBottom: theme.spacing.xs,
               }}>
-                {member.name}
+                {profile.first_name} {profile.last_name}
               </Text>
               <Text style={{
                 fontSize: theme.typography.body.fontSize,
                 color: theme.colors.text.secondary,
                 marginBottom: theme.spacing.xs,
               }}>
-                {member.email}
+                {profile.email}
               </Text>
-              <Text style={{
-                fontSize: theme.typography.caption.fontSize,
-                color: theme.colors.text.secondary,
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
               }}>
-                Member since {new Date(member.joinDate).getFullYear()}
-              </Text>
+                <Text style={{
+                  fontSize: theme.typography.caption.fontSize,
+                  color: theme.colors.text.secondary,
+                  marginRight: theme.spacing.md,
+                }}>
+                  Member since {new Date(profile.join_date).getFullYear()}
+                </Text>
+                <View style={{
+                  paddingHorizontal: theme.spacing.sm,
+                  paddingVertical: 2,
+                  backgroundColor: profile.membership_status === 'active'
+                    ? 'rgba(77, 212, 212, 0.2)'
+                    : 'rgba(255, 107, 107, 0.2)',
+                  borderRadius: theme.borderRadius.sm,
+                }}>
+                  <Text style={{
+                    fontSize: theme.typography.small.fontSize,
+                    color: profile.membership_status === 'active'
+                      ? theme.colors.primary.DEFAULT
+                      : theme.colors.status.error,
+                    fontWeight: '600',
+                  }}>
+                    {profile.membership_status.toUpperCase()}
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
 
@@ -261,8 +385,259 @@ export default function ProfileScreen() {
                 fontSize: theme.typography.caption.fontSize,
                 color: theme.colors.text.secondary,
               }}>
-                {member.phone}
+                {profile.phone || 'Not provided'}
               </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Personal Information */}
+        <View style={{
+          backgroundColor: theme.colors.background.surface,
+          borderRadius: theme.borderRadius.xl,
+          padding: theme.spacing.xl,
+          marginBottom: theme.spacing.xl,
+          borderWidth: 1,
+          borderColor: 'rgba(77, 212, 212, 0.2)',
+          ...theme.shadows.medium,
+        }}>
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: theme.spacing.lg,
+          }}>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
+              <User
+                size={24}
+                color={theme.colors.primary.DEFAULT}
+                style={{ marginRight: theme.spacing.sm }}
+              />
+              <Text style={{
+                fontSize: theme.typography.h3.fontSize,
+                fontWeight: theme.typography.h3.fontWeight,
+                color: theme.colors.text.primary,
+              }}>
+                Personal Information
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => console.log('Edit profile')}
+              style={{
+                padding: theme.spacing.sm,
+                backgroundColor: 'rgba(77, 212, 212, 0.1)',
+                borderRadius: theme.borderRadius.md,
+              }}
+            >
+              <Edit
+                size={16}
+                color={theme.colors.primary.DEFAULT}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Personal Details Grid */}
+          <View style={{ gap: theme.spacing.md }}>
+            {/* Date of Birth */}
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingVertical: theme.spacing.sm,
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                flex: 1,
+              }}>
+                <Calendar
+                  size={16}
+                  color={theme.colors.text.secondary}
+                  style={{ marginRight: theme.spacing.sm }}
+                />
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  color: theme.colors.text.secondary,
+                  flex: 1,
+                }}>
+                  Date of Birth
+                </Text>
+              </View>
+              <Text style={{
+                fontSize: theme.typography.body.fontSize,
+                color: theme.colors.text.primary,
+                fontWeight: '500',
+              }}>
+                {formatDate(profile.date_of_birth)}
+                {profile.date_of_birth && calculateAge(profile.date_of_birth) ?
+                  ` (${calculateAge(profile.date_of_birth)} years)` : ''}
+              </Text>
+            </View>
+
+            {/* Gender */}
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingVertical: theme.spacing.sm,
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                flex: 1,
+              }}>
+                <User
+                  size={16}
+                  color={theme.colors.text.secondary}
+                  style={{ marginRight: theme.spacing.sm }}
+                />
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  color: theme.colors.text.secondary,
+                  flex: 1,
+                }}>
+                  Gender
+                </Text>
+              </View>
+              <Text style={{
+                fontSize: theme.typography.body.fontSize,
+                color: theme.colors.text.primary,
+                fontWeight: '500',
+              }}>
+                {profile.gender ?
+                  profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1) :
+                  'Not specified'}
+              </Text>
+            </View>
+
+            {/* Phone */}
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingVertical: theme.spacing.sm,
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                flex: 1,
+              }}>
+                <Phone
+                  size={16}
+                  color={theme.colors.text.secondary}
+                  style={{ marginRight: theme.spacing.sm }}
+                />
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  color: theme.colors.text.secondary,
+                  flex: 1,
+                }}>
+                  Phone
+                </Text>
+              </View>
+              <Text style={{
+                fontSize: theme.typography.body.fontSize,
+                color: theme.colors.text.primary,
+                fontWeight: '500',
+              }}>
+                {profile.phone || 'Not provided'}
+              </Text>
+            </View>
+
+            {/* Address */}
+            {(profile.address || profile.city || profile.county) && (
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                paddingVertical: theme.spacing.sm,
+              }}>
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  flex: 1,
+                }}>
+                  <MapPin
+                    size={16}
+                    color={theme.colors.text.secondary}
+                    style={{ marginRight: theme.spacing.sm }}
+                  />
+                  <Text style={{
+                    fontSize: theme.typography.body.fontSize,
+                    color: theme.colors.text.secondary,
+                    flex: 1,
+                  }}>
+                    Address
+                  </Text>
+                </View>
+                <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                  {profile.address && (
+                    <Text style={{
+                      fontSize: theme.typography.body.fontSize,
+                      color: theme.colors.text.primary,
+                      fontWeight: '500',
+                      textAlign: 'right',
+                    }}>
+                      {profile.address}
+                    </Text>
+                  )}
+                  {(profile.city || profile.county) && (
+                    <Text style={{
+                      fontSize: theme.typography.body.fontSize,
+                      color: theme.colors.text.primary,
+                      fontWeight: '500',
+                      textAlign: 'right',
+                      marginTop: 2,
+                    }}>
+                      {[profile.city, profile.county].filter(Boolean).join(', ')}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            )}
+
+            {/* Membership Plan */}
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingVertical: theme.spacing.sm,
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                flex: 1,
+              }}>
+                <Star
+                  size={16}
+                  color={theme.colors.text.secondary}
+                  style={{ marginRight: theme.spacing.sm }}
+                />
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  color: theme.colors.text.secondary,
+                  flex: 1,
+                }}>
+                  Membership Plan
+                </Text>
+              </View>
+              <View style={{
+                paddingHorizontal: theme.spacing.md,
+                paddingVertical: theme.spacing.xs,
+                backgroundColor: 'rgba(77, 212, 212, 0.1)',
+                borderRadius: theme.borderRadius.md,
+              }}>
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  color: theme.colors.primary.DEFAULT,
+                  fontWeight: '600',
+                }}>
+                  {profile.membership_plan}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
@@ -413,7 +788,7 @@ export default function ProfileScreen() {
           title="Sign Out"
           onPress={handleLogout}
           variant="danger"
-          size="large"
+          size="medium"
           fullWidth
           icon={LogOut}
         />

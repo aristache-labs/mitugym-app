@@ -40,26 +40,29 @@ export function PillButton({
       case 'small':
         return {
           paddingHorizontal: theme.spacing.md,
-          paddingVertical: theme.spacing.sm,
-          fontSize: theme.typography.caption.fontSize,
+          paddingVertical: theme.spacing.xs,
+          fontSize: 13,
           iconSize: 16,
           borderRadius: theme.borderRadius.lg,
+          height: 36,
         };
       case 'large':
         return {
           paddingHorizontal: theme.spacing.xl,
-          paddingVertical: theme.spacing.lg,
-          fontSize: theme.typography.h3.fontSize,
-          iconSize: 24,
+          paddingVertical: theme.spacing.sm,
+          fontSize: theme.typography.body.fontSize,
+          iconSize: 20,
           borderRadius: theme.borderRadius.xl,
+          height: 48,
         };
       default: // medium
         return {
           paddingHorizontal: theme.spacing.lg,
-          paddingVertical: theme.spacing.md,
-          fontSize: theme.typography.body.fontSize,
-          iconSize: 20,
+          paddingVertical: theme.spacing.xs,
+          fontSize: 14,
+          iconSize: 18,
           borderRadius: theme.borderRadius.lg,
+          height: 42,
         };
     }
   };
@@ -115,7 +118,7 @@ export function PillButton({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: sizeStyles.paddingVertical * 2 + sizeStyles.fontSize * 1.2,
+        height: sizeStyles.height - (sizeStyles.paddingVertical * 2),
       }}
     >
       {loading ? (
@@ -139,6 +142,7 @@ export function PillButton({
               fontWeight: '600',
               color: variantStyles.textColor,
               textAlign: 'center',
+              letterSpacing: 0.3,
             }}
           >
             {title}
@@ -175,6 +179,8 @@ export function PillButton({
             borderRadius: sizeStyles.borderRadius,
             paddingHorizontal: sizeStyles.paddingHorizontal,
             paddingVertical: sizeStyles.paddingVertical,
+            height: sizeStyles.height,
+            justifyContent: 'center',
             ...theme.shadows.soft,
           }}
         >
@@ -191,11 +197,13 @@ export function PillButton({
       activeOpacity={0.7}
       style={{
         backgroundColor: variantStyles.backgroundColor,
-        borderWidth: variant === 'outline' ? 2 : 0,
+        borderWidth: variant === 'outline' ? 1.5 : 0,
         borderColor: variantStyles.borderColor,
         borderRadius: sizeStyles.borderRadius,
         paddingHorizontal: sizeStyles.paddingHorizontal,
         paddingVertical: sizeStyles.paddingVertical,
+        height: sizeStyles.height,
+        justifyContent: 'center',
         width: fullWidth ? '100%' : undefined,
         opacity: variantStyles.opacity,
         ...theme.shadows.soft,

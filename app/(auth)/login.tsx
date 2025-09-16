@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { router } from 'expo-router';
+import { View, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { router, Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Mail, Apple, Chrome, Lock } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { isValidEmail } from '../../lib/utils';
@@ -12,9 +12,9 @@ import { PillButton } from '../../components/PillButton';
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
-  const { login, loginWithSupabase, signUpWithSupabase, isAuthenticated } = useAppStore();
+  const { loginWithSupabase, isAuthenticated, showToast } = useAppStore();
 
   // Redirect if already authenticated
   React.useEffect(() => {
@@ -23,43 +23,26 @@ export default function LoginScreen() {
     }
   }, [isAuthenticated]);
 
-  const handleMagicLinkLogin = async () => {
+  const handleLogin = async () => {
     if (!isValidEmail(email)) {
+      showToast('Please enter a valid email address', 'error');
+      return;
+    }
+
+    if (password.length < 6) {
+      showToast('Password must be at least 6 characters', 'error');
       return;
     }
 
     setIsLoading(true);
     try {
-      // Mock magic link login
-      await login(email);
-      router.replace('/(tabs)');
+      await loginWithSupabase(email, password);
+      // Don't manually navigate - let the auth state change handle navigation
+    } catch (error) {
+      showToast('Invalid email or password', 'error');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleSupabaseAuth = async () => {
-    if (!isValidEmail(email) || !password) {
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      if (isSignUp) {
-        await signUpWithSupabase(email, password);
-      } else {
-        await loginWithSupabase(email, password);
-      }
-      router.replace('/(tabs)');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSocialLogin = (provider: 'apple' | 'google') => {
-    // Mock social login
-    console.log(`${provider} login initiated`);
-    // In real app, implement social auth here
   };
 
   const handleBack = () => {
@@ -73,7 +56,7 @@ export default function LoginScreen() {
     >
       <AppHeader
         title="Welcome Back"
-        subtitle="Sign in to continue"
+        subtitle="Sign in to your account"
         showBack
         onBack={handleBack}
         transparent
@@ -115,81 +98,7 @@ export default function LoginScreen() {
             </Text>
           </View>
 
-          {/* Magic Link Form */}
-          <View style={{
-            backgroundColor: theme.colors.background.surface,
-            borderRadius: theme.borderRadius.xl,
-            padding: theme.spacing.xl,
-            marginBottom: theme.spacing.xl,
-            borderWidth: 1,
-            borderColor: 'rgba(30, 155, 113, 0.2)',
-            ...theme.shadows.medium,
-          }}>
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginBottom: theme.spacing.lg,
-            }}>
-              <Mail
-                size={24}
-                color={theme.colors.primary.DEFAULT}
-                style={{ marginRight: theme.spacing.sm }}
-              />
-              <Text style={{
-                fontSize: theme.typography.h3.fontSize,
-                fontWeight: theme.typography.h3.fontWeight,
-                color: theme.colors.text.primary,
-              }}>
-                Sign in with Email
-              </Text>
-            </View>
-
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email address"
-              placeholderTextColor={theme.colors.text.secondary}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="email"
-              style={{
-                backgroundColor: 'rgba(30, 155, 113, 0.05)',
-                borderWidth: 1,
-                borderColor: isValidEmail(email)
-                  ? theme.colors.primary.DEFAULT
-                  : 'rgba(167, 195, 186, 0.3)',
-                borderRadius: theme.borderRadius.lg,
-                paddingHorizontal: theme.spacing.lg,
-                paddingVertical: theme.spacing.md,
-                fontSize: theme.typography.body.fontSize,
-                color: theme.colors.text.primary,
-                marginBottom: theme.spacing.lg,
-              }}
-            />
-
-            <PillButton
-              title="Send Magic Link"
-              onPress={handleMagicLinkLogin}
-              variant="primary"
-              size="large"
-              fullWidth
-              disabled={!isValidEmail(email)}
-              loading={isLoading}
-            />
-
-            <Text style={{
-              fontSize: theme.typography.caption.fontSize,
-              color: theme.colors.text.secondary,
-              textAlign: 'center',
-              marginTop: theme.spacing.md,
-              lineHeight: 18,
-            }}>
-              We'll send you a secure link to sign in instantly
-            </Text>
-          </View>
-
-          {/* Supabase Auth Form */}
+          {/* Login Form */}
           <View style={{
             backgroundColor: theme.colors.background.surface,
             borderRadius: theme.borderRadius.xl,
@@ -214,123 +123,152 @@ export default function LoginScreen() {
                 fontWeight: theme.typography.h3.fontWeight,
                 color: theme.colors.text.primary,
               }}>
-                {isSignUp ? 'Create Account' : 'Sign in with Supabase'}
+                Sign In
               </Text>
             </View>
 
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Email address"
-              placeholderTextColor={theme.colors.text.secondary}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="email"
-              style={{
+            {/* Email Input */}
+            <View style={{ marginBottom: theme.spacing.md }}>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
                 backgroundColor: 'rgba(77, 212, 212, 0.05)',
                 borderWidth: 1,
                 borderColor: isValidEmail(email)
                   ? theme.colors.primary.DEFAULT
                   : 'rgba(179, 217, 217, 0.3)',
                 borderRadius: theme.borderRadius.lg,
-                paddingHorizontal: theme.spacing.lg,
-                paddingVertical: theme.spacing.md,
-                fontSize: theme.typography.body.fontSize,
-                color: theme.colors.text.primary,
-                marginBottom: theme.spacing.md,
-              }}
-            />
+              }}>
+                <Mail
+                  size={20}
+                  color={theme.colors.text.secondary}
+                  style={{ marginLeft: theme.spacing.lg }}
+                />
+                <TextInput
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="Email address"
+                  placeholderTextColor={theme.colors.text.secondary}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="email"
+                  style={{
+                    flex: 1,
+                    paddingHorizontal: theme.spacing.md,
+                    paddingVertical: theme.spacing.md,
+                    fontSize: theme.typography.body.fontSize,
+                    color: theme.colors.text.primary,
+                  }}
+                />
+              </View>
+            </View>
 
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Password"
-              placeholderTextColor={theme.colors.text.secondary}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="password"
-              style={{
+            {/* Password Input */}
+            <View style={{ marginBottom: theme.spacing.lg }}>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
                 backgroundColor: 'rgba(77, 212, 212, 0.05)',
                 borderWidth: 1,
                 borderColor: password.length >= 6
                   ? theme.colors.primary.DEFAULT
                   : 'rgba(179, 217, 217, 0.3)',
                 borderRadius: theme.borderRadius.lg,
-                paddingHorizontal: theme.spacing.lg,
-                paddingVertical: theme.spacing.md,
-                fontSize: theme.typography.body.fontSize,
-                color: theme.colors.text.primary,
-                marginBottom: theme.spacing.lg,
-              }}
-            />
+              }}>
+                <Lock
+                  size={20}
+                  color={theme.colors.text.secondary}
+                  style={{ marginLeft: theme.spacing.lg }}
+                />
+                <TextInput
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Password"
+                  placeholderTextColor={theme.colors.text.secondary}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="password"
+                  style={{
+                    flex: 1,
+                    paddingHorizontal: theme.spacing.md,
+                    paddingVertical: theme.spacing.md,
+                    fontSize: theme.typography.body.fontSize,
+                    color: theme.colors.text.primary,
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={{
+                    padding: theme.spacing.sm,
+                    marginRight: theme.spacing.sm,
+                  }}
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} color={theme.colors.text.secondary} />
+                  ) : (
+                    <Eye size={20} color={theme.colors.text.secondary} />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
 
+            {/* Login Button */}
             <PillButton
-              title={isSignUp ? 'Create Account' : 'Sign In'}
-              onPress={handleSupabaseAuth}
-              variant="secondary"
-              size="large"
+              title="Sign In"
+              onPress={handleLogin}
+              variant="primary"
+              size="medium"
               fullWidth
               disabled={!isValidEmail(email) || password.length < 6}
               loading={isLoading}
             />
 
-            <View style={{ marginTop: theme.spacing.md }}>
-              <PillButton
-                title={isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
-                onPress={() => setIsSignUp(!isSignUp)}
-                variant="ghost"
-                size="medium"
-                fullWidth
-              />
+            {/* Forgot Password Link */}
+            <View style={{
+              alignItems: 'center',
+              marginTop: theme.spacing.lg,
+            }}>
+              <Link href="/(auth)/recovery" asChild>
+                <TouchableOpacity>
+                  <Text style={{
+                    fontSize: theme.typography.body.fontSize,
+                    color: theme.colors.primary.DEFAULT,
+                    textAlign: 'center',
+                  }}>
+                    Forgot your password?
+                  </Text>
+                </TouchableOpacity>
+              </Link>
             </View>
           </View>
 
-          {/* Divider */}
+          {/* Register Link */}
           <View style={{
             flexDirection: 'row',
+            justifyContent: 'center',
             alignItems: 'center',
-            marginVertical: theme.spacing.xl,
+            paddingHorizontal: theme.spacing.lg,
           }}>
-            <View style={{
-              flex: 1,
-              height: 1,
-              backgroundColor: 'rgba(167, 195, 186, 0.3)',
-            }} />
             <Text style={{
-              fontSize: theme.typography.caption.fontSize,
+              fontSize: theme.typography.body.fontSize,
               color: theme.colors.text.secondary,
-              paddingHorizontal: theme.spacing.lg,
+              marginRight: theme.spacing.sm,
             }}>
-              OR
+              Don't have an account?
             </Text>
-            <View style={{
-              flex: 1,
-              height: 1,
-              backgroundColor: 'rgba(167, 195, 186, 0.3)',
-            }} />
-          </View>
-
-          {/* Social Login Buttons */}
-          <View style={{ gap: theme.spacing.md }}>
-            <PillButton
-              title="Continue with Apple"
-              onPress={() => handleSocialLogin('apple')}
-              variant="outline"
-              size="large"
-              fullWidth
-              icon={Apple}
-            />
-
-            <PillButton
-              title="Continue with Google"
-              onPress={() => handleSocialLogin('google')}
-              variant="outline"
-              size="large"
-              fullWidth
-              icon={Chrome}
-            />
+            <Link href="/(auth)/register" asChild>
+              <TouchableOpacity>
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  color: theme.colors.primary.DEFAULT,
+                  fontWeight: '600',
+                }}>
+                  Sign Up
+                </Text>
+              </TouchableOpacity>
+            </Link>
           </View>
 
           {/* Terms */}
@@ -341,7 +279,7 @@ export default function LoginScreen() {
             marginTop: theme.spacing.xl,
             lineHeight: 18,
           }}>
-            By continuing, you agree to our{' '}
+            By signing in, you agree to our{' '}
             <Text style={{ color: theme.colors.primary.DEFAULT }}>
               Terms of Service
             </Text>{' '}

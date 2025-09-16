@@ -39,25 +39,110 @@ function TabIcon({ name, color, size }: TabIconProps) {
   }
 }
 
+// Global flag to prevent multiple tab layout initializations
+let globalTabLayoutInitialized = false;
+let globalRedirectInProgress = false;
+
 export default function TabLayout() {
   const router = useRouter();
   const segments = useSegments();
-  const { isAuthenticated } = useAppStore();
+  const [localAuthState, setLocalAuthState] = React.useState(true); // Start optimistic
+  const hasCheckedAuth = React.useRef(false);
 
   // Define tabBarIcon function outside render to avoid creating new component instances
   const renderTabBarIcon = React.useCallback((props: any, routeName: string) => (
     <TabIcon name={routeName} {...props} />
   ), []);
 
-  // Redirect if not authenticated
+  // Check auth state only once on mount
   React.useEffect(() => {
-    if (!isAuthenticated) {
-      router.replace('/');
+    if (hasCheckedAuth.current || globalTabLayoutInitialized) {
+      return;
     }
-  }, [isAuthenticated, router]);
+    hasCheckedAuth.current = true;
+    globalTabLayoutInitialized = true;
+
+    // Check initial auth state
+    const initialAuth = useAppStore.getState().isAuthenticated;
+    console.log('TabLayout: Initial auth state:', initialAuth);
+    setLocalAuthState(initialAuth);
+
+    // If not authenticated initially, redirect immediately
+    if (!initialAuth && !globalRedirectInProgress) {
+      globalRedirectInProgress = true;
+      setTimeout(() => {
+        console.log('TabLayout: Initial redirect to login');
+        // Try to navigate out of tabs stack first
+        if (router.canGoBack()) {
+          router.back();
+        }
+        setTimeout(() => {
+          router.replace('/');
+        }, 50);
+        // Reset after a delay to allow for future redirects if needed
+        setTimeout(() => {
+          globalRedirectInProgress = false;
+          globalTabLayoutInitialized = false; // Reset to allow new checks
+        }, 1000);
+      }, 100);
+      return; // Don't set up polling if we're redirecting
+    }
+
+    // Set up a simple polling mechanism to check auth state changes
+    // This avoids the subscription causing re-renders
+    let previousAuth = initialAuth;
+    let isActive = true;
+
+    const checkAuthChanges = () => {
+      if (!isActive) {return;}
+
+      const currentAuth = useAppStore.getState().isAuthenticated;
+      if (currentAuth !== previousAuth) {
+        console.log('TabLayout: Auth polling detected change from', previousAuth, 'to', currentAuth);
+        previousAuth = currentAuth;
+
+        if (!currentAuth && !globalRedirectInProgress) {
+          globalRedirectInProgress = true;
+          isActive = false; // Stop polling
+          setLocalAuthState(false);
+          setTimeout(() => {
+            console.log('TabLayout: Polling redirect to login');
+            // Try to navigate out of tabs stack first
+            if (router.canGoBack()) {
+              router.back();
+            }
+            setTimeout(() => {
+              router.replace('/');
+            }, 50);
+            // Reset after a delay to allow for future redirects if needed
+            setTimeout(() => {
+              globalRedirectInProgress = false;
+              globalTabLayoutInitialized = false; // Reset to allow new checks
+            }, 1000);
+          }, 100);
+        } else if (currentAuth) {
+          setLocalAuthState(true);
+        }
+      }
+
+      // Poll every 500ms
+      if (isActive) {
+        setTimeout(checkAuthChanges, 500);
+      }
+    };
+
+    // Start polling after auth manager has time to initialize
+    setTimeout(checkAuthChanges, 1000);
+
+    return () => {
+      isActive = false;
+      globalTabLayoutInitialized = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // router intentionally excluded to prevent re-initialization
 
   // Show loading/blank while redirecting
-  if (!isAuthenticated) {
+  if (!localAuthState) {
     return null;
   }
 
