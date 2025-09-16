@@ -8,7 +8,7 @@ import { triggerHaptic } from '../lib/utils';
 interface PillButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'danger';
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
   size?: 'small' | 'medium' | 'large';
   disabled?: boolean;
   loading?: boolean;
@@ -87,6 +87,13 @@ export function PillButton({
           backgroundColor: theme.colors.status.error,
           borderColor: theme.colors.status.error,
           textColor: '#ffffff',
+          opacity,
+        };
+      case 'ghost':
+        return {
+          backgroundColor: 'transparent',
+          borderColor: 'transparent',
+          textColor: theme.colors.text.secondary,
           opacity,
         };
       default: // primary

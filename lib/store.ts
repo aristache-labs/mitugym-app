@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { supabase } from '../utils/supabase';
 import {
   mockMember,
   mockClasses,
@@ -12,8 +13,12 @@ import {
 interface AuthState {
   isAuthenticated: boolean;
   member: Member | null;
+  session: any; // Supabase session
   login: (email: string) => Promise<void>;
-  logout: () => void;
+  loginWithSupabase: (email: string, password: string) => Promise<void>;
+  signUpWithSupabase: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuthState: () => Promise<void>;
 }
 
 interface ClassState {
@@ -42,6 +47,7 @@ interface ToastState {
   message: string;
   type: 'success' | 'error' | 'info';
   visible: boolean;
+  toastTimeoutId: ReturnType<typeof setTimeout> | null;
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
   hideToast: () => void;
 }
@@ -52,8 +58,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Auth state
   isAuthenticated: false,
   member: null,
+  session: null,
+
   login: async (email: string) => {
-    // Mock login - in real app, this would call authentication API
+    // Mock login - for demo purposes
     await new Promise(resolve => setTimeout(resolve, 1000));
     set({
       isAuthenticated: true,
@@ -61,14 +69,112 @@ export const useAppStore = create<AppState>((set, get) => ({
     });
     get().showToast('Welcome back!', 'success');
   },
-  logout: () => {
-    set({
-      isAuthenticated: false,
-      member: null,
-      bookings: new Set(),
-      bookingHistory: [],
-    });
-    get().showToast('Logged out successfully', 'info');
+
+  loginWithSupabase: async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        get().showToast(error.message, 'error');
+        return;
+      }
+
+      if (data.session) {
+        set({
+          isAuthenticated: true,
+          session: data.session,
+          member: {
+            ...mockMember,
+            email: data.session.user.email || email,
+            id: data.session.user.id,
+          },
+        });
+        get().showToast('Welcome back!', 'success');
+      }
+    } catch (error: any) {
+      get().showToast(error.message || 'Login failed', 'error');
+    }
+  },
+
+  signUpWithSupabase: async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) {
+        get().showToast(error.message, 'error');
+        return;
+      }
+
+      if (data.session) {
+        set({
+          isAuthenticated: true,
+          session: data.session,
+          member: {
+            ...mockMember,
+            email: data.session.user.email || email,
+            id: data.session.user.id,
+          },
+        });
+        get().showToast('Account created successfully!', 'success');
+      } else {
+        get().showToast('Please check your email to confirm your account', 'info');
+      }
+    } catch (error: any) {
+      get().showToast(error.message || 'Sign up failed', 'error');
+    }
+  },
+
+  logout: async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        get().showToast(error.message, 'error');
+        return;
+      }
+
+      set({
+        isAuthenticated: false,
+        member: null,
+        session: null,
+        bookings: new Set(),
+        bookingHistory: [],
+      });
+      get().showToast('Logged out successfully', 'info');
+    } catch (error: any) {
+      get().showToast(error.message || 'Logout failed', 'error');
+    }
+  },
+
+  checkAuthState: async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+
+      if (error) {
+        console.error('Error checking auth state:', error);
+        return;
+      }
+
+      if (session) {
+        set({
+          isAuthenticated: true,
+          session,
+          member: {
+            ...mockMember,
+            email: session.user.email || '',
+            id: session.user.id,
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Error checking auth state:', error);
+    }
   },
 
   // Class state
@@ -202,13 +308,26 @@ export const useAppStore = create<AppState>((set, get) => ({
   message: '',
   type: 'info',
   visible: false,
+  toastTimeoutId: null as ReturnType<typeof setTimeout> | null,
   showToast: (message: string, type: 'success' | 'error' | 'info') => {
-    set({ message, type, visible: true });
-    setTimeout(() => {
+    const state = get();
+
+    // Clear existing timeout
+    if (state.toastTimeoutId) {
+      clearTimeout(state.toastTimeoutId);
+    }
+
+    const timeoutId = setTimeout(() => {
       get().hideToast();
     }, 3000);
+
+    set({ message, type, visible: true, toastTimeoutId: timeoutId });
   },
   hideToast: () => {
-    set({ visible: false });
+    const state = get();
+    if (state.toastTimeoutId) {
+      clearTimeout(state.toastTimeoutId);
+    }
+    set({ visible: false, toastTimeoutId: null });
   },
 }));

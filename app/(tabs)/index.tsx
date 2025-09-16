@@ -73,23 +73,23 @@ export default function HomeScreen() {
 
   if (!member) {
     return (
-      <View style={{ 
-        flex: 1, 
+      <View style={{
+        flex: 1,
         backgroundColor: theme.colors.background.DEFAULT,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
       }}>
-        <Text style={{ 
+        <Text style={{
           color: theme.colors.text.primary,
           fontSize: 24,
-          fontWeight: 'bold'
+          fontWeight: 'bold',
         }}>
           MITUGYM
         </Text>
-        <Text style={{ 
+        <Text style={{
           color: theme.colors.text.secondary,
           fontSize: 16,
-          marginTop: 8
+          marginTop: 8,
         }}>
           Loading...
         </Text>

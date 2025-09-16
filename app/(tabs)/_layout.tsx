@@ -44,6 +44,11 @@ export default function TabLayout() {
   const segments = useSegments();
   const { isAuthenticated } = useAppStore();
 
+  // Define tabBarIcon function outside render to avoid creating new component instances
+  const renderTabBarIcon = React.useCallback((props: any, routeName: string) => (
+    <TabIcon name={routeName} {...props} />
+  ), []);
+
   // Redirect if not authenticated
   React.useEffect(() => {
     if (!isAuthenticated) {
@@ -86,9 +91,7 @@ export default function TabLayout() {
           tabBarIconStyle: {
             marginBottom: 0,
           },
-          tabBarIcon: (props) => (
-            <TabIcon name={route.name} {...props} />
-          ),
+          tabBarIcon: (props) => renderTabBarIcon(props, route.name),
         })}
       >
         <Tabs.Screen

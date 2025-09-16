@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useEffect } from 'react';
 import { useAppStore } from '../lib/store';
 import { Toast } from '../components/Toast';
+import { useSupabaseAuth } from '../utils/useSupabaseAuth';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync();
@@ -27,6 +28,9 @@ export default function RootLayout() {
     hideToast,
   } = useAppStore();
 
+  // Initialize Supabase auth
+  useSupabaseAuth();
+
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
@@ -40,11 +44,11 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <StatusBar style="light" backgroundColor="#0b0f0e" />
+        <StatusBar style="light" backgroundColor="#0A0F0F" />
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: '#0b0f0e' },
+            contentStyle: { backgroundColor: '#0A0F0F' },
             animation: 'slide_from_right',
           }}
         >

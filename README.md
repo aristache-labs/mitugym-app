@@ -107,15 +107,20 @@ mitugym-app/
 
 ### Color Palette
 
-- **Primary**: `#1e9b71` (Green)
-- **Secondary**: `#31d7a6` (Mint)  
-- **Background**: `#0b0f0e` (Dark)
-- **Surface**: `#111618` (Dark Grey)
-- **Text Primary**: `#e6f2ee` (Light Green)
-- **Text Secondary**: `#a7c3ba` (Muted Green)
-- **Success**: `#2ecc71`
-- **Warning**: `#f1c40f`
-- **Error**: `#e74c3c`
+**Brand-Aligned Turquoise Theme** 🎨
+- **Primary**: `#4DD4D4` (Turquoise - matches logo)
+- **Secondary**: `#5CDFDF` (Light Turquoise)  
+- **Accent**: `#44E4E4` (Bright Turquoise highlights)
+- **Background**: `#0A0F0F` (Deep Dark)
+- **Surface**: `#141A1A` (Dark Surface)
+- **Card**: `#1A2222` (Card Backgrounds)
+- **Text Primary**: `#F0FEFE` (High Contrast)
+- **Text Secondary**: `#B3D9D9` (Muted Turquoise)
+- **Text Tertiary**: `#7A9999` (Caption Text)
+- **Gray**: `#8B9999` (Logo Gray)
+- **Success**: `#00E6A6` (Turquoise-tinted)
+- **Warning**: `#FFD93D` (Bright Yellow)
+- **Error**: `#FF6B6B` (Coral Red)
 
 ### Typography
 
@@ -280,8 +285,8 @@ await fetch('/api/membership/renew', {
 - **Font Files**: Inter family (Regular, Medium, SemiBold, Bold) - ✅ Included
 
 ### Brand Guidelines
-- **Logo Usage**: MITUGYM wordmark in green (#1e9b71)
-- **Color Application**: Dark backgrounds with green accents
+- **Logo Usage**: MITUGYM wordmark in turquoise (#4DD4D4)
+- **Color Application**: Dark backgrounds with turquoise accents
 - **Typography**: Inter for all text content
 - **Icon Style**: Outlined icons from Lucide library
 

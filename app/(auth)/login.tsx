@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Mail, Apple, Chrome } from 'lucide-react-native';
+import { Mail, Apple, Chrome, Lock } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { isValidEmail } from '../../lib/utils';
@@ -11,8 +11,10 @@ import { PillButton } from '../../components/PillButton';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, isAuthenticated } = useAppStore();
+  const [isSignUp, setIsSignUp] = useState(false);
+  const { login, loginWithSupabase, signUpWithSupabase, isAuthenticated } = useAppStore();
 
   // Redirect if already authenticated
   React.useEffect(() => {
@@ -30,6 +32,24 @@ export default function LoginScreen() {
     try {
       // Mock magic link login
       await login(email);
+      router.replace('/(tabs)');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSupabaseAuth = async () => {
+    if (!isValidEmail(email) || !password) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      if (isSignUp) {
+        await signUpWithSupabase(email, password);
+      } else {
+        await loginWithSupabase(email, password);
+      }
       router.replace('/(tabs)');
     } finally {
       setIsLoading(false);
@@ -167,6 +187,104 @@ export default function LoginScreen() {
             }}>
               We'll send you a secure link to sign in instantly
             </Text>
+          </View>
+
+          {/* Supabase Auth Form */}
+          <View style={{
+            backgroundColor: theme.colors.background.surface,
+            borderRadius: theme.borderRadius.xl,
+            padding: theme.spacing.xl,
+            marginBottom: theme.spacing.xl,
+            borderWidth: 1,
+            borderColor: 'rgba(77, 212, 212, 0.2)',
+            ...theme.shadows.medium,
+          }}>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: theme.spacing.lg,
+            }}>
+              <Lock
+                size={24}
+                color={theme.colors.primary.DEFAULT}
+                style={{ marginRight: theme.spacing.sm }}
+              />
+              <Text style={{
+                fontSize: theme.typography.h3.fontSize,
+                fontWeight: theme.typography.h3.fontWeight,
+                color: theme.colors.text.primary,
+              }}>
+                {isSignUp ? 'Create Account' : 'Sign in with Supabase'}
+              </Text>
+            </View>
+
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Email address"
+              placeholderTextColor={theme.colors.text.secondary}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="email"
+              style={{
+                backgroundColor: 'rgba(77, 212, 212, 0.05)',
+                borderWidth: 1,
+                borderColor: isValidEmail(email)
+                  ? theme.colors.primary.DEFAULT
+                  : 'rgba(179, 217, 217, 0.3)',
+                borderRadius: theme.borderRadius.lg,
+                paddingHorizontal: theme.spacing.lg,
+                paddingVertical: theme.spacing.md,
+                fontSize: theme.typography.body.fontSize,
+                color: theme.colors.text.primary,
+                marginBottom: theme.spacing.md,
+              }}
+            />
+
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Password"
+              placeholderTextColor={theme.colors.text.secondary}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="password"
+              style={{
+                backgroundColor: 'rgba(77, 212, 212, 0.05)',
+                borderWidth: 1,
+                borderColor: password.length >= 6
+                  ? theme.colors.primary.DEFAULT
+                  : 'rgba(179, 217, 217, 0.3)',
+                borderRadius: theme.borderRadius.lg,
+                paddingHorizontal: theme.spacing.lg,
+                paddingVertical: theme.spacing.md,
+                fontSize: theme.typography.body.fontSize,
+                color: theme.colors.text.primary,
+                marginBottom: theme.spacing.lg,
+              }}
+            />
+
+            <PillButton
+              title={isSignUp ? 'Create Account' : 'Sign In'}
+              onPress={handleSupabaseAuth}
+              variant="secondary"
+              size="large"
+              fullWidth
+              disabled={!isValidEmail(email) || password.length < 6}
+              loading={isLoading}
+            />
+
+            <View style={{ marginTop: theme.spacing.md }}>
+              <PillButton
+                title={isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
+                onPress={() => setIsSignUp(!isSignUp)}
+                variant="ghost"
+                size="medium"
+                fullWidth
+              />
+            </View>
           </View>
 
           {/* Divider */}

@@ -1,43 +1,63 @@
 export const theme = {
   colors: {
     primary: {
-      DEFAULT: '#1e9b71',
-      50: '#e6f2ee',
-      100: '#b3d9c8',
-      200: '#80c0a2',
-      300: '#4da77c',
-      400: '#1e9b71',
-      500: '#1a8660',
-      600: '#167050',
-      700: '#125b40',
-      800: '#0e4630',
-      900: '#0a3020',
+      DEFAULT: '#4DD4D4', // Main turquoise from logo
+      50: '#F0FEFE',
+      100: '#CCFBFB',
+      200: '#99F6F6',
+      300: '#66F0F0',
+      400: '#4DD4D4',
+      500: '#2DBABA',
+      600: '#259999',
+      700: '#1C7777',
+      800: '#145555',
+      900: '#0B3333',
     },
     secondary: {
-      DEFAULT: '#31d7a6',
-      50: '#e8f8f3',
-      100: '#c2ebd9',
-      200: '#9cdfc0',
-      300: '#76d2a7',
-      400: '#31d7a6',
-      500: '#2bc194',
-      600: '#25ab82',
-      700: '#1f9570',
-      800: '#197f5e',
-      900: '#13694c',
+      DEFAULT: '#5CDFDF', // Lighter turquoise accent
+      50: '#F2FEFE',
+      100: '#D9FCFC',
+      200: '#B3F9F9',
+      300: '#8DF5F5',
+      400: '#5CDFDF',
+      500: '#3BCCCC',
+      600: '#2FA3A3',
+      700: '#237A7A',
+      800: '#175252',
+      900: '#0B2929',
+    },
+    accent: {
+      DEFAULT: '#44E4E4', // Bright turquoise for highlights
+      dark: '#2BB8B8',
     },
     background: {
-      DEFAULT: '#0b0f0e',
-      surface: '#111618',
+      DEFAULT: '#0A0F0F', // Deep dark for main background
+      surface: '#141A1A', // Slightly lighter surface
+      card: '#1A2222', // Card backgrounds
     },
     text: {
-      primary: '#e6f2ee',
-      secondary: '#a7c3ba',
+      primary: '#F0FEFE', // High contrast white-turquoise
+      secondary: '#B3D9D9', // Muted turquoise for secondary text
+      tertiary: '#7A9999', // Even more muted for captions
+    },
+    gray: {
+      DEFAULT: '#8B9999', // Logo gray
+      50: '#F5F7F7',
+      100: '#E6EEEE',
+      200: '#CCDDDD',
+      300: '#B3CCCC',
+      400: '#99BBBB',
+      500: '#8B9999', // Main gray from logo
+      600: '#708080',
+      700: '#556666',
+      800: '#3A4D4D',
+      900: '#1F3333',
     },
     status: {
-      success: '#2ecc71',
-      warning: '#f1c40f',
-      error: '#e74c3c',
+      success: '#00E6A6', // Turquoise-tinted success
+      warning: '#FFD93D', // Bright yellow
+      error: '#FF6B6B', // Coral red
+      info: '#4DD4D4', // Primary turquoise
     },
   },
   spacing: {
@@ -119,7 +139,19 @@ export type Theme = typeof theme;
 export const getElevation = (level: 'soft' | 'medium' | 'strong') => theme.shadows[level];
 
 export const getCardGradient = () => ({
-  colors: ['rgba(30, 155, 113, 0.05)', 'rgba(17, 22, 24, 0.8)'],
+  colors: ['rgba(77, 212, 212, 0.08)', 'rgba(20, 26, 26, 0.9)'],
+  start: { x: 0, y: 0 },
+  end: { x: 1, y: 1 },
+});
+
+export const getPrimaryGradient = () => ({
+  colors: ['#4DD4D4', '#44E4E4'],
+  start: { x: 0, y: 0 },
+  end: { x: 1, y: 0 },
+});
+
+export const getAccentGradient = () => ({
+  colors: ['rgba(92, 223, 223, 0.1)', 'rgba(68, 228, 228, 0.05)'],
   start: { x: 0, y: 0 },
   end: { x: 1, y: 1 },
 });
