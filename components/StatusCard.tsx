@@ -8,10 +8,10 @@ import { getMembershipStatusColor, getDaysLeftText, getVisitsLeftText } from '..
 interface StatusCardProps {
   status: 'active' | 'expired';
   membershipPlan: string;
-  daysLeft?: number;
-  visitsLeft?: number;
+  daysLeft?: number | undefined;
+  visitsLeft?: number | undefined;
   onPress?: () => void;
-  onRenew?: () => void;
+  onRenew?: (() => void) | undefined;
 }
 
 export function StatusCard({

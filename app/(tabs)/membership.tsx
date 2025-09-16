@@ -5,11 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
   CreditCard, 
   Clock, 
-  CheckCircle, 
-  X,
-  Calendar,
-  Users,
-  Star
+  CheckCircle
 } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';

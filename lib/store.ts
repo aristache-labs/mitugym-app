@@ -171,7 +171,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   // Membership state
-  renewMembership: (planId: string) => {
+  renewMembership: (_planId: string) => {
     // Mock renewal - in real app, this would process payment
     const { member } = get();
     if (member) {

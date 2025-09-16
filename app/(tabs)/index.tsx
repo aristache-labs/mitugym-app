@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
-import { formatTime12Hour, formatRelativeDate } from '../../lib/utils';
+import { formatRelativeDate } from '../../lib/utils';
 import { getClassesForToday, mockClasses } from '../../lib/mock';
 import { AppHeader } from '../../components/AppHeader';
 import { StatusCard } from '../../components/StatusCard';

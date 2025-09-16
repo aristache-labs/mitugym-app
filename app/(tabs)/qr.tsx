@@ -35,6 +35,7 @@ export default function QRScreen() {
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [isValid, generateNewToken]);
 
   const handleRefresh = () => {

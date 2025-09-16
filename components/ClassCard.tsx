@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Clock, Users, MapPin, User, Calendar } from 'lucide-react-native';
+import { Clock, Users, MapPin, User } from 'lucide-react-native';
 import { theme } from '../lib/theme';
 import { 
   formatTime12Hour, 

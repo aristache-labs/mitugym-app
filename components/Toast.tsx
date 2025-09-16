@@ -47,6 +47,7 @@ export function Toast({
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [visible, duration, slideAnim, opacityAnim]);
 
   const handleDismiss = () => {

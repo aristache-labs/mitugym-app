@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Image, Dimensions } from 'react-native';
+import { View, Text, ScrollView, Dimensions } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
@@ -65,6 +65,10 @@ export default function OnboardingScreen() {
   };
 
   const slide = onboardingSlides[currentSlide];
+
+  if (!slide) {
+    return null;
+  }
 
   return (
     <LinearGradient

@@ -5,8 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Calendar } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
-import { 
-  mockClasses, 
+import {
   getClassesByCategory, 
   getClassesForToday 
 } from '../../lib/mock';

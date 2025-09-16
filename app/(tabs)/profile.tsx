@@ -3,7 +3,6 @@ import { View, Text, ScrollView, TouchableOpacity, Switch, Alert } from 'react-n
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
-  User, 
   Mail, 
   Phone, 
   Bell, 
