@@ -8,8 +8,8 @@ export const formatCountdown = (seconds: number): string => {
 };
 
 export const getCountdownColor = (seconds: number): string => {
-  if (seconds <= 10) return '#e74c3c'; // error red
-  if (seconds <= 30) return '#f1c40f'; // warning yellow
+  if (seconds <= 10) {return '#e74c3c';} // error red
+  if (seconds <= 30) {return '#f1c40f';} // warning yellow
   return '#1e9b71'; // primary green
 };
 
@@ -36,23 +36,23 @@ export const isTomorrow = (dateString: string): boolean => {
 };
 
 export const formatRelativeDate = (dateString: string): string => {
-  if (isToday(dateString)) return 'Today';
-  if (isTomorrow(dateString)) return 'Tomorrow';
-  
+  if (isToday(dateString)) {return 'Today';}
+  if (isTomorrow(dateString)) {return 'Tomorrow';}
+
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { 
+  return date.toLocaleDateString('en-US', {
     weekday: 'long',
-    month: 'short', 
-    day: 'numeric' 
+    month: 'short',
+    day: 'numeric',
   });
 };
 
 export const formatTime12Hour = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toLocaleTimeString('en-US', { 
-    hour: 'numeric', 
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
     minute: '2-digit',
-    hour12: true 
+    hour12: true,
   });
 };
 
@@ -62,14 +62,14 @@ export const getMembershipStatusColor = (status: 'active' | 'expired'): string =
 };
 
 export const getDaysLeftText = (daysLeft?: number): string => {
-  if (!daysLeft || daysLeft <= 0) return 'Expired';
-  if (daysLeft === 1) return '1 day left';
+  if (!daysLeft || daysLeft <= 0) {return 'Expired';}
+  if (daysLeft === 1) {return '1 day left';}
   return `${daysLeft} days left`;
 };
 
 export const getVisitsLeftText = (visitsLeft?: number): string => {
-  if (!visitsLeft || visitsLeft <= 0) return 'No visits left';
-  if (visitsLeft === 1) return '1 visit left';
+  if (!visitsLeft || visitsLeft <= 0) {return 'No visits left';}
+  if (visitsLeft === 1) {return '1 visit left';}
   return `${visitsLeft} visits left`;
 };
 
@@ -88,9 +88,9 @@ export const getLevelColor = (level: 'Beginner' | 'Intermediate' | 'Advanced'): 
 };
 
 export const getSpotsLeftText = (spotsLeft: number): string => {
-  if (spotsLeft <= 0) return 'Full';
-  if (spotsLeft === 1) return '1 spot left';
-  if (spotsLeft <= 3) return `${spotsLeft} spots left`;
+  if (spotsLeft <= 0) {return 'Full';}
+  if (spotsLeft === 1) {return '1 spot left';}
+  if (spotsLeft <= 3) {return `${spotsLeft} spots left`;}
   return `${spotsLeft} available`;
 };
 
@@ -118,7 +118,7 @@ export const isValidEmail = (email: string): boolean => {
 };
 
 export const isValidPhone = (phone: string): boolean => {
-  const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
+  const phoneRegex = /^\+?[\d\s\-()]{10,}$/;
   return phoneRegex.test(phone);
 };
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { QrCode, RefreshCw } from 'lucide-react-native';
@@ -56,8 +56,8 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
     }}>
       {/* Status Banner */}
       <View style={{
-        backgroundColor: isValid && !isExpired 
-          ? 'rgba(46, 204, 113, 0.2)' 
+        backgroundColor: isValid && !isExpired
+          ? 'rgba(46, 204, 113, 0.2)'
           : 'rgba(231, 76, 60, 0.2)',
         paddingHorizontal: theme.spacing.lg,
         paddingVertical: theme.spacing.sm,
@@ -67,8 +67,8 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
         <Text style={{
           fontSize: theme.typography.caption.fontSize,
           fontWeight: '600',
-          color: isValid && !isExpired 
-            ? theme.colors.status.success 
+          color: isValid && !isExpired
+            ? theme.colors.status.success
             : theme.colors.status.error,
           textTransform: 'uppercase',
           textAlign: 'center',
@@ -95,8 +95,8 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
             justifyContent: 'center',
             alignItems: 'center',
             borderWidth: 3,
-            borderColor: isValid && !isExpired 
-              ? theme.colors.primary.DEFAULT 
+            borderColor: isValid && !isExpired
+              ? theme.colors.primary.DEFAULT
               : theme.colors.status.error,
             ...theme.shadows.strong,
           }}
@@ -104,11 +104,11 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
           {/* QR Icon placeholder */}
           <QrCode
             size={120}
-            color={isValid && !isExpired 
-              ? theme.colors.primary.DEFAULT 
+            color={isValid && !isExpired
+              ? theme.colors.primary.DEFAULT
               : theme.colors.text.secondary}
           />
-          
+
           {/* Token Display */}
           <Text style={{
             fontSize: theme.typography.h2.fontSize,
@@ -144,7 +144,7 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
         }}>
           {isExpired ? 'Expired' : 'Valid for'}
         </Text>
-        
+
         <Text style={{
           fontSize: theme.typography.h1.fontSize,
           fontWeight: '700',
@@ -193,7 +193,7 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
           textAlign: 'center',
           lineHeight: 20,
         }}>
-          {isValid && !isExpired 
+          {isValid && !isExpired
             ? 'Show this QR code to gym staff for entry. QR codes expire every 60 seconds for security.'
             : 'QR code has expired. Generate a new one to enter the gym.'
           }

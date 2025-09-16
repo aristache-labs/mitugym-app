@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,7 +19,7 @@ export function FloatingQRButton({ onPress, visible = true }: FloatingQRButtonPr
     onPress();
   };
 
-  if (!visible) return null;
+  if (!visible) {return null;}
 
   return (
     <TouchableOpacity

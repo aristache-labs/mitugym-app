@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { View, Text, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CheckCircle, XCircle, Calendar, Users } from 'lucide-react-native';
@@ -35,7 +35,7 @@ export function StatusCard({
         colors={[
           'rgba(30, 155, 113, 0.1)',
           'rgba(17, 22, 24, 0.8)',
-          'rgba(11, 15, 14, 0.9)'
+          'rgba(11, 15, 14, 0.9)',
         ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -43,8 +43,8 @@ export function StatusCard({
           borderRadius: theme.borderRadius.xl,
           padding: theme.spacing.lg,
           borderWidth: 1,
-          borderColor: status === 'active' 
-            ? 'rgba(30, 155, 113, 0.3)' 
+          borderColor: status === 'active'
+            ? 'rgba(30, 155, 113, 0.3)'
             : 'rgba(231, 76, 60, 0.3)',
           ...theme.shadows.medium,
         }}
@@ -97,8 +97,8 @@ export function StatusCard({
           </View>
 
           <View style={{
-            backgroundColor: status === 'active' 
-              ? 'rgba(46, 204, 113, 0.2)' 
+            backgroundColor: status === 'active'
+              ? 'rgba(46, 204, 113, 0.2)'
               : 'rgba(231, 76, 60, 0.2)',
             paddingHorizontal: theme.spacing.md,
             paddingVertical: theme.spacing.sm,

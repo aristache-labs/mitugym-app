@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { View, Text, Animated, TouchableOpacity, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CheckCircle, XCircle, Info, X } from 'lucide-react-native';
@@ -22,6 +22,23 @@ export function Toast({
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(-100)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  const handleDismiss = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: -100,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      onDismiss();
+    });
+  }, [slideAnim, opacityAnim, onDismiss]);
 
   useEffect(() => {
     if (visible) {
@@ -48,24 +65,8 @@ export function Toast({
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [visible, duration, slideAnim, opacityAnim]);
+  }, [visible, duration, slideAnim, opacityAnim, handleDismiss]);
 
-  const handleDismiss = () => {
-    Animated.parallel([
-      Animated.timing(slideAnim, {
-        toValue: -100,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      onDismiss();
-    });
-  };
 
   const getToastColors = () => {
     switch (type) {
@@ -107,7 +108,7 @@ export function Toast({
   const colors = getToastColors();
   const Icon = getToastIcon();
 
-  if (!visible) return null;
+  if (!visible) {return null;}
 
   return (
     <Animated.View

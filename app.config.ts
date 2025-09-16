@@ -11,34 +11,34 @@ const config: ExpoConfig = {
   splash: {
     image: './assets/splash.png',
     resizeMode: 'contain',
-    backgroundColor: '#0b0f0e'
+    backgroundColor: '#0b0f0e',
   },
   assetBundlePatterns: [
-    '**/*'
+    '**/*',
   ],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.mitugym.app'
+    bundleIdentifier: 'com.mitugym.app',
   },
   android: {
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#0b0f0e'
+      backgroundColor: '#0b0f0e',
     },
-    package: 'com.mitugym.app'
+    package: 'com.mitugym.app',
   },
   web: {
     bundler: 'metro',
     output: 'static',
-    favicon: './assets/favicon.png'
+    favicon: './assets/favicon.png',
   },
   plugins: [
     'expo-router',
-    'expo-font'
+    'expo-font',
   ],
   experiments: {
-    typedRoutes: true
-  }
+    typedRoutes: true,
+  },
 };
 
 export default config;

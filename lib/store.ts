@@ -1,12 +1,12 @@
 import { create } from 'zustand';
-import { 
-  mockMember, 
-  mockClasses, 
-  mockBookingHistory, 
+import {
+  mockMember,
+  mockClasses,
+  mockBookingHistory,
   generateQRToken,
   type Member,
   type GymClass,
-  type BookingHistory
+  type BookingHistory,
 } from './mock';
 
 interface AuthState {
@@ -55,18 +55,18 @@ export const useAppStore = create<AppState>((set, get) => ({
   login: async (email: string) => {
     // Mock login - in real app, this would call authentication API
     await new Promise(resolve => setTimeout(resolve, 1000));
-    set({ 
-      isAuthenticated: true, 
-      member: { ...mockMember, email } 
+    set({
+      isAuthenticated: true,
+      member: { ...mockMember, email },
     });
     get().showToast('Welcome back!', 'success');
   },
   logout: () => {
-    set({ 
-      isAuthenticated: false, 
+    set({
+      isAuthenticated: false,
       member: null,
       bookings: new Set(),
-      bookingHistory: []
+      bookingHistory: [],
     });
     get().showToast('Logged out successfully', 'info');
   },
@@ -78,7 +78,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   reserveClass: (classId: string) => {
     const { classes, bookings } = get();
     const classToReserve = classes.find(cls => cls.id === classId);
-    
+
     if (!classToReserve || classToReserve.spotsLeft <= 0) {
       get().showToast('Cannot reserve class - no spots available', 'error');
       return;
@@ -89,10 +89,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       return;
     }
 
-    const updatedClasses = classes.map(cls => 
-      cls.id === classId 
+    const updatedClasses = classes.map(cls =>
+      cls.id === classId
         ? { ...cls, spotsLeft: cls.spotsLeft - 1 }
-        : cls
+        : cls,
     );
 
     const newBooking: BookingHistory = {
@@ -100,31 +100,31 @@ export const useAppStore = create<AppState>((set, get) => ({
       classId,
       className: classToReserve.title,
       date: classToReserve.startAt,
-      status: 'upcoming'
+      status: 'upcoming',
     };
 
     set({
       classes: updatedClasses,
       bookings: new Set([...bookings, classId]),
-      bookingHistory: [newBooking, ...get().bookingHistory]
+      bookingHistory: [newBooking, ...get().bookingHistory],
     });
 
     get().showToast(`Reserved ${classToReserve.title}`, 'success');
   },
-  
+
   cancelReservation: (classId: string) => {
     const { classes, bookings, bookingHistory } = get();
     const classToCancel = classes.find(cls => cls.id === classId);
-    
+
     if (!classToCancel || !bookings.has(classId)) {
       get().showToast('No reservation found to cancel', 'error');
       return;
     }
 
-    const updatedClasses = classes.map(cls => 
-      cls.id === classId 
+    const updatedClasses = classes.map(cls =>
+      cls.id === classId
         ? { ...cls, spotsLeft: cls.spotsLeft + 1 }
-        : cls
+        : cls,
     );
 
     const newBookings = new Set(bookings);
@@ -133,13 +133,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     const updatedHistory = bookingHistory.map(booking =>
       booking.classId === classId && booking.status === 'upcoming'
         ? { ...booking, status: 'cancelled' as const }
-        : booking
+        : booking,
     );
 
     set({
       classes: updatedClasses,
       bookings: newBookings,
-      bookingHistory: updatedHistory
+      bookingHistory: updatedHistory,
     });
 
     get().showToast(`Cancelled ${classToCancel.title}`, 'info');
@@ -158,13 +158,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({
       token: generateQRToken(),
       expiresAt: now + 60000,
-      isValid: true
+      isValid: true,
     });
   },
   checkExpiry: () => {
     const now = Date.now();
     const { expiresAt } = get();
-    
+
     if (now >= expiresAt) {
       set({ isValid: false });
     }
@@ -179,20 +179,20 @@ export const useAppStore = create<AppState>((set, get) => ({
         ...member,
         membershipStatus: 'active' as const,
         expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-        daysLeft: 30
+        daysLeft: 30,
       };
       set({ member: renewedMember });
       get().showToast('Membership renewed successfully!', 'success');
     }
   },
-  
+
   toggleMembershipStatus: () => {
     const { member } = get();
     if (member) {
       const updatedMember = {
         ...member,
         membershipStatus: member.membershipStatus === 'active' ? 'expired' as const : 'active' as const,
-        daysLeft: member.membershipStatus === 'active' ? 0 : 30
+        daysLeft: member.membershipStatus === 'active' ? 0 : 30,
       };
       set({ member: updatedMember });
     }

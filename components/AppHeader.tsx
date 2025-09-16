@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -25,12 +25,12 @@ export function AppHeader({
   transparent = false,
 }: AppHeaderProps) {
   const insets = useSafeAreaInsets();
-  
+
   const headerHeight = Platform.OS === 'ios' ? 44 : 56;
   const totalHeight = headerHeight + insets.top;
 
   const HeaderContent = (
-    <View 
+    <View
       style={{
         height: totalHeight,
         paddingTop: insets.top,
@@ -53,13 +53,13 @@ export function AppHeader({
             }}
             activeOpacity={0.7}
           >
-            <ChevronLeft 
-              size={24} 
-              color={theme.colors.primary.DEFAULT} 
+            <ChevronLeft
+              size={24}
+              color={theme.colors.primary.DEFAULT}
             />
           </TouchableOpacity>
         )}
-        
+
         <View style={{ flex: 1 }}>
           <Text
             style={{
@@ -99,9 +99,9 @@ export function AppHeader({
           }}
           activeOpacity={0.7}
         >
-          <Bell 
-            size={24} 
-            color={theme.colors.primary.DEFAULT} 
+          <Bell
+            size={24}
+            color={theme.colors.primary.DEFAULT}
           />
         </TouchableOpacity>
       )}

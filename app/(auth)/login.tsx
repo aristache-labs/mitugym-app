@@ -136,8 +136,8 @@ export default function LoginScreen() {
               style={{
                 backgroundColor: 'rgba(30, 155, 113, 0.05)',
                 borderWidth: 1,
-                borderColor: isValidEmail(email) 
-                  ? theme.colors.primary.DEFAULT 
+                borderColor: isValidEmail(email)
+                  ? theme.colors.primary.DEFAULT
                   : 'rgba(167, 195, 186, 0.3)',
                 borderRadius: theme.borderRadius.lg,
                 paddingHorizontal: theme.spacing.lg,

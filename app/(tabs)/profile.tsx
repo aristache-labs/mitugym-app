@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { 
-  Mail, 
-  Phone, 
-  Bell, 
-  Shield, 
-  FileText, 
+import {
+  Mail,
+  Phone,
+  Bell,
+  Shield,
+  FileText,
   Star,
   LogOut,
   ChevronRight,
-  Settings
+  Settings,
 } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
@@ -33,7 +33,7 @@ export default function ProfileScreen() {
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(false);
   const [classReminders, setClassReminders] = useState(true);
-  
+
   const { member, logout } = useAppStore();
 
   const handleLogout = () => {
@@ -42,12 +42,12 @@ export default function ProfileScreen() {
       'Are you sure you want to sign out?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Sign Out', 
+        {
+          text: 'Sign Out',
           style: 'destructive',
-          onPress: logout
+          onPress: logout,
         },
-      ]
+      ],
     );
   };
 
@@ -58,7 +58,7 @@ export default function ProfileScreen() {
       [
         { text: 'Maybe Later', style: 'cancel' },
         { text: 'Rate App', onPress: () => console.log('Open app store rating') },
-      ]
+      ],
     );
   };
 
@@ -69,7 +69,7 @@ export default function ProfileScreen() {
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Send Email', onPress: () => console.log('Open email support') },
-      ]
+      ],
     );
   };
 
@@ -173,7 +173,7 @@ export default function ProfileScreen() {
               borderRadius: theme.borderRadius.xl,
             }}
           />
-          
+
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',

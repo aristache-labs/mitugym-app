@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { View, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStore } from '../../lib/store';
@@ -8,13 +8,13 @@ import { QRCard } from '../../components/QRCard';
 
 export default function QRScreen() {
   const insets = useSafeAreaInsets();
-  
-  const { 
+
+  const {
     token,
     expiresAt,
     isValid,
     generateNewToken,
-    checkExpiry
+    checkExpiry,
   } = useAppStore();
 
   // Check expiry every second

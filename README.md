@@ -4,9 +4,9 @@
   <h1>🏋️‍♂️ MITUGYM</h1>
   <p>Your fitness journey starts here</p>
   
-  [![React Native](https://img.shields.io/badge/React%20Native-0.74.5-blue.svg)](https://reactnative.dev/)
-  [![Expo](https://img.shields.io/badge/Expo-51.0.28-000020.svg)](https://expo.dev/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.3.3-blue.svg)](https://www.typescriptlang.org/)
+  [![React Native](https://img.shields.io/badge/React%20Native-0.81.4-blue.svg)](https://reactnative.dev/)
+  [![Expo](https://img.shields.io/badge/Expo-54.0.7-000020.svg)](https://expo.dev/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue.svg)](https://www.typescriptlang.org/)
   [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 </div>
 
@@ -44,13 +44,13 @@ MITUGYM is a production-quality UI-only prototype for a modern gym check-in mobi
    npm install
    ```
 
-3. **Add font files** (Required for proper styling)
+3. **Font files included**
    
-   Download the Inter font family from [Google Fonts](https://fonts.google.com/specimen/Inter) and place the following files in `assets/fonts/`:
-   - `Inter-Regular.ttf`
-   - `Inter-Medium.ttf`
-   - `Inter-SemiBold.ttf`
-   - `Inter-Bold.ttf`
+   The Inter font family is already included in `assets/fonts/` with all required weights:
+   - ✅ `Inter-Regular.ttf` 
+   - ✅ `Inter-Medium.ttf`
+   - ✅ `Inter-SemiBold.ttf` 
+   - ✅ `Inter-Bold.ttf`
 
 4. **Start the development server**
    ```bash
@@ -133,16 +133,16 @@ mitugym-app/
 ## 🔧 Tech Stack
 
 ### Core Technologies
-- **React Native** 0.74.5 - Mobile app framework
-- **Expo** 51.0.28 - Development platform
-- **TypeScript** 5.3.3 - Type safety
-- **Expo Router** 3.5.23 - File-based navigation
+- **React Native** 0.81.4 - Mobile app framework
+- **Expo** 54.0.7 - Development platform
+- **TypeScript** 5.9.2 - Type safety
+- **Expo Router** 6.0.5 - File-based navigation
 
 ### UI & Styling
 - **NativeWind** 2.0.11 - Tailwind CSS for React Native
-- **Expo Linear Gradient** - Gradient effects
-- **Lucide React Native** - Modern icon library
-- **React Native Safe Area Context** - Safe area handling
+- **Expo Linear Gradient** 15.0.7 - Gradient effects
+- **Lucide React Native** 0.544.0 - Modern icon library
+- **React Native Safe Area Context** 5.6.0 - Safe area handling
 
 ### State Management
 - **Zustand** 4.5.4 - Lightweight state management
@@ -277,7 +277,7 @@ await fetch('/api/membership/renew', {
 - **App Icon**: 1024x1024px PNG
 - **Splash Screen**: 1284x2778px for iOS
 - **Onboarding Images**: 1200x1200px illustrations
-- **Font Files**: Inter family (Regular, Medium, SemiBold, Bold)
+- **Font Files**: Inter family (Regular, Medium, SemiBold, Bold) - ✅ Included
 
 ### Brand Guidelines
 - **Logo Usage**: MITUGYM wordmark in green (#1e9b71)
@@ -312,9 +312,9 @@ Expo Router configuration in:
 ### Common Issues
 
 **Fonts not loading**
-- Ensure font files are in `assets/fonts/`
-- Check file names match exactly
-- Restart Expo development server
+- Font files are included in `assets/fonts/` by default
+- If issues persist, restart Expo development server with `npx expo start --clear`
+- Check that font names match exactly in your components
 
 **Metro bundler issues**
 - Clear cache: `npx expo start --clear`

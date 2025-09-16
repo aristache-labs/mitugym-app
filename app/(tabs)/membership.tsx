@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { 
-  CreditCard, 
-  Clock, 
-  CheckCircle
+import {
+  CreditCard,
+  Clock,
+  CheckCircle,
 } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
@@ -19,11 +19,11 @@ export default function MembershipScreen() {
   const insets = useSafeAreaInsets();
   const [showRenewModal, setShowRenewModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState('');
-  
-  const { 
+
+  const {
     member,
     renewMembership,
-    toggleMembershipStatus // For demo purposes
+    toggleMembershipStatus, // For demo purposes
   } = useAppStore();
 
   const handleRenewPress = () => {
@@ -160,8 +160,8 @@ export default function MembershipScreen() {
               <Text style={{
                 fontSize: theme.typography.body.fontSize,
                 fontWeight: '600',
-                color: member.membershipStatus === 'expired' 
-                  ? theme.colors.status.error 
+                color: member.membershipStatus === 'expired'
+                  ? theme.colors.status.error
                   : theme.colors.text.primary,
               }}>
                 {formatRelativeDate(member.expiryDate)}
@@ -263,8 +263,8 @@ export default function MembershipScreen() {
                   </View>
 
                   <View style={{
-                    backgroundColor: booking.status === 'completed' 
-                      ? 'rgba(46, 204, 113, 0.2)' 
+                    backgroundColor: booking.status === 'completed'
+                      ? 'rgba(46, 204, 113, 0.2)'
                       : booking.status === 'upcoming'
                       ? 'rgba(30, 155, 113, 0.2)'
                       : 'rgba(231, 76, 60, 0.2)',
@@ -275,8 +275,8 @@ export default function MembershipScreen() {
                     <Text style={{
                       fontSize: theme.typography.small.fontSize,
                       fontWeight: '600',
-                      color: booking.status === 'completed' 
-                        ? theme.colors.status.success 
+                      color: booking.status === 'completed'
+                        ? theme.colors.status.success
                         : booking.status === 'upcoming'
                         ? theme.colors.primary.DEFAULT
                         : theme.colors.status.error,
@@ -335,15 +335,15 @@ export default function MembershipScreen() {
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={selectedPlanId === plan.id 
+                  colors={selectedPlanId === plan.id
                     ? ['rgba(30, 155, 113, 0.2)', 'rgba(17, 22, 24, 0.9)']
                     : ['rgba(30, 155, 113, 0.05)', 'rgba(17, 22, 24, 0.8)']}
                   style={{
                     borderRadius: theme.borderRadius.xl,
                     padding: theme.spacing.lg,
                     borderWidth: 2,
-                    borderColor: selectedPlanId === plan.id 
-                      ? theme.colors.primary.DEFAULT 
+                    borderColor: selectedPlanId === plan.id
+                      ? theme.colors.primary.DEFAULT
                       : 'rgba(30, 155, 113, 0.2)',
                     ...theme.shadows.medium,
                   }}
@@ -425,7 +425,7 @@ export default function MembershipScreen() {
                 fullWidth
                 disabled={!selectedPlanId}
               />
-              
+
               <PillButton
                 title="Cancel"
                 onPress={handleCancelRenewal}

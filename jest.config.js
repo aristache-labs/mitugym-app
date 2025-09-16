@@ -1,9 +1,9 @@
 module.exports = {
   preset: 'react-native',
-  setupFilesAfterEnv: [],
+  setupFilesAfterEnv: ['<rootDir>/jest-setup.ts'],
   testMatch: [
     '**/__tests__/**/*.(js|jsx|ts|tsx)',
-    '**/*.(test|spec).(js|jsx|ts|tsx)'
+    '**/*.(test|spec).(js|jsx|ts|tsx)',
   ],
   collectCoverageFrom: [
     'components/**/*.{ts,tsx}',
@@ -26,5 +26,4 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!(jest-)?@?react-native|@react-native-community|@react-navigation|expo|@expo|expo-router)',
   ],
-  testEnvironment: 'node',
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useFonts } from 'expo-font';
 import { SplashScreen, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -20,11 +20,11 @@ export default function RootLayout() {
     'Inter-Bold': require('../assets/fonts/Inter-Bold.ttf'),
   });
 
-  const { 
-    message, 
-    type, 
-    visible: toastVisible, 
-    hideToast 
+  const {
+    message,
+    type,
+    visible: toastVisible,
+    hideToast,
   } = useAppStore();
 
   useEffect(() => {
@@ -51,15 +51,15 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen 
-            name="class/[id]" 
+          <Stack.Screen
+            name="class/[id]"
             options={{
               presentation: 'modal',
               animation: 'slide_from_bottom',
             }}
           />
         </Stack>
-        
+
         {/* Global Toast */}
         <Toast
           message={message}

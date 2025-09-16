@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { TouchableOpacity, Text, ActivityIndicator, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { LucideIcon } from 'lucide-react-native';
@@ -28,9 +28,9 @@ export function PillButton({
   iconPosition = 'left',
   fullWidth = false,
 }: PillButtonProps) {
-  
+
   const handlePress = () => {
-    if (disabled || loading) return;
+    if (disabled || loading) {return;}
     triggerHaptic('medium');
     onPress();
   };
@@ -66,7 +66,7 @@ export function PillButton({
 
   const getVariantStyles = () => {
     const opacity = disabled ? 0.5 : 1;
-    
+
     switch (variant) {
       case 'secondary':
         return {
@@ -112,9 +112,9 @@ export function PillButton({
       }}
     >
       {loading ? (
-        <ActivityIndicator 
-          size="small" 
-          color={variantStyles.textColor} 
+        <ActivityIndicator
+          size="small"
+          color={variantStyles.textColor}
         />
       ) : (
         <>
@@ -125,7 +125,7 @@ export function PillButton({
               style={{ marginRight: theme.spacing.sm }}
             />
           )}
-          
+
           <Text
             style={{
               fontSize: sizeStyles.fontSize,

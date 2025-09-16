@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { theme } from '../lib/theme';
 
@@ -35,18 +35,18 @@ export function ListFilters({
     >
       {options.map((option, index) => {
         const isSelected = option.id === selectedId;
-        
+
         return (
           <TouchableOpacity
             key={option.id}
             onPress={() => onSelect(option.id)}
             style={{
-              backgroundColor: isSelected 
-                ? theme.colors.primary.DEFAULT 
+              backgroundColor: isSelected
+                ? theme.colors.primary.DEFAULT
                 : 'rgba(30, 155, 113, 0.1)',
               borderWidth: 1,
-              borderColor: isSelected 
-                ? theme.colors.primary.DEFAULT 
+              borderColor: isSelected
+                ? theme.colors.primary.DEFAULT
                 : 'rgba(30, 155, 113, 0.3)',
               paddingHorizontal: theme.spacing.lg,
               paddingVertical: theme.spacing.sm,
@@ -60,17 +60,17 @@ export function ListFilters({
             <Text style={{
               fontSize: theme.typography.caption.fontSize,
               fontWeight: '600',
-              color: isSelected 
-                ? '#ffffff' 
+              color: isSelected
+                ? '#ffffff'
                 : theme.colors.primary.DEFAULT,
             }}>
               {option.label}
             </Text>
-            
+
             {showCounts && option.count !== undefined && (
               <View style={{
-                backgroundColor: isSelected 
-                  ? 'rgba(255, 255, 255, 0.2)' 
+                backgroundColor: isSelected
+                  ? 'rgba(255, 255, 255, 0.2)'
                   : 'rgba(30, 155, 113, 0.2)',
                 borderRadius: theme.borderRadius.sm,
                 paddingHorizontal: theme.spacing.sm,
@@ -82,8 +82,8 @@ export function ListFilters({
                 <Text style={{
                   fontSize: theme.typography.small.fontSize,
                   fontWeight: '600',
-                  color: isSelected 
-                    ? '#ffffff' 
+                  color: isSelected
+                    ? '#ffffff'
                     : theme.colors.primary.DEFAULT,
                 }}>
                   {option.count}

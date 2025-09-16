@@ -1,14 +1,14 @@
-import React from 'react';
+
 import { View, Text, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Clock, Users, MapPin, User } from 'lucide-react-native';
 import { theme } from '../lib/theme';
-import { 
-  formatTime12Hour, 
-  formatRelativeDate, 
-  getLevelColor, 
+import {
+  formatTime12Hour,
+  formatRelativeDate,
+  getLevelColor,
   getSpotsLeftText,
-  getCardElevation 
+  getCardElevation,
 } from '../lib/utils';
 import { GymClass } from '../lib/mock';
 
@@ -32,7 +32,7 @@ export function ClassCard({
   const levelColor = getLevelColor(gymClass.level);
   const spotsText = getSpotsLeftText(gymClass.spotsLeft);
   const isFull = gymClass.spotsLeft <= 0;
-  
+
   const cardHeight = compact ? undefined : 160;
 
   return (
@@ -47,7 +47,7 @@ export function ClassCard({
         colors={[
           'rgba(30, 155, 113, 0.05)',
           'rgba(17, 22, 24, 0.8)',
-          'rgba(11, 15, 14, 0.9)'
+          'rgba(11, 15, 14, 0.9)',
         ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -55,8 +55,8 @@ export function ClassCard({
           borderRadius: theme.borderRadius.lg,
           padding: theme.spacing.lg,
           borderWidth: 1,
-          borderColor: isReserved 
-            ? theme.colors.primary.DEFAULT 
+          borderColor: isReserved
+            ? theme.colors.primary.DEFAULT
             : 'rgba(30, 155, 113, 0.2)',
           height: cardHeight,
           ...getCardElevation(false),
@@ -78,7 +78,7 @@ export function ClassCard({
             }}>
               {gymClass.title}
             </Text>
-            
+
             {showDate && (
               <Text style={{
                 fontSize: theme.typography.caption.fontSize,
@@ -187,9 +187,9 @@ export function ClassCard({
             }}
             disabled={isFull && !isReserved}
             style={{
-              backgroundColor: isReserved 
-                ? 'rgba(231, 76, 60, 0.2)' 
-                : isFull 
+              backgroundColor: isReserved
+                ? 'rgba(231, 76, 60, 0.2)'
+                : isFull
                 ? 'rgba(167, 195, 186, 0.2)'
                 : 'rgba(30, 155, 113, 0.2)',
               paddingVertical: theme.spacing.sm,
@@ -197,9 +197,9 @@ export function ClassCard({
               borderRadius: theme.borderRadius.sm,
               alignItems: 'center',
               borderWidth: 1,
-              borderColor: isReserved 
-                ? theme.colors.status.error 
-                : isFull 
+              borderColor: isReserved
+                ? theme.colors.status.error
+                : isFull
                 ? theme.colors.text.secondary
                 : theme.colors.primary.DEFAULT,
             }}
@@ -208,9 +208,9 @@ export function ClassCard({
             <Text style={{
               fontSize: theme.typography.caption.fontSize,
               fontWeight: '600',
-              color: isReserved 
-                ? theme.colors.status.error 
-                : isFull 
+              color: isReserved
+                ? theme.colors.status.error
+                : isFull
                 ? theme.colors.text.secondary
                 : theme.colors.primary.DEFAULT,
             }}>

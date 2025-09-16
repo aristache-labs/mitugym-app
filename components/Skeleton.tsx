@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { View, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../lib/theme';
@@ -31,9 +31,9 @@ export function Skeleton({
           duration: 1000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
-    
+
     animation.start();
 
     return () => animation.stop();
@@ -82,12 +82,12 @@ export function SkeletonCard() {
         <Skeleton width="60%" height={24} borderRadius={theme.borderRadius.sm} />
         <Skeleton width={60} height={20} borderRadius={theme.borderRadius.lg} />
       </View>
-      
+
       <Skeleton width="40%" height={16} borderRadius={theme.borderRadius.xs} />
       <View style={{ marginTop: theme.spacing.sm }}>
         <Skeleton width="80%" height={16} borderRadius={theme.borderRadius.xs} />
       </View>
-      
+
       <View style={{
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -120,26 +120,26 @@ export function SkeletonHeader() {
       paddingVertical: theme.spacing.md,
     }}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <Skeleton 
-          width={40} 
-          height={40} 
-          borderRadius={theme.borderRadius.full} 
+        <Skeleton
+          width={40}
+          height={40}
+          borderRadius={theme.borderRadius.full}
           style={{ marginRight: theme.spacing.md }}
         />
         <View>
           <Skeleton width={120} height={20} borderRadius={theme.borderRadius.xs} />
-          <Skeleton 
-            width={80} 
-            height={14} 
-            borderRadius={theme.borderRadius.xs} 
+          <Skeleton
+            width={80}
+            height={14}
+            borderRadius={theme.borderRadius.xs}
             style={{ marginTop: 4 }}
           />
         </View>
       </View>
-      <Skeleton 
-        width={40} 
-        height={40} 
-        borderRadius={theme.borderRadius.full} 
+      <Skeleton
+        width={40}
+        height={40}
+        borderRadius={theme.borderRadius.full}
       />
     </View>
   );

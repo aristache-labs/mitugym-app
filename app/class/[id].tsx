@@ -1,24 +1,23 @@
-import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { 
-  Clock, 
-  MapPin, 
-  User, 
-  Users, 
+import {
+  Clock,
+  MapPin,
+  User,
+  Users,
   Calendar,
   Info,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
-import { 
-  formatTime12Hour, 
-  formatRelativeDate, 
-  getLevelColor, 
-  getSpotsLeftText 
+import {
+  formatTime12Hour,
+  formatRelativeDate,
+  getLevelColor,
+  getSpotsLeftText,
 } from '../../lib/utils';
 import { getClassById } from '../../lib/mock';
 import { AppHeader } from '../../components/AppHeader';
@@ -27,19 +26,19 @@ import { PillButton } from '../../components/PillButton';
 export default function ClassDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  
-  const { 
+
+  const {
     isClassReserved,
     reserveClass,
-    cancelReservation
+    cancelReservation,
   } = useAppStore();
 
   const gymClass = getClassById(id || '');
 
   if (!gymClass) {
     return (
-      <View style={{ 
-        flex: 1, 
+      <View style={{
+        flex: 1,
         backgroundColor: theme.colors.background.DEFAULT,
         justifyContent: 'center',
         alignItems: 'center',
@@ -445,10 +444,10 @@ export default function ClassDetailScreen() {
         <View style={{ gap: theme.spacing.md }}>
           <PillButton
             title={
-              isReserved 
-                ? 'Cancel Reservation' 
-                : isFull 
-                ? 'Class Full' 
+              isReserved
+                ? 'Cancel Reservation'
+                : isFull
+                ? 'Class Full'
                 : 'Reserve Spot'
             }
             onPress={handleReservation}

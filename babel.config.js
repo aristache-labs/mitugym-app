@@ -1,10 +1,15 @@
 module.exports = function (api) {
   api.cache(true);
+
+  const plugins = ['nativewind/babel'];
+
+  // Only add worklets plugin in non-test environments
+  if (process.env.NODE_ENV !== 'test') {
+    plugins.push('react-native-worklets/plugin');
+  }
+
   return {
     presets: ['babel-preset-expo'],
-    plugins: [
-      'nativewind/babel',
-      'react-native-reanimated/plugin',
-    ],
+    plugins,
   };
 };

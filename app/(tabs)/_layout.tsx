@@ -1,21 +1,28 @@
+
 import React from 'react';
 import { Tabs, useRouter, useSegments } from 'expo-router';
 import { Platform } from 'react-native';
-import { 
-  Home, 
-  QrCode, 
-  Calendar, 
-  CreditCard, 
-  User 
+import {
+  Home,
+  QrCode,
+  Calendar,
+  CreditCard,
+  User,
 } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { FloatingQRButton } from '../../components/FloatingQRButton';
 import { shouldShowFloatingQR } from '../../lib/navigation';
 
-function TabIcon({ name, color, size }: { name: string; color: string; size: number }) {
+interface TabIconProps {
+  name: string;
+  color: string;
+  size: number;
+}
+
+function TabIcon({ name, color, size }: TabIconProps) {
   const iconProps = { size, color };
-  
+
   switch (name) {
     case 'index':
       return <Home {...iconProps} />;
@@ -42,7 +49,12 @@ export default function TabLayout() {
     if (!isAuthenticated) {
       router.replace('/');
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, router]);
+
+  // Show loading/blank while redirecting
+  if (!isAuthenticated) {
+    return null;
+  }
 
   const currentRoute = segments[segments.length - 1] || 'index';
   const showFloatingQR = shouldShowFloatingQR(currentRoute);
@@ -74,8 +86,8 @@ export default function TabLayout() {
           tabBarIconStyle: {
             marginBottom: 0,
           },
-          tabBarIcon: ({ color, size }) => (
-            <TabIcon name={route.name} color={color} size={size} />
+          tabBarIcon: (props) => (
+            <TabIcon name={route.name} {...props} />
           ),
         })}
       >

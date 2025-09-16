@@ -1,13 +1,14 @@
+
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { 
-  QrCode, 
-  Calendar, 
-  Clock, 
+import {
+  QrCode,
+  Calendar,
+  Clock,
   TrendingUp,
-  ChevronRight 
+  ChevronRight,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStore } from '../../lib/store';
@@ -22,13 +23,13 @@ import { PillButton } from '../../components/PillButton';
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = React.useState(false);
-  
-  const { 
-    member, 
-    isClassReserved, 
-    reserveClass, 
+
+  const {
+    member,
+    isClassReserved,
+    reserveClass,
     cancelReservation,
-    renewMembership 
+    renewMembership,
   } = useAppStore();
 
   // Get today's classes (limit to 2 for preview)
@@ -71,7 +72,29 @@ export default function HomeScreen() {
   };
 
   if (!member) {
-    return null;
+    return (
+      <View style={{ 
+        flex: 1, 
+        backgroundColor: theme.colors.background.DEFAULT,
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <Text style={{ 
+          color: theme.colors.text.primary,
+          fontSize: 24,
+          fontWeight: 'bold'
+        }}>
+          MITUGYM
+        </Text>
+        <Text style={{ 
+          color: theme.colors.text.secondary,
+          fontSize: 16,
+          marginTop: 8
+        }}>
+          Loading...
+        </Text>
+      </View>
+    );
   }
 
   return (

@@ -8,7 +8,7 @@ export type RootStackParamList = {
   'class/[id]': { id: string };
 };
 
-// Tab Navigator parameter list  
+// Tab Navigator parameter list
 export type TabParamList = {
   index: undefined; // Home tab
   qr: undefined;
@@ -25,7 +25,7 @@ export type TabNavigationProp = NavigationProp<TabParamList>;
 export type ClassDetailRouteProp = RouteProp<RootStackParamList, 'class/[id]'>;
 
 // Tab icon names (for Lucide icons)
-export type TabIconName = 
+export type TabIconName =
   | 'home'
   | 'qr-code'
   | 'calendar'

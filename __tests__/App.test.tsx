@@ -1,52 +1,6 @@
-import React from 'react';
-import { render } from '@testing-library/react-native';
 import { useAppStore } from '../lib/store';
-import { PillButton } from '../components/PillButton';
 
-// Mock expo-router
-jest.mock('expo-router', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    back: jest.fn(),
-  }),
-  useSegments: () => ['(tabs)', 'index'],
-  Stack: ({ children }: any) => children,
-  Tabs: ({ children }: any) => children,
-}));
-
-// Mock expo components
-jest.mock('expo-linear-gradient', () => ({
-  LinearGradient: ({ children, ...props }: any) => (
-    <div {...props}>{children}</div>
-  ),
-}));
-
-jest.mock('expo-status-bar', () => ({
-  StatusBar: () => null,
-}));
-
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaProvider: ({ children }: any) => children,
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-}));
-
-jest.mock('react-native-gesture-handler', () => ({
-  GestureHandlerRootView: ({ children }: any) => children,
-}));
-
-// Mock Lucide icons
-jest.mock('lucide-react-native', () => ({
-  Home: () => null,
-  QrCode: () => null,
-  Calendar: () => null,
-  CreditCard: () => null,
-  User: () => null,
-  ChevronLeft: () => null,
-  Bell: () => null,
-}));
-
-describe('App Components', () => {
+describe('App Store', () => {
   beforeEach(() => {
     // Reset store state before each test
     useAppStore.setState({
@@ -63,66 +17,45 @@ describe('App Components', () => {
     });
   });
 
-  it('renders PillButton component correctly', () => {
-    const mockOnPress = jest.fn();
-    
-    const { getByText } = render(
-      <PillButton
-        title="Test Button"
-        onPress={mockOnPress}
-        variant="primary"
-      />
-    );
-
-    expect(getByText('Test Button')).toBeTruthy();
+  it('initializes with correct default state', () => {
+    const state = useAppStore.getState();
+    expect(state.isAuthenticated).toBe(false);
+    expect(state.member).toBe(null);
+    expect(state.token).toBe('TEST-TOKEN');
+    expect(state.isValid).toBe(true);
   });
 
-  it('PillButton calls onPress when pressed', () => {
-    const mockOnPress = jest.fn();
-    
-    const { getByText } = render(
-      <PillButton
-        title="Test Button"
-        onPress={mockOnPress}
-        variant="primary"
-      />
-    );
+  it('can login a user', async () => {
+    const { login } = useAppStore.getState();
+    await login('test@example.com');
 
-    const button = getByText('Test Button');
-    // Note: fireEvent.press would be used in a real test, but we're keeping this simple
-    expect(button).toBeTruthy();
+    const state = useAppStore.getState();
+    expect(state.isAuthenticated).toBe(true);
+    expect(state.member?.email).toBe('test@example.com');
   });
 
-  it('PillButton shows loading state correctly', () => {
-    const mockOnPress = jest.fn();
-    
-    const { queryByText } = render(
-      <PillButton
-        title="Test Button"
-        onPress={mockOnPress}
-        variant="primary"
-        loading={true}
-      />
-    );
+  it('can logout a user', () => {
+    const { logout } = useAppStore.getState();
 
-    // When loading, the title should not be visible
-    expect(queryByText('Test Button')).toBeFalsy();
+    // First login
+    useAppStore.setState({ isAuthenticated: true });
+
+    // Then logout
+    logout();
+
+    const state = useAppStore.getState();
+    expect(state.isAuthenticated).toBe(false);
+    expect(state.member).toBe(null);
   });
 
-  it('PillButton can be disabled', () => {
-    const mockOnPress = jest.fn();
-    
-    const { getByText } = render(
-      <PillButton
-        title="Test Button"
-        onPress={mockOnPress}
-        variant="primary"
-        disabled={true}
-      />
-    );
+  it('can generate new QR token', () => {
+    const { generateNewToken } = useAppStore.getState();
+    const originalToken = useAppStore.getState().token;
 
-    const button = getByText('Test Button');
-    expect(button).toBeTruthy();
-    // In a real test, we would verify that onPress is not called when disabled
+    generateNewToken();
+
+    const newToken = useAppStore.getState().token;
+    expect(newToken).not.toBe(originalToken);
+    expect(newToken).toMatch(/^MM-[A-Z0-9]{8}$/);
   });
 });

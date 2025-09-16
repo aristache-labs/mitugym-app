@@ -77,8 +77,8 @@ export const mockClasses: GymClass[] = [
       'Arrive 10 minutes early',
       'Bring your own mat',
       'No shoes in the studio',
-      'Turn off mobile devices'
-    ]
+      'Turn off mobile devices',
+    ],
   },
   {
     id: '2',
@@ -96,8 +96,8 @@ export const mockClasses: GymClass[] = [
       'Arrive 5 minutes early',
       'Bring water bottle',
       'Wear proper athletic shoes',
-      'No late entries allowed'
-    ]
+      'No late entries allowed',
+    ],
   },
   {
     id: '3',
@@ -115,8 +115,8 @@ export const mockClasses: GymClass[] = [
       'Wipe down equipment after use',
       'Use safety clips on barbells',
       'Ask for help if unsure',
-      'Proper form is essential'
-    ]
+      'Proper form is essential',
+    ],
   },
   {
     id: '4',
@@ -134,8 +134,8 @@ export const mockClasses: GymClass[] = [
       'Bring a small towel',
       'Comfortable clothing required',
       'No previous experience needed',
-      'Listen to your body'
-    ]
+      'Listen to your body',
+    ],
   },
   {
     id: '5',
@@ -153,8 +153,8 @@ export const mockClasses: GymClass[] = [
       'Arrive 10 minutes early for bike setup',
       'Bring water and towel',
       'Cycling shoes recommended',
-      'Adjust bike to your height'
-    ]
+      'Adjust bike to your height',
+    ],
   },
   {
     id: '6',
@@ -172,9 +172,9 @@ export const mockClasses: GymClass[] = [
       'No dance experience required',
       'Wear comfortable shoes',
       'Bring plenty of water',
-      'Have fun and let loose!'
-    ]
-  }
+      'Have fun and let loose!',
+    ],
+  },
 ];
 
 // Mock membership plans
@@ -190,8 +190,8 @@ export const mockMembershipPlans: MembershipPlan[] = [
       '8 gym visits per month',
       'Access to basic equipment',
       'Locker room access',
-      'Free fitness assessment'
-    ]
+      'Free fitness assessment',
+    ],
   },
   {
     id: '2',
@@ -204,8 +204,8 @@ export const mockMembershipPlans: MembershipPlan[] = [
       'All group classes included',
       'Guest pass (2 per month)',
       'Nutrition consultation',
-      'Priority booking'
-    ]
+      'Priority booking',
+    ],
   },
   {
     id: '3',
@@ -220,9 +220,9 @@ export const mockMembershipPlans: MembershipPlan[] = [
       'Personal trainer session',
       'Nutrition consultation',
       'Priority booking',
-      '2 months free!'
-    ]
-  }
+      '2 months free!',
+    ],
+  },
 ];
 
 // Mock booking history
@@ -232,22 +232,22 @@ export const mockBookingHistory: BookingHistory[] = [
     classId: '1',
     className: 'Morning Yoga Flow',
     date: '2024-09-10T07:00:00Z',
-    status: 'completed'
+    status: 'completed',
   },
   {
     id: '2',
     classId: '2',
     className: 'HIIT Bootcamp',
     date: '2024-09-12T18:00:00Z',
-    status: 'completed'
+    status: 'completed',
   },
   {
     id: '3',
     classId: '3',
     className: 'Strength Training',
     date: '2024-09-18T19:30:00Z',
-    status: 'upcoming'
-  }
+    status: 'upcoming',
+  },
 ];
 
 // Helper functions
@@ -256,7 +256,7 @@ export const getClassById = (id: string): GymClass | undefined => {
 };
 
 export const getClassesByCategory = (category?: string): GymClass[] => {
-  if (!category || category === 'All') return mockClasses;
+  if (!category || category === 'All') {return mockClasses;}
   return mockClasses.filter(cls => cls.category === category);
 };
 
@@ -279,18 +279,18 @@ export const generateQRToken = (): string => {
 
 export const formatTime = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toLocaleTimeString('en-US', { 
-    hour: 'numeric', 
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
     minute: '2-digit',
-    hour12: true 
+    hour12: true,
   });
 };
 
 export const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { 
+  return date.toLocaleDateString('en-US', {
     weekday: 'short',
-    month: 'short', 
-    day: 'numeric' 
+    month: 'short',
+    day: 'numeric',
   });
 };

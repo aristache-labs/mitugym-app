@@ -39,7 +39,7 @@ const onboardingSlides: OnboardingSlide[] = [
 
 export default function OnboardingScreen() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const { isAuthenticated } = useAppStore();
+  const { isAuthenticated, login } = useAppStore();
 
   // Redirect if already authenticated
   React.useEffect(() => {
@@ -62,6 +62,10 @@ export default function OnboardingScreen() {
 
   const handleGetStarted = () => {
     router.push('/(auth)/login');
+  };
+
+  const handleDemoLogin = async () => {
+    await login('demo@mitugym.com');
   };
 
   const slide = onboardingSlides[currentSlide];
@@ -170,8 +174,8 @@ export default function OnboardingScreen() {
                 width: index === currentSlide ? 24 : 8,
                 height: 8,
                 borderRadius: 4,
-                backgroundColor: index === currentSlide 
-                  ? theme.colors.primary.DEFAULT 
+                backgroundColor: index === currentSlide
+                  ? theme.colors.primary.DEFAULT
                   : 'rgba(167, 195, 186, 0.3)',
                 marginHorizontal: 4,
               }}
@@ -227,6 +231,19 @@ export default function OnboardingScreen() {
             />
           </View>
         )}
+
+        {/* Demo Login - for testing */}
+        <View style={{
+          alignItems: 'center',
+          marginTop: theme.spacing.lg,
+        }}>
+          <PillButton
+            title="🚀 Demo Login"
+            onPress={handleDemoLogin}
+            variant="secondary"
+            size="small"
+          />
+        </View>
       </ScrollView>
     </LinearGradient>
   );

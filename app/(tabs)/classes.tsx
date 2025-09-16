@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, ScrollView, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,8 +6,8 @@ import { Calendar } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import {
-  getClassesByCategory, 
-  getClassesForToday 
+  getClassesByCategory,
+  getClassesForToday,
 } from '../../lib/mock';
 import { AppHeader } from '../../components/AppHeader';
 import { ListFilters } from '../../components/ListFilters';
@@ -24,12 +24,12 @@ export default function ClassesScreen() {
   const insets = useSafeAreaInsets();
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
-  
-  const { 
+
+  const {
     classes,
     isClassReserved,
     reserveClass,
-    cancelReservation
+    cancelReservation,
   } = useAppStore();
 
   // Filter options with counts
@@ -128,7 +128,7 @@ export default function ClassesScreen() {
             title="No Classes Found"
             description={
               selectedFilter === 'Today'
-                ? "No classes are scheduled for today. Check back tomorrow or browse all classes."
+                ? 'No classes are scheduled for today. Check back tomorrow or browse all classes.'
                 : `No classes found in the ${selectedFilter} category. Try a different filter.`
             }
             actionLabel="View All Classes"
