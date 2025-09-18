@@ -8,6 +8,7 @@ import {
   Calendar,
   Clock,
   ChevronRight,
+  Users,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStore } from '../../lib/store';
@@ -69,8 +70,14 @@ export default function HomeScreen() {
     }).length;
   };
 
+  // Calculate people currently in the gym (checked in but not out)
+  const getPeopleInGym = () => {
+    return checkins.filter(checkin => !checkin.check_out_time).length;
+  };
+
   const lastVisit = getLastVisit();
   const currentMonthCheckins = getCurrentMonthCheckinsCount();
+  const peopleInGym = getPeopleInGym();
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -253,42 +260,99 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Current Month Stats */}
+        {/* Stats Cards Row */}
         <View style={{
-          backgroundColor: theme.colors.background.surface,
-          borderRadius: theme.borderRadius.lg,
-          padding: theme.spacing.lg,
+          flexDirection: 'row',
+          gap: theme.spacing.md,
           marginBottom: theme.spacing.xl,
-          borderWidth: 1,
-          borderColor: 'rgba(30, 155, 113, 0.2)',
-          ...theme.shadows.soft,
         }}>
-          <View style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
-            <View>
+          {/* Current Month Stats */}
+          <TouchableOpacity
+            onPress={() => router.push('/(tabs)/membership')}
+            style={{ flex: 1 }}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={[
+                'rgba(30, 155, 113, 0.1)',
+                'rgba(17, 22, 24, 0.8)',
+              ]}
+              style={{
+                borderRadius: theme.borderRadius.lg,
+                padding: theme.spacing.lg,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: 'rgba(30, 155, 113, 0.3)',
+                ...theme.shadows.soft,
+              }}
+            >
+              <Calendar
+                size={32}
+                color={theme.colors.primary.DEFAULT}
+                style={{ marginBottom: theme.spacing.sm }}
+              />
               <Text style={{
                 fontSize: theme.typography.body.fontSize,
-                color: theme.colors.text.secondary,
-                marginBottom: 4,
+                fontWeight: '600',
+                color: theme.colors.text.primary,
+                textAlign: 'center',
               }}>
                 This Month
               </Text>
               <Text style={{
-                fontSize: theme.typography.h2.fontSize,
-                fontWeight: '700',
-                color: theme.colors.primary.DEFAULT,
+                fontSize: theme.typography.caption.fontSize,
+                color: theme.colors.text.secondary,
+                textAlign: 'center',
+                marginTop: 4,
               }}>
                 {currentMonthCheckins} visits
               </Text>
-            </View>
-            <Calendar
-              size={32}
-              color={theme.colors.primary.DEFAULT}
-            />
-          </View>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* People in Gym */}
+          <TouchableOpacity
+            onPress={() => console.log('People in gym')}
+            style={{ flex: 1 }}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={[
+                'rgba(255, 193, 7, 0.1)',
+                'rgba(17, 22, 24, 0.8)',
+              ]}
+              style={{
+                borderRadius: theme.borderRadius.lg,
+                padding: theme.spacing.lg,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: 'rgba(255, 193, 7, 0.3)',
+                ...theme.shadows.soft,
+              }}
+            >
+              <Users
+                size={32}
+                color={theme.colors.secondary.DEFAULT}
+                style={{ marginBottom: theme.spacing.sm }}
+              />
+              <Text style={{
+                fontSize: theme.typography.body.fontSize,
+                fontWeight: '600',
+                color: theme.colors.text.primary,
+                textAlign: 'center',
+              }}>
+                In Gym Now
+              </Text>
+              <Text style={{
+                fontSize: theme.typography.caption.fontSize,
+                color: theme.colors.text.secondary,
+                textAlign: 'center',
+                marginTop: 4,
+              }}>
+                {peopleInGym} {peopleInGym === 1 ? 'person' : 'people'}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
 
         {/* Available Services Section */}
