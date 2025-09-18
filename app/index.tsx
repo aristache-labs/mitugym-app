@@ -39,14 +39,33 @@ const onboardingSlides: OnboardingSlide[] = [
 
 export default function OnboardingScreen() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const { isAuthenticated } = useAppStore();
 
-  // Redirect if already authenticated
+  // Handle authentication state changes
   React.useEffect(() => {
-    if (isAuthenticated) {
+    // Give auth manager time to initialize
+    const checkAuthTimeout = setTimeout(() => {
+      setIsCheckingAuth(false);
+
+      if (isAuthenticated) {
+        console.log('Onboarding: User is authenticated, redirecting to tabs');
+        router.replace('/(tabs)');
+      } else {
+        console.log('Onboarding: User is not authenticated, showing onboarding');
+      }
+    }, 1000); // Wait 1 second for auth state to stabilize
+
+    return () => clearTimeout(checkAuthTimeout);
+  }, [isAuthenticated]);
+
+  // Handle subsequent auth changes
+  React.useEffect(() => {
+    if (!isCheckingAuth && isAuthenticated) {
+      console.log('Onboarding: Auth state changed to authenticated, redirecting');
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isCheckingAuth]);
 
   const handleNext = () => {
     if (currentSlide < onboardingSlides.length - 1) {
@@ -64,6 +83,32 @@ export default function OnboardingScreen() {
     router.push('/(auth)/login');
   };
 
+
+  // Show loading while checking auth state
+  if (isCheckingAuth) {
+    return (
+      <LinearGradient
+        colors={[theme.colors.background.DEFAULT, theme.colors.background.surface]}
+        style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+      >
+        <Text style={{
+          fontSize: 40,
+          fontWeight: '700',
+          color: theme.colors.primary.DEFAULT,
+          letterSpacing: -1,
+          marginBottom: theme.spacing.lg,
+        }}>
+          MITUGYM
+        </Text>
+        <Text style={{
+          fontSize: theme.typography.body.fontSize,
+          color: theme.colors.text.secondary,
+        }}>
+          Loading...
+        </Text>
+      </LinearGradient>
+    );
+  }
 
   const slide = onboardingSlides[currentSlide];
 

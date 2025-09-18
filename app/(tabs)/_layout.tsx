@@ -72,18 +72,26 @@ export default function TabLayout() {
       globalRedirectInProgress = true;
       setTimeout(() => {
         console.log('TabLayout: Initial redirect to login');
-        // Try to navigate out of tabs stack first
-        if (router.canGoBack()) {
-          router.back();
+        try {
+          router.replace('/(auth)/login');
+        } catch (navError) {
+          console.warn('TabLayout: Initial navigation failed, trying fallback');
+          try {
+            router.replace('/');
+          } catch (fallbackError) {
+            if (router.canGoBack()) {
+              router.back();
+              setTimeout(() => router.replace('/'), 100);
+            }
+          }
         }
-        setTimeout(() => {
-          router.replace('/');
-        }, 50);
-        // Reset after a delay to allow for future redirects if needed
+
+        // Reset after navigation
         setTimeout(() => {
           globalRedirectInProgress = false;
-          globalTabLayoutInitialized = false; // Reset to allow new checks
-        }, 1000);
+          globalTabLayoutInitialized = false;
+          console.log('TabLayout: Initial redirect completed, flags reset');
+        }, 1500);
       }, 100);
       return; // Don't set up polling if we're redirecting
     }
@@ -102,32 +110,49 @@ export default function TabLayout() {
         previousAuth = currentAuth;
 
         if (!currentAuth && !globalRedirectInProgress) {
+          console.log('TabLayout: User logged out, initiating redirect...');
           globalRedirectInProgress = true;
           isActive = false; // Stop polling
           setLocalAuthState(false);
+
+          // Immediate redirect for logout
           setTimeout(() => {
-            console.log('TabLayout: Polling redirect to login');
-            // Try to navigate out of tabs stack first
-            if (router.canGoBack()) {
-              router.back();
+            console.log('TabLayout: Executing logout redirect');
+            try {
+              // Force navigate directly to login page
+              router.dismissAll?.(); // Clear any modals if available
+              router.replace('/(auth)/login');
+            } catch (navError) {
+              console.warn('TabLayout: Primary navigation failed, trying alternative');
+              // Fallback navigation - try login first, then onboarding
+              try {
+                router.replace('/(auth)/login');
+              } catch (loginError) {
+                console.warn('TabLayout: Login navigation failed, using onboarding');
+                if (router.canGoBack()) {
+                  router.back();
+                  setTimeout(() => router.replace('/'), 100);
+                } else {
+                  router.replace('/');
+                }
+              }
             }
-            setTimeout(() => {
-              router.replace('/');
-            }, 50);
-            // Reset after a delay to allow for future redirects if needed
+
+            // Reset global flags after successful navigation
             setTimeout(() => {
               globalRedirectInProgress = false;
-              globalTabLayoutInitialized = false; // Reset to allow new checks
-            }, 1000);
-          }, 100);
+              globalTabLayoutInitialized = false;
+              console.log('TabLayout: Redirect completed, flags reset');
+            }, 1500);
+          }, 50); // Faster redirect for logout
         } else if (currentAuth) {
           setLocalAuthState(true);
         }
       }
 
-      // Poll every 500ms
+      // Poll every 300ms for faster logout detection
       if (isActive) {
-        setTimeout(checkAuthChanges, 500);
+        setTimeout(checkAuthChanges, 300);
       }
     };
 

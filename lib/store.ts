@@ -189,23 +189,25 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       console.log('Initiating logout...');
 
-      // Clear remember me data on logout
+      // Clear remember me data on logout FIRST
+      console.log('Clearing remember me data...');
       await SecureStorage.clearRememberMeData();
-      console.log('Remember me data cleared');
+      console.log('Remember me data cleared successfully');
 
+      console.log('Signing out from Supabase...');
       const { error } = await supabase.auth.signOut();
 
       if (error) {
-        console.log('Logout error:', error.message);
+        console.error('Logout error:', error.message);
         get().showToast(error.message, 'error');
         return;
       }
 
-      console.log('Logout successful - auth state will be handled by authManager');
+      console.log('Supabase logout successful - auth state will be handled by authManager');
       // Don't set state here - let authManager handle the SIGNED_OUT event
       get().showToast('Logged out successfully', 'info');
     } catch (error: any) {
-      console.log('Logout failed:', error.message);
+      console.error('Logout failed:', error.message);
       get().showToast(error.message || 'Logout failed', 'error');
     }
   },

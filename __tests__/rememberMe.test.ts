@@ -30,7 +30,7 @@ describe('Remember Me Functionality', () => {
 
       expect(mockAsyncStorage.setItem).toHaveBeenCalledWith(
         '@mitugym_remember_me',
-        expect.stringContaining(email.toLowerCase())
+        expect.stringContaining(email.toLowerCase()),
       );
     });
 
@@ -39,7 +39,7 @@ describe('Remember Me Functionality', () => {
       const sessionToken = 'mock-session-token';
 
       await expect(
-        SecureStorage.storeRememberMeData(invalidEmail, sessionToken)
+        SecureStorage.storeRememberMeData(invalidEmail, sessionToken),
       ).rejects.toThrow('Invalid email format');
     });
 
@@ -50,8 +50,9 @@ describe('Remember Me Functionality', () => {
       await SecureStorage.storeRememberMeData(email, sessionToken);
 
       const storedDataCall = mockAsyncStorage.setItem.mock.calls[0];
-      const storedData = JSON.parse(storedDataCall[1]);
-      
+      expect(storedDataCall).toBeDefined();
+      const storedData = JSON.parse(storedDataCall![1]);
+
       expect(storedData.email).toBe('test@example.com');
     });
 
@@ -122,7 +123,7 @@ describe('Remember Me Functionality', () => {
 
       expect(mockAsyncStorage.setItem).toHaveBeenCalledWith(
         '@mitugym_remember_me',
-        expect.stringContaining('test@example.com')
+        expect.stringContaining('test@example.com'),
       );
     });
 
@@ -130,7 +131,7 @@ describe('Remember Me Functionality', () => {
       mockAsyncStorage.setItem.mockRejectedValueOnce(new Error('Storage error'));
 
       await expect(
-        SecureStorage.storeRememberMeData('test@example.com', 'token')
+        SecureStorage.storeRememberMeData('test@example.com', 'token'),
       ).rejects.toThrow('Storage error');
     });
   });

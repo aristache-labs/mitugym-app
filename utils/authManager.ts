@@ -25,17 +25,24 @@ class AuthManager {
         if (session) {
           this.handleAuthChange('SIGNED_IN', session);
         } else {
-          // No active session, check for remembered session
+          // No active session, check for remembered session only if not during logout
           console.log('AuthManager: No active session, checking for remembered session...');
           try {
-            const hasRememberedSession = await useAppStore.getState().checkRememberedSession();
-            if (hasRememberedSession) {
-              console.log('AuthManager: Successfully restored remembered session');
-            } else {
-              console.log('AuthManager: No valid remembered session found');
-            }
+            // Add a small delay to avoid race conditions during logout
+            setTimeout(async () => {
+              try {
+                const hasRememberedSession = await useAppStore.getState().checkRememberedSession();
+                if (hasRememberedSession) {
+                  console.log('AuthManager: Successfully restored remembered session');
+                } else {
+                  console.log('AuthManager: No valid remembered session found');
+                }
+              } catch (rememberError) {
+                console.error('AuthManager: Error checking remembered session:', rememberError);
+              }
+            }, 500); // Wait 500ms to avoid logout race condition
           } catch (rememberError) {
-            console.error('AuthManager: Error checking remembered session:', rememberError);
+            console.error('AuthManager: Error setting up remembered session check:', rememberError);
           }
         }
       }
@@ -95,19 +102,22 @@ class AuthManager {
         }
       } else if (event === 'SIGNED_OUT') {
         if (currentState.isAuthenticated) {
-          console.log('AuthManager: Processing sign out');
-            setTimeout(() => {
-              console.log('AuthManager: Applying signed out state');
-              useAppStore.setState({
-                isAuthenticated: false,
-                session: null,
-                member: null,
-                bookings: new Set(),
-                bookingHistory: [],
-              });
-              this.isProcessing = false;
-            }, 500);
+          console.log('AuthManager: Processing sign out - clearing all state');
+          // Clear state immediately for logout
+          setTimeout(() => {
+            console.log('AuthManager: Applying signed out state');
+            useAppStore.setState({
+              isAuthenticated: false,
+              session: null,
+              member: null,
+              bookings: new Set(),
+              bookingHistory: [],
+            });
+            this.isProcessing = false;
+            console.log('AuthManager: Sign out state applied successfully');
+          }, 200); // Faster state update for logout
         } else {
+          console.log('AuthManager: Already signed out, skipping state update');
           this.isProcessing = false;
         }
       } else {
