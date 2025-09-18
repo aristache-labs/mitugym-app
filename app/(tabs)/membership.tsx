@@ -20,6 +20,7 @@ export default function MembershipScreen() {
   const insets = useSafeAreaInsets();
   const [showRenewModal, setShowRenewModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState('');
+  const [checkinFilter, setCheckinFilter] = useState('1M'); // 1M, 3M, 6M, 1Y, ALL
 
   const {
     member,
@@ -69,8 +70,25 @@ export default function MembershipScreen() {
     return null;
   }
 
-  // Get recent checkins (last 5)
-  const recentCheckins = checkins.slice(0, 5);
+  // Filter checkins based on selected period
+  const getFilteredCheckins = () => {
+    if (checkinFilter === 'ALL') return checkins;
+    
+    const now = new Date();
+    const monthsToSubtract = checkinFilter === '1M' ? 1 : 
+                           checkinFilter === '3M' ? 3 : 
+                           checkinFilter === '6M' ? 6 : 12;
+    
+    const startDate = new Date(now.getFullYear(), now.getMonth() - monthsToSubtract, 1);
+    
+    return checkins.filter(checkin => {
+      const checkinDate = new Date(checkin.check_in_time);
+      return checkinDate >= startDate;
+    });
+  };
+
+  const filteredCheckins = getFilteredCheckins();
+  const recentCheckins = filteredCheckins.slice(0, 10); // Show more when filtered
   
   // Format checkin data for display
   const formatDuration = (minutes?: number) => {
@@ -264,8 +282,44 @@ export default function MembershipScreen() {
               fontSize: theme.typography.caption.fontSize,
               color: theme.colors.text.secondary,
             }}>
-              {checkins.length} total visits
+              {filteredCheckins.length} visits
             </Text>
+          </View>
+
+          {/* Filter Buttons */}
+          <View style={{
+            flexDirection: 'row',
+            marginBottom: theme.spacing.lg,
+            gap: theme.spacing.sm,
+          }}>
+            {['1M', '3M', '6M', '1Y', 'ALL'].map((filter) => (
+              <TouchableOpacity
+                key={filter}
+                onPress={() => setCheckinFilter(filter)}
+                style={{
+                  paddingHorizontal: theme.spacing.md,
+                  paddingVertical: theme.spacing.sm,
+                  borderRadius: theme.borderRadius.md,
+                  backgroundColor: checkinFilter === filter 
+                    ? theme.colors.primary.DEFAULT 
+                    : 'rgba(30, 155, 113, 0.1)',
+                  borderWidth: 1,
+                  borderColor: checkinFilter === filter 
+                    ? theme.colors.primary.DEFAULT 
+                    : 'rgba(30, 155, 113, 0.3)',
+                }}
+              >
+                <Text style={{
+                  fontSize: theme.typography.caption.fontSize,
+                  fontWeight: '600',
+                  color: checkinFilter === filter 
+                    ? '#FFFFFF' 
+                    : theme.colors.primary.DEFAULT,
+                }}>
+                  {filter}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
 
           {checkinsLoading ? (

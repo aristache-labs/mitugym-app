@@ -27,19 +27,54 @@ export default function HomeScreen() {
     servicesLoading,
     fetchServices,
     renewMembership,
+    checkins,
+    fetchCheckins,
   } = useAppStore();
 
-  // Load services on component mount
+  // Load services and checkins on component mount
   React.useEffect(() => {
     fetchServices();
-  }, [fetchServices]);
+    fetchCheckins();
+  }, [fetchServices, fetchCheckins]);
 
   // Get available services (limit to 2 for preview)
   const availableServices = services.slice(0, 2);
 
+  // Calculate last visit from checkins
+  const getLastVisit = () => {
+    if (checkins.length === 0) return null;
+    
+    // Get the most recent completed checkin (has check_out_time)
+    const completedCheckins = checkins.filter(c => c.check_out_time);
+    if (completedCheckins.length === 0) return null;
+    
+    // Sort by check_in_time and get the most recent
+    const lastVisit = completedCheckins.sort((a, b) => 
+      new Date(b.check_in_time).getTime() - new Date(a.check_in_time).getTime()
+    )[0];
+    
+    return lastVisit?.check_in_time;
+  };
+
+  // Calculate current month checkins count
+  const getCurrentMonthCheckinsCount = () => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    return checkins.filter(checkin => {
+      const checkinDate = new Date(checkin.check_in_time);
+      return checkinDate.getMonth() === currentMonth && 
+             checkinDate.getFullYear() === currentYear;
+    }).length;
+  };
+
+  const lastVisit = getLastVisit();
+  const currentMonthCheckins = getCurrentMonthCheckinsCount();
+
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchServices();
+    await Promise.all([fetchServices(), fetchCheckins()]);
     setRefreshing(false);
   };
 
@@ -212,13 +247,51 @@ export default function HomeScreen() {
                 textAlign: 'center',
                 marginTop: 4,
               }}>
-                {member.lastCheckIn ? formatRelativeDate(member.lastCheckIn) : 'Never'}
+                {lastVisit ? formatRelativeDate(lastVisit) : 'Never'}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
 
-        {/* Today's Classes Section */}
+        {/* Current Month Stats */}
+        <View style={{
+          backgroundColor: theme.colors.background.surface,
+          borderRadius: theme.borderRadius.lg,
+          padding: theme.spacing.lg,
+          marginBottom: theme.spacing.xl,
+          borderWidth: 1,
+          borderColor: 'rgba(30, 155, 113, 0.2)',
+          ...theme.shadows.soft,
+        }}>
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+            <View>
+              <Text style={{
+                fontSize: theme.typography.body.fontSize,
+                color: theme.colors.text.secondary,
+                marginBottom: 4,
+              }}>
+                This Month
+              </Text>
+              <Text style={{
+                fontSize: theme.typography.h2.fontSize,
+                fontWeight: '700',
+                color: theme.colors.primary.DEFAULT,
+              }}>
+                {currentMonthCheckins} visits
+              </Text>
+            </View>
+            <Calendar
+              size={32}
+              color={theme.colors.primary.DEFAULT}
+            />
+          </View>
+        </View>
+
+        {/* Available Services Section */}
         <View style={{ marginBottom: theme.spacing.xl }}>
           <View style={{
             flexDirection: 'row',
