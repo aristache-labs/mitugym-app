@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { router, Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Mail, Lock, Eye, EyeOff, Check } from 'lucide-react-native';
@@ -70,10 +70,7 @@ export default function LoginScreen() {
       style={{ flex: 1 }}
     >
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View
           style={{
             flex: 1,
@@ -463,7 +460,7 @@ export default function LoginScreen() {
             </Text>
           </Text>
         </View>
-      </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </LinearGradient>
   );
 }
