@@ -54,6 +54,9 @@ interface CheckinState {
   fetchCheckins: () => Promise<void>;
   checkIn: (location?: string, notes?: string) => Promise<void>;
   checkOut: (notes?: string) => Promise<void>;
+  getValidatedPeopleInGym: () => Promise<number>;
+  runAutoCheckout: () => Promise<void>;
+  runCleanupInvalidCheckins: () => Promise<number>;
 }
 
 interface AnnouncementState {
@@ -408,7 +411,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         const bookingDateTime = new Date(bookingDate);
         const now = new Date();
         const hoursUntilBooking = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-        
+
         if (hoursUntilBooking < service.advance_booking_hours) {
           get().showToast(`This service requires ${service.advance_booking_hours} hours advance booking`, 'error');
           return;
@@ -441,7 +444,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         set({
           serviceBookings: [...get().serviceBookings, data],
         });
-        
+
         get().showToast(`Booked ${service.name} successfully!`, 'success');
       }
     } catch (error) {
@@ -554,14 +557,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
 
       const checkins = data || [];
-      
+
       // Check if user is currently checked in (has a checkin without checkout)
       const currentCheckin = checkins.find(c => !c.check_out_time);
-      
-      set({ 
+
+      set({
         checkins,
         currentCheckin: currentCheckin || null,
-        isCheckedIn: !!currentCheckin
+        isCheckedIn: !!currentCheckin,
       });
     } catch (error) {
       console.error('Error fetching checkins:', error);
@@ -609,7 +612,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           isCheckedIn: true,
           checkins: [data, ...get().checkins],
         });
-        
+
         get().showToast('Checked in successfully!', 'success');
       }
     } catch (error) {
@@ -621,7 +624,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   checkOut: async (notes = '') => {
     try {
       const { currentCheckin, isCheckedIn } = get();
-      
+
       if (!isCheckedIn || !currentCheckin) {
         get().showToast('You are not currently checked in', 'error');
         return;
@@ -652,8 +655,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       if (data) {
         // Update the checkin in the list
-        const updatedCheckins = get().checkins.map(c => 
-          c.id === currentCheckin.id ? data : c
+        const updatedCheckins = get().checkins.map(c =>
+          c.id === currentCheckin.id ? data : c,
         );
 
         set({
@@ -661,13 +664,74 @@ export const useAppStore = create<AppState>((set, get) => ({
           isCheckedIn: false,
           checkins: updatedCheckins,
         });
-        
+
         const duration = data.duration_minutes ? `${Math.round(data.duration_minutes)} minutes` : '';
         get().showToast(`Checked out successfully! ${duration}`, 'success');
       }
     } catch (error) {
       console.error('Error checking out:', error);
       get().showToast('Failed to check out', 'error');
+    }
+  },
+
+  getValidatedPeopleInGym: async () => {
+    try {
+      // First run cleanup to remove invalid checkins
+      await supabase.rpc('cleanup_invalid_checkins');
+
+      // Get validated current occupancy
+      const { data, error } = await supabase.rpc('get_current_gym_occupancy');
+
+      if (error) {
+        console.error('Error getting gym occupancy:', error);
+        // Fallback to simple count from current state
+        return get().checkins.filter(checkin => !checkin.check_out_time).length;
+      }
+
+      // Count only valid checkins
+      return data?.filter((occupant: any) => occupant.is_valid_checkin).length || 0;
+    } catch (error) {
+      console.error('Error in getValidatedPeopleInGym:', error);
+      // Fallback to simple count from current state
+      return get().checkins.filter(checkin => !checkin.check_out_time).length;
+    }
+  },
+
+  runAutoCheckout: async () => {
+    try {
+      const { error } = await supabase.rpc('run_auto_checkout_with_logging');
+
+      if (error) {
+        console.error('Error running auto checkout:', error);
+        return;
+      }
+
+      // Refresh checkins after auto checkout
+      await get().fetchCheckins();
+      console.log('Auto checkout completed successfully');
+    } catch (error) {
+      console.error('Error in runAutoCheckout:', error);
+    }
+  },
+
+  runCleanupInvalidCheckins: async () => {
+    try {
+      const { data, error } = await supabase.rpc('cleanup_invalid_checkins');
+
+      if (error) {
+        console.error('Error cleaning up invalid checkins:', error);
+        return 0;
+      }
+
+      // Refresh checkins after cleanup
+      if (data > 0) {
+        await get().fetchCheckins();
+      }
+
+      return data || 0;
+    } catch (error) {
+      console.error('Error in runCleanupInvalidCheckins:', error);
+      return 0;
     }
   },
 
@@ -726,9 +790,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       const today = new Date().getDay(); // 0=Sunday, 1=Monday, etc.
       const todaySchedule = schedule.find(s => s.day_of_week === today) || null;
 
-      set({ 
+      set({
         gymSchedule: schedule,
-        todaySchedule 
+        todaySchedule,
       });
     } catch (error) {
       console.error('Error fetching gym schedule:', error);
@@ -740,8 +804,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   getTodayHours: () => {
     const { todaySchedule, gymSchedule } = get();
-    if (!todaySchedule) return null;
-    
+    if (!todaySchedule) {return null;}
+
     // Convert 24h time to 12h format
     const formatTime = (time: string) => {
       const [hours, minutes] = time.split(':');
@@ -769,7 +833,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (isOpen) {
       // Gym is open - show closing time
       const minutesUntilClose = closeTimeInMinutes - currentTimeInMinutes;
-      
+
       if (minutesUntilClose <= 60) {
         // Closing soon - show minutes
         return `Closing in ${minutesUntilClose} min`;
@@ -780,33 +844,33 @@ export const useAppStore = create<AppState>((set, get) => ({
     } else {
       // Gym is closed - find next opening time
       const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
-      
+
       // Check if we should open later today
       if (currentTimeInMinutes < openTimeInMinutes) {
-        return `Opens today`;
+        return 'Opens today';
       }
-      
+
       // Find next opening day
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       let nextDay = currentDay;
       let daysAhead = 0;
-      
+
       do {
         daysAhead++;
         nextDay = (nextDay + 1) % 7;
-        
+
         // Convert our day_of_week (0=Monday) to JS day (0=Sunday)
         const nextScheduleDay = gymSchedule.find(schedule => {
           const scheduleJSDay = schedule.day_of_week === 6 ? 0 : schedule.day_of_week + 1;
           return scheduleJSDay === nextDay;
         });
-        
+
         if (nextScheduleDay) {
           const dayName = daysAhead === 1 ? 'Tomorrow' : dayNames[nextDay];
           return `Opens ${dayName}`;
         }
       } while (daysAhead < 7);
-      
+
       return 'Closed';
     }
   },

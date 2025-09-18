@@ -41,6 +41,8 @@ export default function HomeScreen() {
     gymScheduleLoading,
     getTodayHours,
     fetchGymSchedule,
+    getValidatedPeopleInGym,
+    runCleanupInvalidCheckins,
   } = useAppStore();
 
   // Load data on component mount
@@ -83,14 +85,51 @@ export default function HomeScreen() {
     }).length;
   };
 
-  // Calculate people currently in the gym (checked in but not out)
-  const getPeopleInGym = () => {
-    return checkins.filter(checkin => !checkin.check_out_time).length;
-  };
+  // State for validated people in gym count
+  const [peopleInGym, setPeopleInGym] = React.useState(0);
+
+  // Calculate people currently in the gym with validation
+  const updatePeopleInGym = React.useCallback(async () => {
+    try {
+      const validatedCount = await getValidatedPeopleInGym();
+      setPeopleInGym(validatedCount);
+    } catch (error) {
+      console.error('Error updating people in gym:', error);
+      // Fallback to simple count
+      setPeopleInGym(checkins.filter(checkin => !checkin.check_out_time).length);
+    }
+  }, [getValidatedPeopleInGym, checkins]);
+
+  // Update people count when checkins change
+  React.useEffect(() => {
+    updatePeopleInGym();
+  }, [checkins, updatePeopleInGym]);
+
+  // Run cleanup on component mount and periodically
+  React.useEffect(() => {
+    const runPeriodicCleanup = async () => {
+      try {
+        const cleanedCount = await runCleanupInvalidCheckins();
+        if (cleanedCount > 0) {
+          console.log(`Cleaned up ${cleanedCount} invalid checkins`);
+          await updatePeopleInGym();
+        }
+      } catch (error) {
+        console.error('Error in periodic cleanup:', error);
+      }
+    };
+
+    // Run cleanup on mount
+    runPeriodicCleanup();
+
+    // Set up periodic cleanup every 5 minutes
+    const interval = setInterval(runPeriodicCleanup, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [runCleanupInvalidCheckins, updatePeopleInGym]);
 
   const lastVisit = getLastVisit();
   const currentMonthCheckins = getCurrentMonthCheckinsCount();
-  const peopleInGym = getPeopleInGym();
   const todayHours = getTodayHours();
 
   // Get priority announcement to display
@@ -104,6 +143,8 @@ export default function HomeScreen() {
       fetchAnnouncements(),
       fetchGymSchedule(),
     ]);
+    // Update people count after refresh
+    await updatePeopleInGym();
     setRefreshing(false);
   };
 
