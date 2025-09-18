@@ -12,20 +12,56 @@
 
 ## 📱 Overview
 
-MITUGYM is a production-quality gym management mobile application built with React Native, Expo, TypeScript, and Supabase. It provides a complete gym experience including secure authentication, profile management, QR code entry, class booking, and membership management with real-time data storage.
+MITUGYM is a production-quality gym management mobile application built with React Native, Expo, TypeScript, and Supabase. It provides a complete premium gym experience including secure authentication, membership management with real plans, QR-based check-ins with live occupancy tracking, personal services booking, multi-language support, and real-time announcements - all with automated database functions for seamless operations.
 
 ### ✨ Key Features
 
-- **🔐 Secure Authentication**: Supabase-powered email/password registration and login
+- **🔐 Secure Authentication**: Supabase-powered email/password registration and login with social login options
 - **👤 Complete User Profiles**: Personal information with database persistence
 - **📝 Advanced Registration**: Native date picker, dropdown gender selection, and comprehensive forms
-- **🔐 Quick Check-In**: Secure QR code system for fast gym entry
-- **📅 Class Booking**: Reserve spots in fitness classes with real-time availability
-- **💳 Membership Management**: Track status, view history, and easy renewal
+- **🎯 Membership Management**: Real membership plans with automatic expiry tracking and days calculation
+- **🏃‍♂️ Check-In System**: QR-based gym entry with automatic check-out and occupancy tracking
+- **💼 Personal Services**: Personal Trainer and Professional Massage booking system
 - **📱 Modern UI**: Dark theme with premium design and smooth animations
-- **🎯 User-Friendly**: Intuitive navigation with floating action buttons
+- **🌍 Multi-Language Support**: Full English and Romanian localization
+- **📰 Announcements**: Real-time gym announcements and news system
+- **⏰ Gym Schedule**: Live gym hours with smart status indicators
 - **🗄️ Real-time Data**: Live profile data with Supabase integration
 - **🛡️ Password Recovery**: Secure password reset functionality
+- **🔔 Smart Notifications**: Automated check-out and data cleanup systems
+
+## 🆕 Recent Major Updates
+
+### Latest Release Features (September 2024)
+
+**🔄 Complete System Overhaul**
+- **Real Database Integration**: Migrated from mock data to full Supabase implementation
+- **Membership System**: Real membership plans with automatic expiry tracking
+- **Check-In Revolution**: QR-based system with live gym occupancy and auto-checkout
+- **Services Transformation**: Replaced classes with Personal Trainer and Massage services
+
+**🌍 Multi-Language Implementation**
+- **Full Localization**: Complete English and Romanian translation system
+- **Smart Persistence**: Language preferences saved across app sessions
+- **Premium Messaging**: Professional authentication and onboarding copy
+
+**🏠 Homepage Redesign**
+- **Live Information**: Real-time announcements and gym schedule integration
+- **Smart Status Indicators**: Dynamic gym hours with opening/closing times
+- **Occupancy Tracking**: Live count of people currently in gym
+- **Filtered History**: Check-in history with time-based filtering
+
+**⚙️ Backend Automation**
+- **Automated Check-out**: Smart system checks out users when gym closes
+- **Data Cleanup**: Scheduled jobs for invalid check-in removal
+- **Timezone Handling**: Romania timezone support with DST awareness
+- **Database Functions**: Custom PostgreSQL functions for business logic
+
+**🎨 UI/UX Enhancements**
+- **Premium Design**: Professional authentication with social login UI
+- **Keyboard Optimization**: Touch-to-dismiss keyboard behavior
+- **Navigation Fixes**: Resolved logout navigation and state management issues
+- **Component Evolution**: Updated headers, status cards, and form components
 
 ## 🚀 Quick Start
 
@@ -91,7 +127,7 @@ MITUGYM is a production-quality gym management mobile application built with Rea
 
 ## 🗄️ Database Setup (Supabase)
 
-The app uses Supabase for authentication and data storage. The following components are configured:
+The app uses Supabase for authentication and data storage with a comprehensive schema for gym management.
 
 ### Database Schema
 
@@ -110,14 +146,77 @@ CREATE TABLE profiles (
   gender TEXT,
   avatar_url TEXT,
   membership_status TEXT DEFAULT 'active',
-  membership_plan TEXT DEFAULT 'Basic',
+  membership_plan_id UUID REFERENCES membership_plans(id),
   join_date TIMESTAMPTZ DEFAULT NOW(),
-  expiry_date TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '30 days'),
-  visits_left INTEGER DEFAULT 10,
+  expiry_date TIMESTAMPTZ,
   days_left INTEGER,
-  last_check_in TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+**Membership Plans Table (`membership_plans`)**
+```sql
+CREATE TABLE membership_plans (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT,
+  price DECIMAL(10,2) NOT NULL,
+  duration_months INTEGER NOT NULL,
+  is_student BOOLEAN DEFAULT false,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+**Services Table (`services`)**
+```sql
+CREATE TABLE services (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT,
+  duration_minutes INTEGER,
+  price DECIMAL(10,2),
+  service_type TEXT NOT NULL,
+  requires_advance_booking BOOLEAN DEFAULT false,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+**Check-ins Table (`checkins`)**
+```sql
+CREATE TABLE checkins (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) NOT NULL,
+  check_in_time TIMESTAMPTZ DEFAULT (NOW() AT TIME ZONE 'Europe/Bucharest'),
+  check_out_time TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+**Announcements Table (`announcements`)**
+```sql
+CREATE TABLE announcements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  priority INTEGER DEFAULT 1,
+  is_active BOOLEAN DEFAULT true,
+  expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+**Gym Schedule Table (`gym_schedule`)**
+```sql
+CREATE TABLE gym_schedule (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  day_of_week INTEGER NOT NULL CHECK (day_of_week >= 0 AND day_of_week <= 6),
+  open_time TIME NOT NULL,
+  close_time TIME NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
@@ -127,13 +226,25 @@ CREATE TABLE profiles (
 - **Users can update own profile**: `auth.uid() = id` 
 - **Users can insert own profile**: `auth.uid() = id`
 
-### Database Functions
+### Database Functions & Automation
 
-**`create_user_profile()`** - Securely creates user profiles during registration:
-```sql
-CREATE OR REPLACE FUNCTION create_user_profile(...)
-RETURNS UUID SECURITY DEFINER
-```
+**Profile Management**
+- `create_user_profile()` - Securely creates user profiles during registration
+- `update_days_left()` - Trigger function to automatically calculate membership days remaining
+
+**Check-in System**
+- `get_current_gym_occupancy()` - Returns current people in gym with validation
+- `cleanup_invalid_checkins()` - Removes stale check-ins older than 24 hours
+- `auto_checkout_at_closing()` - Automatically checks out users when gym closes
+- `run_auto_checkout_with_logging()` - Wrapper function with logging for manual triggers
+
+**Automated Scheduling (pg_cron)**
+- Auto-checkout runs every 5 minutes: `SELECT cron.schedule('auto-checkout', '*/5 * * * *', 'SELECT auto_checkout_at_closing();');`
+- Cleanup invalid check-ins runs hourly: `SELECT cron.schedule('cleanup-checkins', '0 * * * *', 'SELECT cleanup_invalid_checkins();');`
+
+**Timezone Handling**
+- All time operations use `AT TIME ZONE 'Europe/Bucharest'` for Romania timezone
+- Automatic daylight saving time adjustments
 
 ### Environment Configuration
 
@@ -149,24 +260,36 @@ EXPO_PUBLIC_SUPABASE_KEY=your-anon-key
 mitugym-app/
 ├── app/                    # Expo Router screens
 │   ├── (auth)/            # Authentication screens
+│   │   ├── login.tsx      # Login with social options
+│   │   ├── register.tsx   # Registration with validation
+│   │   └── recovery.tsx   # Password recovery
 │   ├── (tabs)/            # Tab navigation screens
-│   ├── class/             # Class detail modals
-│   ├── _layout.tsx        # Root layout
+│   │   ├── index.tsx      # Homepage with announcements & gym status
+│   │   ├── membership.tsx # Membership with real plans & check-in history
+│   │   ├── services.tsx   # Personal trainer & massage services
+│   │   └── profile.tsx    # Profile with language settings
+│   ├── service/           # Service detail modals
+│   ├── _layout.tsx        # Root layout with language provider
 │   └── index.tsx          # Onboarding entry
 ├── components/            # Reusable UI components
-│   ├── AppHeader.tsx      # App header component
-│   ├── ClassCard.tsx      # Class card component
+│   ├── AppHeader.tsx      # App header with solid background
+│   ├── ServiceCard.tsx    # Service booking cards
 │   ├── PillButton.tsx     # Modern button component
 │   ├── QRCard.tsx         # QR code display
-│   ├── StatusCard.tsx     # Membership status
+│   ├── StatusCard.tsx     # Membership status (no visits, shows expiry)
+│   ├── EmptyState.tsx     # Empty state illustrations
+│   ├── ListFilters.tsx    # Filter buttons for check-ins
 │   ├── NativeDatePicker.tsx # Native iOS/Android date picker
-│   ├── DropdownPicker.tsx  # Custom dropdown selection
+│   ├── DropdownPicker.tsx  # Custom dropdown with translation support
 │   ├── Toast.tsx          # Toast notifications
 │   └── ...
 ├── lib/                   # Core logic and utilities
-│   ├── store.ts           # Zustand state management
+│   ├── store.ts           # Zustand state management (all features)
 │   ├── theme.ts           # Design system tokens
-│   ├── mock.ts            # Mock data
+│   ├── mock.ts            # Data interfaces and helpers
+│   ├── translations.ts    # English & Romanian translations
+│   ├── LanguageContext.tsx # Language provider & hook
+│   ├── translationHelpers.ts # Translation utility functions
 │   ├── utils.ts           # Utility functions
 │   └── navigation.ts      # Navigation helpers
 ├── utils/                 # Utility modules
@@ -222,7 +345,10 @@ mitugym-app/
 ### Backend & Database
 - **Supabase** - Backend-as-a-Service with PostgreSQL
 - **@supabase/supabase-js** - Supabase JavaScript client
-- **React Native Async Storage** - Local data persistence
+- **PostgreSQL Functions** - Custom business logic and automation
+- **pg_cron Extension** - Scheduled database jobs for auto-checkout
+- **Row Level Security** - Secure data access policies
+- **React Native Async Storage** - Local data persistence and language settings
 - **React Native URL Polyfill** - URL support for Supabase
 
 ### UI & Styling
@@ -232,8 +358,10 @@ mitugym-app/
 - **React Native Safe Area Context** 5.6.0 - Safe area handling
 - **React Native DateTimePicker** - Native date/time selection
 
-### State Management
+### State Management & Internationalization
 - **Zustand** 4.5.4 - Lightweight state management
+- **React Context** - Language provider for i18n
+- **AsyncStorage** - Persistent language preferences
 
 ### Development Tools
 - **ESLint** - Code linting
@@ -261,39 +389,64 @@ npm test -- --coverage
 - **Utility Tests**: Helper function validation
 - **Integration Tests**: Feature workflow testing
 
+## 🌍 Multi-Language Support
+
+### Localization Features
+- **Complete Translation**: All UI elements, forms, and messages
+- **Language Persistence**: User preference saved locally with AsyncStorage
+- **Dynamic Switching**: Real-time language changes from profile settings
+- **Supported Languages**: English (en) and Romanian (ro)
+- **Context-Aware**: Navigation and state preserved during language changes
+
+### Translation Coverage
+- **Authentication**: Login, register, recovery pages with form validation
+- **Navigation**: Tab labels, headers, and button text
+- **Homepage**: Announcements, gym schedule, membership status
+- **Services**: Personal trainer and massage booking
+- **Profile**: Settings, legal pages, and user information
+- **System Messages**: Toasts, errors, and confirmations
+
 ## 📱 App Features
 
 ### 🔐 Authentication
-- **Email/Password**: Secure Supabase authentication
+- **Email/Password**: Secure Supabase authentication with premium messaging
+- **Social Login**: Google and Facebook integration buttons (UI ready)
 - **User Registration**: Comprehensive profile creation with validation
-- **Password Recovery**: Secure password reset via email
+- **Password Recovery**: Secure password reset via email with professional messaging
 - **Profile Management**: Complete user information with database persistence
 - **Form Validation**: Real-time validation for all user inputs
 - **Native UI Components**: iOS/Android native date picker and dropdowns
+- **Remember Me**: Secure credential storage with biometric option
+- **Multi-Language**: All authentication flows fully translated
 
 ### 🏠 Home Dashboard
-- **Membership Status**: Active/expired with days/visits remaining
-- **Quick Actions**: QR code access and last check-in info
-- **Today's Classes**: Preview of scheduled classes
-- **Popular Classes**: Trending fitness sessions
+- **Announcements**: Real-time gym news and updates with modal details
+- **Gym Hours**: Live gym status with smart opening/closing indicators
+- **Membership Status**: Active/expired with days remaining and expiry date
+- **Quick Stats**: Last visit, current month check-ins, live gym occupancy
+- **QR Code Access**: Quick gym entry
+- **Available Services**: Personal trainer and massage options
 
-### 📱 QR Code System
-- **Dynamic Tokens**: Auto-regenerating QR codes (60s expiry)
-- **Visual Timer**: Countdown with color-coded urgency
-- **Security Features**: Mock JWT-style tokens
-- **Status Indicators**: Valid/expired state banners
+### 🏃‍♂️ Check-In System
+- **QR-Based Entry**: Secure gym access via QR scanning (gym-side implementation)
+- **Automatic Check-out**: Smart system checks out users when gym closes
+- **Live Occupancy**: Real-time count of people currently in gym
+- **History Tracking**: Complete check-in history with filtering options
+- **Data Validation**: Automatic cleanup of invalid/stale check-ins
+- **Timezone Aware**: Romania timezone handling with DST support
 
-### 📅 Class Management
-- **Class Browsing**: Filter by category (All, Today, Yoga, etc.)
-- **Real-time Availability**: Live spot counting
-- **Instant Booking**: Reserve/cancel with haptic feedback
-- **Class Details**: Full information modals with trainer info
+### 💼 Services Management
+- **Personal Training**: 1 hour, 8/12/18 session packages
+- **Professional Massage**: 1 hour sessions with advance booking required
+- **Service Booking**: Reserve and manage appointments
+- **Booking History**: Track past and upcoming services
 
 ### 💳 Membership Hub
-- **Status Overview**: Current plan and expiry tracking
-- **Renewal System**: In-app plan selection and upgrade
-- **Activity History**: Recent bookings and check-ins
-- **Plan Comparison**: Feature matrix for different tiers
+- **Real Membership Plans**: Full, Student, One Day Entry options (1M/3M/6M/1Y)
+- **Status Overview**: Current plan name, days left, and expiry date
+- **Check-in History**: Complete gym visit history with filtering (1M/3M/6M/1Y/ALL)
+- **Live Occupancy**: Real-time count of people currently in gym
+- **Automatic Tracking**: Database-driven membership calculations
 
 ### 👤 Profile Center
 - **Live Profile Data**: Real-time data from Supabase database
@@ -301,23 +454,26 @@ npm test -- --coverage
 - **Age Calculation**: Dynamic age calculation from date of birth
 - **Membership Details**: Plan, status, and expiry information
 - **Contact Information**: Email, phone, and address management
+- **App Settings**: Language selection (English/Romanian), Biometric Authentication
 - **Notification Settings**: Granular preference controls
-- **App Settings**: Terms, privacy, support access
-- **Session Management**: Secure logout functionality
+- **Legal & Support**: Terms, privacy, rate app, support access
+- **Session Management**: Secure logout with proper navigation
 
-## 🎭 Mock Data & State
+## 🏗️ Data Architecture
 
-### Demo Features
-- **Toggle Membership**: Switch between active/expired for testing
-- **Booking System**: Local state management for reservations
-- **QR Generation**: Random token creation with expiry
-- **Toast Notifications**: Success/error feedback system
+### Real Database Integration
+- **Supabase Backend**: All data stored in PostgreSQL with RLS
+- **Real-time Updates**: Live data synchronization across app
+- **Automated Functions**: Database triggers and scheduled jobs
+- **Data Validation**: Server-side validation and cleanup
 
 ### Data Models
-- **Member**: User profile with membership details
-- **GymClass**: Class information with availability
-- **Booking**: Reservation history and status
-- **Plans**: Membership tier options with features
+- **Member**: User profile with real membership plans
+- **MembershipPlan**: Actual subscription plans with pricing
+- **Service**: Personal trainer and massage services
+- **Checkin**: Gym visit tracking with timestamps
+- **Announcement**: Real-time gym news and updates
+- **GymSchedule**: Dynamic gym hours with status calculation
 
 ## 🚀 Backend Integration
 
@@ -447,10 +603,14 @@ Expo Router configuration in:
 - **TypeScript Strict Mode**: Maximum type safety
 - **ESLint Rules**: Code quality enforcement
 - **Component Memoization**: React.memo where appropriate
-- **Efficient Re-renders**: Optimized state selectors
+- **Efficient Re-renders**: Optimized state selectors with useCallback
 - **Standalone Auth Manager**: Prevents React re-render loops
 - **Global State Coordination**: Prevents navigation conflicts
 - **Robust Error Handling**: Comprehensive try-catch blocks
+- **Timezone Management**: Consistent timezone handling across app and database
+- **Database Automation**: Scheduled jobs for data cleanup and maintenance
+- **Internationalization**: Scalable translation system with React Context
+- **Accessibility**: Proper semantic structure and navigation
 
 ## 🚢 Deployment
 

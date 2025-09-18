@@ -42,7 +42,7 @@ export const translations = {
     and: 'and',
 
     // Auth subtitles and descriptions
-    fitnessJourneySubtitle: 'Your fitness journey continues',
+    fitnessJourneySubtitle: 'Welcome back to your premium fitness experience',
     createAccountSubtitle: 'Join our fitness community',
     recoveryFormSubtitle: 'Don\'t worry, we\'ll help you get back in',
     registerFormSubtitle: 'Start your fitness journey today',
@@ -229,7 +229,7 @@ export const translations = {
     and: 'și',
 
     // Auth subtitles and descriptions
-    fitnessJourneySubtitle: 'Călătoria ta fitness continuă',
+    fitnessJourneySubtitle: 'Bine ai revenit la experiența ta fitness premium',
     createAccountSubtitle: 'Alătură-te comunității noastre fitness',
     recoveryFormSubtitle: 'Nu-ți face griji, te ajutăm să revii',
     registerFormSubtitle: 'Începe-ți călătoria fitness astăzi',
