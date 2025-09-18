@@ -685,7 +685,7 @@ export default function HomeScreen() {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: theme.spacing.lg,
-            paddingTop: insets.top + theme.spacing.md,
+            paddingTop: theme.spacing.md,
             borderBottomWidth: 1,
             borderBottomColor: 'rgba(255, 255, 255, 0.1)',
           }}>
@@ -830,7 +830,7 @@ export default function HomeScreen() {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: theme.spacing.lg,
-            paddingTop: insets.top + theme.spacing.md,
+            paddingTop: theme.spacing.md,
             borderBottomWidth: 1,
             borderBottomColor: 'rgba(255, 255, 255, 0.1)',
           }}>
