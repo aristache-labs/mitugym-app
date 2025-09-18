@@ -137,6 +137,11 @@ export const translations = {
     // Language
     changeLanguage: 'Change Language',
     selectLanguage: 'Please select your preferred language',
+
+    // App Settings
+    appSettings: 'App Settings',
+    biometricAuth: 'Biometric Authentication',
+    biometricSubtitle: 'Use fingerprint or face ID to unlock',
   },
 
   ro: {
@@ -277,6 +282,11 @@ export const translations = {
     // Language
     changeLanguage: 'Schimbă Limba',
     selectLanguage: 'Te rugăm să selectezi limba preferată',
+
+    // App Settings
+    appSettings: 'Setări Aplicație',
+    biometricAuth: 'Autentificare Biometrică',
+    biometricSubtitle: 'Folosește amprenta sau Face ID pentru deblocare',
   },
 } as const;
 
