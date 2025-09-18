@@ -787,8 +787,31 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
 
       const schedule = data || [];
-      const today = new Date().getDay(); // 0=Sunday, 1=Monday, etc.
-      const todaySchedule = schedule.find(s => s.day_of_week === today) || null;
+
+      // Get current day in Romania timezone using a more reliable method
+      const now = new Date();
+      const romaniaTime = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/Bucharest',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }).formatToParts(now);
+
+      const romaniaDate = new Date(
+        parseInt(romaniaTime.find(p => p.type === 'year')?.value || '0', 10),
+        parseInt(romaniaTime.find(p => p.type === 'month')?.value || '1', 10) - 1, // Month is 0-based
+        parseInt(romaniaTime.find(p => p.type === 'day')?.value || '1', 10),
+      );
+
+      const jsDay = romaniaDate.getDay(); // 0=Sunday, 1=Monday, etc.
+
+      // Convert JS day (0=Sunday) to our database day (0=Monday, 6=Sunday)
+      const ourDay = jsDay === 0 ? 6 : jsDay - 1;
+
+      const todaySchedule = schedule.find(s => s.day_of_week === ourDay) || null;
 
       set({
         gymSchedule: schedule,
@@ -804,19 +827,48 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   getTodayHours: () => {
     const { todaySchedule, gymSchedule } = get();
+
     if (!todaySchedule) {return null;}
 
-    // Convert 24h time to 12h format
+    // Keep 24h format for display
     const formatTime = (time: string) => {
       const [hours, minutes] = time.split(':');
-      const hour = parseInt(hours || '0', 10);
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-      return `${displayHour}:${minutes || '00'} ${ampm}`;
+      return `${hours || '00'}:${minutes || '00'}`;
     };
 
-    // Get current time
-    const now = new Date();
+    // Get current time in Romania timezone using a more reliable method
+    const utcNow = new Date();
+    const romaniaTimeParts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Europe/Bucharest',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }).formatToParts(utcNow);
+
+    // Parse the 12-hour format correctly
+    let hour = parseInt(romaniaTimeParts.find(p => p.type === 'hour')?.value || '0', 10);
+    const minute = parseInt(romaniaTimeParts.find(p => p.type === 'minute')?.value || '0', 10);
+    const second = parseInt(romaniaTimeParts.find(p => p.type === 'second')?.value || '0', 10);
+    const dayPeriod = romaniaTimeParts.find(p => p.type === 'dayPeriod')?.value;
+
+    // Convert 12-hour to 24-hour format
+    if (dayPeriod === 'AM' && hour === 12) {
+      hour = 0; // 12 AM = 0 hours
+    } else if (dayPeriod === 'PM' && hour !== 12) {
+      hour += 12; // PM hours except 12 PM
+    }
+
+    const now = new Date(
+      parseInt(romaniaTimeParts.find(p => p.type === 'year')?.value || '0', 10),
+      parseInt(romaniaTimeParts.find(p => p.type === 'month')?.value || '1', 10) - 1,
+      parseInt(romaniaTimeParts.find(p => p.type === 'day')?.value || '1', 10),
+      hour,
+      minute,
+      second,
+    );
     const currentHour = now.getHours();
     const currentMinutes = now.getMinutes();
     const currentTimeInMinutes = currentHour * 60 + currentMinutes;

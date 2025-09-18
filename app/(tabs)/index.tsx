@@ -910,13 +910,10 @@ export default function HomeScreen() {
                   const ourDayIndex = jsDay === 0 ? 6 : jsDay - 1; // Sunday (0) becomes 6, others shift down by 1
                   const isToday = ourDayIndex === schedule.day_of_week;
 
-                  // Format time from 24h to 12h
+                  // Keep 24h format for display
                   const formatTime = (time: string) => {
                     const [hours, minutes] = time.split(':');
-                    const hour = parseInt(hours || '0', 10);
-                    const ampm = hour >= 12 ? 'PM' : 'AM';
-                    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-                    return `${displayHour}:${minutes || '00'} ${ampm}`;
+                    return `${hours || '00'}:${minutes || '00'}`;
                   };
 
                   return (
