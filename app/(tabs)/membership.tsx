@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,7 +10,7 @@ import {
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { formatPrice, formatRelativeDate } from '../../lib/utils';
-import { mockMembershipPlans, mockBookingHistory } from '../../lib/mock';
+import { mockBookingHistory } from '../../lib/mock';
 import { AppHeader } from '../../components/AppHeader';
 import { StatusCard } from '../../components/StatusCard';
 import { PillButton } from '../../components/PillButton';
@@ -22,9 +22,17 @@ export default function MembershipScreen() {
 
   const {
     member,
+    membershipPlans,
+    membershipPlansLoading,
+    fetchMembershipPlans,
     renewMembership,
     toggleMembershipStatus, // For demo purposes
   } = useAppStore();
+
+  // Fetch membership plans on component mount
+  useEffect(() => {
+    fetchMembershipPlans();
+  }, [fetchMembershipPlans]);
 
   const handleRenewPress = () => {
     setShowRenewModal(true);
@@ -80,7 +88,7 @@ export default function MembershipScreen() {
             status={member.membershipStatus}
             membershipPlan={member.membershipPlan}
             daysLeft={member.daysLeft}
-            visitsLeft={member.visitsLeft}
+            expiryDate={member.expiryDate}
             onRenew={member.membershipStatus === 'expired' ? handleRenewPress : undefined}
           />
         </View>
@@ -325,7 +333,20 @@ export default function MembershipScreen() {
               paddingBottom: insets.bottom + theme.spacing.xl,
             }}
           >
-            {mockMembershipPlans.map(plan => (
+            {membershipPlansLoading ? (
+              <View style={{
+                padding: theme.spacing.xl,
+                alignItems: 'center',
+              }}>
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  color: theme.colors.text.secondary,
+                }}>
+                  Loading membership plans...
+                </Text>
+              </View>
+            ) : (
+              membershipPlans.map(plan => (
               <TouchableOpacity
                 key={plan.id}
                 onPress={() => handlePlanSelect(plan.id)}
@@ -374,7 +395,13 @@ export default function MembershipScreen() {
                         fontSize: theme.typography.caption.fontSize,
                         color: theme.colors.text.secondary,
                       }}>
-                        {plan.type === 'visits' ? `${plan.visits} visits` : 'Unlimited'} • {plan.duration} days
+                        {plan.plan_type === 'day_entry' 
+                          ? 'One day access' 
+                          : plan.duration_months 
+                            ? `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`
+                            : 'Unlimited access'
+                        }
+                        {plan.plan_type === 'student' && ' • Student Discount'}
                       </Text>
                     </View>
 
@@ -411,7 +438,8 @@ export default function MembershipScreen() {
                   </View>
                 </LinearGradient>
               </TouchableOpacity>
-            ))}
+            ))
+            )}
 
             <View style={{
               marginTop: theme.spacing.lg,

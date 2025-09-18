@@ -1,15 +1,15 @@
 
 import { View, Text, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { CheckCircle, XCircle, Calendar, Users } from 'lucide-react-native';
+import { CheckCircle, XCircle, Calendar } from 'lucide-react-native';
 import { theme } from '../lib/theme';
-import { getMembershipStatusColor, getDaysLeftText, getVisitsLeftText } from '../lib/utils';
+import { getMembershipStatusColor, getDaysLeftText } from '../lib/utils';
 
 interface StatusCardProps {
   status: 'active' | 'expired';
   membershipPlan: string;
   daysLeft?: number | undefined;
-  visitsLeft?: number | undefined;
+  expiryDate?: string | undefined;
   onPress?: () => void;
   onRenew?: (() => void) | undefined;
 }
@@ -18,7 +18,7 @@ export function StatusCard({
   status,
   membershipPlan,
   daysLeft,
-  visitsLeft,
+  expiryDate,
   onPress,
   onRenew,
 }: StatusCardProps) {
@@ -141,14 +141,14 @@ export function StatusCard({
             </View>
           )}
 
-          {visitsLeft !== undefined && (
+          {expiryDate && (
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',
               flex: 1,
               justifyContent: daysLeft !== undefined ? 'flex-end' : 'flex-start',
             }}>
-              <Users
+              <Calendar
                 size={18}
                 color={theme.colors.text.secondary}
                 style={{ marginRight: theme.spacing.sm }}
@@ -157,7 +157,7 @@ export function StatusCard({
                 fontSize: theme.typography.caption.fontSize,
                 color: theme.colors.text.secondary,
               }}>
-                {getVisitsLeftText(visitsLeft)}
+                Expires: {new Date(expiryDate).toLocaleDateString()}
               </Text>
             </View>
           )}

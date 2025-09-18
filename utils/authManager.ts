@@ -76,25 +76,21 @@ class AuthManager {
         if (!currentState.isAuthenticated || currentState.session?.user?.id !== authSession.user.id) {
           console.log('AuthManager: Setting authenticated state');
 
-          const memberData = {
-            id: authSession.user.id,
-            name: authSession.user.user_metadata?.first_name + ' ' + authSession.user.user_metadata?.last_name || 'User',
-            email: authSession.user.email || '',
-            phone: '',
-            membershipStatus: 'active' as const,
-            membershipPlan: 'Basic',
-            joinDate: new Date().toISOString(),
-            expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            visitsLeft: 10,
-          };
-
-          setTimeout(() => {
-            console.log('AuthManager: Applying authenticated state');
+          setTimeout(async () => {
+            console.log('AuthManager: Applying authenticated state and loading profile');
             useAppStore.setState({
               isAuthenticated: true,
               session: authSession,
-              member: memberData,
             });
+            
+            // Load real member profile from Supabase
+            try {
+              await useAppStore.getState().loadMemberProfile();
+              console.log('AuthManager: Member profile loaded successfully');
+            } catch (error) {
+              console.error('AuthManager: Failed to load member profile:', error);
+            }
+            
             this.isProcessing = false;
           }, 300);
         } else {

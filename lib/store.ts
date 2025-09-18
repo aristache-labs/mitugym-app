@@ -9,6 +9,7 @@ import {
   type Member,
   type GymClass,
   type BookingHistory,
+  type MembershipPlan,
 } from './mock';
 
 interface AuthState {
@@ -20,6 +21,7 @@ interface AuthState {
   logout: () => Promise<void>;
   checkAuthState: () => Promise<void>;
   checkRememberedSession: () => Promise<boolean>;
+  loadMemberProfile: () => Promise<void>;
 }
 
 interface ClassState {
@@ -40,6 +42,9 @@ interface QRState {
 }
 
 interface MembershipState {
+  membershipPlans: MembershipPlan[];
+  membershipPlansLoading: boolean;
+  fetchMembershipPlans: () => Promise<void>;
   renewMembership: (planId: string) => void;
   toggleMembershipStatus: () => void;
 }
@@ -283,6 +288,48 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  loadMemberProfile: async () => {
+    try {
+      const { session } = get();
+      if (!session?.user?.id) {
+        console.log('No session available for loading profile');
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (error) {
+        console.error('Error loading member profile:', error);
+        return;
+      }
+
+      if (data) {
+        // Transform profile data to Member format
+        const member: Member = {
+          id: data.id,
+          name: `${data.first_name} ${data.last_name}`,
+          email: data.email || '',
+          phone: data.phone || '',
+          membershipStatus: data.membership_status || 'expired',
+          membershipPlan: data.membership_plan || 'No Plan',
+          joinDate: data.join_date || '',
+          expiryDate: data.expiry_date || '',
+          daysLeft: data.days_left || 0,
+          lastCheckIn: data.last_check_in || undefined,
+        };
+
+        console.log('Loaded member profile:', member);
+        set({ member });
+      }
+    } catch (error) {
+      console.error('Error loading member profile:', error);
+    }
+  },
+
   // Class state
   classes: mockClasses,
   bookings: new Set(),
@@ -383,6 +430,33 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   // Membership state
+  membershipPlans: [],
+  membershipPlansLoading: false,
+
+  fetchMembershipPlans: async () => {
+    set({ membershipPlansLoading: true });
+    try {
+      const { data, error } = await supabase
+        .from('membership_plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching membership plans:', error);
+        get().showToast('Failed to load membership plans', 'error');
+        return;
+      }
+
+      set({ membershipPlans: data || [] });
+    } catch (error) {
+      console.error('Error fetching membership plans:', error);
+      get().showToast('Failed to load membership plans', 'error');
+    } finally {
+      set({ membershipPlansLoading: false });
+    }
+  },
+
   renewMembership: (_planId: string) => {
     // Mock renewal - in real app, this would process payment
     const { member } = get();

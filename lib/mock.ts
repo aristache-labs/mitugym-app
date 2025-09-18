@@ -30,11 +30,14 @@ export interface GymClass {
 export interface MembershipPlan {
   id: string;
   name: string;
-  type: 'visits' | 'unlimited';
+  plan_type: 'full' | 'student' | 'day_entry';
+  duration_months?: number; // null for day entry
   price: number;
-  duration: number; // in days
-  visits?: number;
   features: string[];
+  is_active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface BookingHistory {
@@ -177,53 +180,8 @@ export const mockClasses: GymClass[] = [
   },
 ];
 
-// Mock membership plans
-export const mockMembershipPlans: MembershipPlan[] = [
-  {
-    id: '1',
-    name: 'Basic Monthly',
-    type: 'visits',
-    price: 49.99,
-    duration: 30,
-    visits: 8,
-    features: [
-      '8 gym visits per month',
-      'Access to basic equipment',
-      'Locker room access',
-      'Free fitness assessment',
-    ],
-  },
-  {
-    id: '2',
-    name: 'Premium Monthly',
-    type: 'unlimited',
-    price: 79.99,
-    duration: 30,
-    features: [
-      'Unlimited gym access',
-      'All group classes included',
-      'Guest pass (2 per month)',
-      'Nutrition consultation',
-      'Priority booking',
-    ],
-  },
-  {
-    id: '3',
-    name: 'Annual Premium',
-    type: 'unlimited',
-    price: 799.99,
-    duration: 365,
-    features: [
-      'Unlimited gym access',
-      'All group classes included',
-      'Guest pass (4 per month)',
-      'Personal trainer session',
-      'Nutrition consultation',
-      'Priority booking',
-      '2 months free!',
-    ],
-  },
-];
+// Note: Membership plans are now stored in Supabase database
+// Use the store methods to fetch membership plans from the database
 
 // Mock booking history
 export const mockBookingHistory: BookingHistory[] = [
