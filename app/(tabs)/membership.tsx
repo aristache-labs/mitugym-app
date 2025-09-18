@@ -6,11 +6,12 @@ import {
   CreditCard,
   Clock,
   CheckCircle,
+  MapPin,
+  Calendar,
 } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { formatPrice, formatRelativeDate } from '../../lib/utils';
-import { mockBookingHistory } from '../../lib/mock';
 import { AppHeader } from '../../components/AppHeader';
 import { StatusCard } from '../../components/StatusCard';
 import { PillButton } from '../../components/PillButton';
@@ -27,12 +28,16 @@ export default function MembershipScreen() {
     fetchMembershipPlans,
     renewMembership,
     toggleMembershipStatus, // For demo purposes
+    checkins,
+    checkinsLoading,
+    fetchCheckins,
   } = useAppStore();
 
-  // Fetch membership plans on component mount
+  // Fetch membership plans and checkins on component mount
   useEffect(() => {
     fetchMembershipPlans();
-  }, [fetchMembershipPlans]);
+    fetchCheckins();
+  }, [fetchMembershipPlans, fetchCheckins]);
 
   const handleRenewPress = () => {
     setShowRenewModal(true);
@@ -64,7 +69,19 @@ export default function MembershipScreen() {
     return null;
   }
 
-  const recentBookings = mockBookingHistory.slice(0, 5);
+  // Get recent checkins (last 5)
+  const recentCheckins = checkins.slice(0, 5);
+  
+  // Format checkin data for display
+  const formatDuration = (minutes?: number) => {
+    if (!minutes) return 'In progress';
+    const hours = Math.floor(minutes / 60);
+    const mins = Math.round(minutes % 60);
+    if (hours > 0) {
+      return `${hours}h ${mins}m`;
+    }
+    return `${mins}m`;
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background.DEFAULT }}>
@@ -223,88 +240,142 @@ export default function MembershipScreen() {
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
+            justifyContent: 'space-between',
             marginBottom: theme.spacing.lg,
           }}>
-            <Clock
-              size={24}
-              color={theme.colors.secondary.DEFAULT}
-              style={{ marginRight: theme.spacing.sm }}
-            />
-            <Text style={{
-              fontSize: theme.typography.h3.fontSize,
-              fontWeight: theme.typography.h3.fontWeight,
-              color: theme.colors.text.primary,
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
             }}>
-              Recent Activity
+              <MapPin
+                size={24}
+                color={theme.colors.secondary.DEFAULT}
+                style={{ marginRight: theme.spacing.sm }}
+              />
+              <Text style={{
+                fontSize: theme.typography.h3.fontSize,
+                fontWeight: theme.typography.h3.fontWeight,
+                color: theme.colors.text.primary,
+              }}>
+                Recent Check-ins
+              </Text>
+            </View>
+            <Text style={{
+              fontSize: theme.typography.caption.fontSize,
+              color: theme.colors.text.secondary,
+            }}>
+              {checkins.length} total visits
             </Text>
           </View>
 
-          {recentBookings.length > 0 ? (
+          {checkinsLoading ? (
+            <View style={{
+              padding: theme.spacing.xl,
+              alignItems: 'center',
+            }}>
+              <Text style={{
+                fontSize: theme.typography.body.fontSize,
+                color: theme.colors.text.secondary,
+              }}>
+                Loading check-ins...
+              </Text>
+            </View>
+          ) : recentCheckins.length > 0 ? (
             <View style={{ gap: theme.spacing.md }}>
-              {recentBookings.map(booking => (
+              {recentCheckins.map(checkin => (
                 <View
-                  key={booking.id}
+                  key={checkin.id}
                   style={{
                     flexDirection: 'row',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     paddingVertical: theme.spacing.sm,
                     borderBottomWidth: 1,
-                    borderBottomColor: 'rgba(167, 195, 186, 0.1)',
+                    borderBottomColor: 'rgba(30, 155, 113, 0.1)',
                   }}
                 >
                   <View style={{ flex: 1 }}>
-                    <Text style={{
-                      fontSize: theme.typography.body.fontSize,
-                      fontWeight: '500',
-                      color: theme.colors.text.primary,
+                    <View style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
                       marginBottom: 2,
                     }}>
-                      {booking.className}
-                    </Text>
+                      <MapPin
+                        size={16}
+                        color={theme.colors.text.secondary}
+                        style={{ marginRight: theme.spacing.xs }}
+                      />
+                      <Text style={{
+                        fontSize: theme.typography.body.fontSize,
+                        fontWeight: '500',
+                        color: theme.colors.text.primary,
+                      }}>
+                        {checkin.location}
+                      </Text>
+                    </View>
+                    <View style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}>
+                      <Calendar
+                        size={14}
+                        color={theme.colors.text.secondary}
+                        style={{ marginRight: theme.spacing.xs }}
+                      />
+                      <Text style={{
+                        fontSize: theme.typography.caption.fontSize,
+                        color: theme.colors.text.secondary,
+                      }}>
+                        {formatRelativeDate(checkin.check_in_time)}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}>
+                    <Clock
+                      size={16}
+                      color={checkin.check_out_time ? theme.colors.status.success : theme.colors.primary.DEFAULT}
+                      style={{ marginRight: theme.spacing.xs }}
+                    />
                     <Text style={{
                       fontSize: theme.typography.caption.fontSize,
-                      color: theme.colors.text.secondary,
-                    }}>
-                      {formatRelativeDate(booking.date)}
-                    </Text>
-                  </View>
-
-                  <View style={{
-                    backgroundColor: booking.status === 'completed'
-                      ? 'rgba(46, 204, 113, 0.2)'
-                      : booking.status === 'upcoming'
-                      ? 'rgba(30, 155, 113, 0.2)'
-                      : 'rgba(231, 76, 60, 0.2)',
-                    paddingHorizontal: theme.spacing.sm,
-                    paddingVertical: 4,
-                    borderRadius: theme.borderRadius.sm,
-                  }}>
-                    <Text style={{
-                      fontSize: theme.typography.small.fontSize,
+                      color: checkin.check_out_time ? theme.colors.status.success : theme.colors.primary.DEFAULT,
                       fontWeight: '600',
-                      color: booking.status === 'completed'
-                        ? theme.colors.status.success
-                        : booking.status === 'upcoming'
-                        ? theme.colors.primary.DEFAULT
-                        : theme.colors.status.error,
-                      textTransform: 'capitalize',
                     }}>
-                      {booking.status}
+                      {formatDuration(checkin.duration_minutes)}
                     </Text>
                   </View>
                 </View>
               ))}
             </View>
           ) : (
-            <Text style={{
-              fontSize: theme.typography.body.fontSize,
-              color: theme.colors.text.secondary,
-              textAlign: 'center',
-              fontStyle: 'italic',
+            <View style={{
+              padding: theme.spacing.xl,
+              alignItems: 'center',
             }}>
-              No recent activity
-            </Text>
+              <MapPin
+                size={48}
+                color={theme.colors.text.secondary}
+                style={{ marginBottom: theme.spacing.md }}
+              />
+              <Text style={{
+                fontSize: theme.typography.body.fontSize,
+                color: theme.colors.text.secondary,
+                textAlign: 'center',
+              }}>
+                No check-ins yet
+              </Text>
+              <Text style={{
+                fontSize: theme.typography.caption.fontSize,
+                color: theme.colors.text.secondary,
+                textAlign: 'center',
+                marginTop: theme.spacing.xs,
+              }}>
+                Use your QR code to check in at the gym
+              </Text>
+            </View>
           )}
         </View>
       </ScrollView>

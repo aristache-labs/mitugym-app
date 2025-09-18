@@ -90,6 +90,14 @@ class AuthManager {
             } catch (error) {
               console.error('AuthManager: Failed to load member profile:', error);
             }
+
+            // Load user checkins
+            try {
+              await useAppStore.getState().fetchCheckins();
+              console.log('AuthManager: Check-ins loaded successfully');
+            } catch (error) {
+              console.error('AuthManager: Failed to load check-ins:', error);
+            }
             
             this.isProcessing = false;
           }, 300);

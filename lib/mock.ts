@@ -41,6 +41,18 @@ export interface ServiceBooking {
   updated_at: string;
 }
 
+export interface Checkin {
+  id: string;
+  user_id: string;
+  check_in_time: string;
+  check_out_time?: string;
+  duration_minutes?: number;
+  location: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface MembershipPlan {
   id: string;
   name: string;

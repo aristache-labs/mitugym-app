@@ -10,6 +10,7 @@ import {
   type ServiceBooking,
   type BookingHistory,
   type MembershipPlan,
+  type Checkin,
 } from './mock';
 
 interface AuthState {
@@ -43,6 +44,16 @@ interface QRState {
   checkExpiry: () => void;
 }
 
+interface CheckinState {
+  checkins: Checkin[];
+  checkinsLoading: boolean;
+  currentCheckin: Checkin | null;
+  isCheckedIn: boolean;
+  fetchCheckins: () => Promise<void>;
+  checkIn: (location?: string, notes?: string) => Promise<void>;
+  checkOut: (notes?: string) => Promise<void>;
+}
+
 interface MembershipState {
   membershipPlans: MembershipPlan[];
   membershipPlansLoading: boolean;
@@ -60,7 +71,7 @@ interface ToastState {
   hideToast: () => void;
 }
 
-type AppState = AuthState & ServiceState & QRState & MembershipState & ToastState;
+type AppState = AuthState & ServiceState & QRState & CheckinState & MembershipState & ToastState;
 
 export const useAppStore = create<AppState>((set, get) => ({
   // Auth state
@@ -496,6 +507,151 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     if (now >= expiresAt) {
       set({ isValid: false });
+    }
+  },
+
+  // Check-in state
+  checkins: [],
+  checkinsLoading: false,
+  currentCheckin: null,
+  isCheckedIn: false,
+
+  fetchCheckins: async () => {
+    set({ checkinsLoading: true });
+    try {
+      const { session } = get();
+      if (!session?.user?.id) {
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('checkins')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('check_in_time', { ascending: false })
+        .limit(20);
+
+      if (error) {
+        console.error('Error fetching checkins:', error);
+        get().showToast('Failed to load check-ins', 'error');
+        return;
+      }
+
+      const checkins = data || [];
+      
+      // Check if user is currently checked in (has a checkin without checkout)
+      const currentCheckin = checkins.find(c => !c.check_out_time);
+      
+      set({ 
+        checkins,
+        currentCheckin: currentCheckin || null,
+        isCheckedIn: !!currentCheckin
+      });
+    } catch (error) {
+      console.error('Error fetching checkins:', error);
+      get().showToast('Failed to load check-ins', 'error');
+    } finally {
+      set({ checkinsLoading: false });
+    }
+  },
+
+  checkIn: async (location = 'MITUGYM Main', notes = '') => {
+    try {
+      const { session, isCheckedIn } = get();
+      if (!session?.user?.id) {
+        get().showToast('Please log in to check in', 'error');
+        return;
+      }
+
+      if (isCheckedIn) {
+        get().showToast('You are already checked in', 'info');
+        return;
+      }
+
+      const checkinData = {
+        user_id: session.user.id,
+        check_in_time: new Date().toISOString(),
+        location,
+        notes: notes || null,
+      };
+
+      const { data, error } = await supabase
+        .from('checkins')
+        .insert([checkinData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error checking in:', error);
+        get().showToast('Failed to check in', 'error');
+        return;
+      }
+
+      if (data) {
+        set({
+          currentCheckin: data,
+          isCheckedIn: true,
+          checkins: [data, ...get().checkins],
+        });
+        
+        get().showToast('Checked in successfully!', 'success');
+      }
+    } catch (error) {
+      console.error('Error checking in:', error);
+      get().showToast('Failed to check in', 'error');
+    }
+  },
+
+  checkOut: async (notes = '') => {
+    try {
+      const { currentCheckin, isCheckedIn } = get();
+      
+      if (!isCheckedIn || !currentCheckin) {
+        get().showToast('You are not currently checked in', 'error');
+        return;
+      }
+
+      const checkOutTime = new Date().toISOString();
+      const updateData: any = {
+        check_out_time: checkOutTime,
+        updated_at: checkOutTime,
+      };
+
+      if (notes) {
+        updateData.notes = currentCheckin.notes ? `${currentCheckin.notes} | ${notes}` : notes;
+      }
+
+      const { data, error } = await supabase
+        .from('checkins')
+        .update(updateData)
+        .eq('id', currentCheckin.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error checking out:', error);
+        get().showToast('Failed to check out', 'error');
+        return;
+      }
+
+      if (data) {
+        // Update the checkin in the list
+        const updatedCheckins = get().checkins.map(c => 
+          c.id === currentCheckin.id ? data : c
+        );
+
+        set({
+          currentCheckin: null,
+          isCheckedIn: false,
+          checkins: updatedCheckins,
+        });
+        
+        const duration = data.duration_minutes ? `${Math.round(data.duration_minutes)} minutes` : '';
+        get().showToast(`Checked out successfully! ${duration}`, 'success');
+      }
+    } catch (error) {
+      console.error('Error checking out:', error);
+      get().showToast('Failed to check out', 'error');
     }
   },
 
