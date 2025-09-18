@@ -133,7 +133,7 @@ export default function RegisterScreen() {
         subtitle="Join the fitness community"
         showBack
         onBack={handleBack}
-        transparent
+        transparent={false}
       />
 
       <KeyboardAvoidingView
@@ -144,7 +144,6 @@ export default function RegisterScreen() {
           contentContainerStyle={{
             flexGrow: 1,
             paddingHorizontal: theme.spacing.lg,
-            paddingTop: 120, // Account for transparent header
             paddingBottom: theme.spacing.xl,
           }}
           showsVerticalScrollIndicator={false}

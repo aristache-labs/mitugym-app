@@ -60,7 +60,7 @@ export default function RecoveryScreen() {
         subtitle="Recover your account"
         showBack
         onBack={handleBack}
-        transparent
+        transparent={false}
       />
 
       <KeyboardAvoidingView
@@ -71,7 +71,6 @@ export default function RecoveryScreen() {
           contentContainerStyle={{
             flexGrow: 1,
             paddingHorizontal: theme.spacing.lg,
-            paddingTop: 120, // Account for transparent header
             paddingBottom: theme.spacing.xl,
           }}
           showsVerticalScrollIndicator={false}

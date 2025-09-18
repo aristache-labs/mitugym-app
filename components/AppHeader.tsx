@@ -32,8 +32,9 @@ export function AppHeader({
   const HeaderContent = (
     <View
       style={{
-        height: totalHeight,
+        height: totalHeight + theme.spacing.md,
         paddingTop: insets.top,
+        paddingBottom: theme.spacing.md,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
