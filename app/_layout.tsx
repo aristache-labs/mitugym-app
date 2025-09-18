@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { useAppStore } from '../lib/store';
 import { Toast } from '../components/Toast';
 import { authManager } from '../utils/authManager';
+import { LanguageProvider } from '../lib/LanguageContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync();
@@ -50,33 +51,35 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <StatusBar style="light" backgroundColor="#0A0F0F" />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: '#0A0F0F' },
-            animation: 'slide_from_right',
-          }}
-        >
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="class/[id]"
-            options={{
-              presentation: 'modal',
-              animation: 'slide_from_bottom',
+        <LanguageProvider>
+          <StatusBar style="light" backgroundColor="#0A0F0F" />
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: '#0A0F0F' },
+              animation: 'slide_from_right',
             }}
-          />
-        </Stack>
+          >
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen
+              name="class/[id]"
+              options={{
+                presentation: 'modal',
+                animation: 'slide_from_bottom',
+              }}
+            />
+          </Stack>
 
-        {/* Global Toast */}
-        <Toast
-          message={message}
-          type={type}
-          visible={toastVisible}
-          onDismiss={hideToast}
-        />
+          {/* Global Toast */}
+          <Toast
+            message={message}
+            type={type}
+            visible={toastVisible}
+            onDismiss={hideToast}
+          />
+        </LanguageProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

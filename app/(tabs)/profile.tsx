@@ -16,16 +16,19 @@ import {
   Calendar,
   User,
   Edit,
+  Globe,
 } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { AppHeader } from '../../components/AppHeader';
 import { PillButton } from '../../components/PillButton';
 import { supabase } from '../../utils/supabase';
+import { useLanguage, Language } from '../../lib/LanguageContext';
 
 interface SettingItem {
   id: string;
   title: string;
+  subtitle?: string;
   icon: any;
   type: 'toggle' | 'action' | 'navigation';
   value?: boolean;
@@ -63,6 +66,7 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
 
   const { member, logout, session, showToast } = useAppStore();
+  const { language, setLanguage, t } = useLanguage();
 
   // Load profile data from Supabase
   useEffect(() => {
@@ -154,6 +158,33 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleLanguageChange = () => {
+    const languages: { code: Language; name: string }[] = [
+      { code: 'en', name: 'English' },
+      { code: 'ro', name: 'Română' },
+    ];
+
+    Alert.alert(
+      t('changeLanguage'),
+      t('selectLanguage'),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        ...languages.map(lang => ({
+          text: `${lang.name} ${language === lang.code ? '✓' : ''}`,
+          onPress: () => {
+            if (language !== lang.code) {
+              setLanguage(lang.code);
+              showToast(
+                lang.code === 'en' ? 'Language changed to English' : 'Limba schimbată în română',
+                'success'
+              );
+            }
+          },
+        })),
+      ],
+    );
+  };
+
   const notificationSettings: SettingItem[] = [
     {
       id: 'push',
@@ -182,6 +213,14 @@ export default function ProfileScreen() {
   ];
 
   const appSettings: SettingItem[] = [
+    {
+      id: 'language',
+      title: t('language'),
+      subtitle: language === 'en' ? 'English' : 'Română',
+      icon: Globe,
+      type: 'action',
+      onPress: handleLanguageChange,
+    },
     {
       id: 'terms',
       title: 'Terms of Service',
@@ -237,7 +276,7 @@ export default function ProfileScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background.DEFAULT }}>
       <AppHeader
-        title="Profile"
+        title={t('profile')}
         subtitle="Manage your account"
         showNotifications
         onNotificationPress={() => console.log('Notifications pressed')}
@@ -767,12 +806,23 @@ export default function ProfileScreen() {
                   color={theme.colors.text.secondary}
                   style={{ marginRight: theme.spacing.md }}
                 />
-                <Text style={{
-                  fontSize: theme.typography.body.fontSize,
-                  color: theme.colors.text.primary,
-                }}>
-                  {setting.title}
-                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={{
+                    fontSize: theme.typography.body.fontSize,
+                    color: theme.colors.text.primary,
+                  }}>
+                    {setting.title}
+                  </Text>
+                  {setting.subtitle && (
+                    <Text style={{
+                      fontSize: theme.typography.caption.fontSize,
+                      color: theme.colors.text.secondary,
+                      marginTop: 2,
+                    }}>
+                      {setting.subtitle}
+                    </Text>
+                  )}
+                </View>
               </View>
 
               <ChevronRight

@@ -19,9 +19,12 @@ import { formatRelativeDate } from '../../lib/utils';
 import { AppHeader } from '../../components/AppHeader';
 import { StatusCard } from '../../components/StatusCard';
 import { PillButton } from '../../components/PillButton';
+import { useLanguage } from '../../lib/LanguageContext';
+import { getDayTranslationKey } from '../../lib/translationHelpers';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const [refreshing, setRefreshing] = React.useState(false);
   const [announcementsModalVisible, setAnnouncementsModalVisible] = React.useState(false);
   const [gymScheduleModalVisible, setGymScheduleModalVisible] = React.useState(false);
@@ -259,7 +262,7 @@ export default function HomeScreen() {
                      letterSpacing: 0.2,
                      marginBottom: 1,
                    }}>
-                     News
+                     {t('news')}
                    </Text>
                    <Text
                      style={{
@@ -270,9 +273,9 @@ export default function HomeScreen() {
                      }}
                      numberOfLines={1}
                    >
-                     {announcementsLoading ? 'Loading...' :
+                     {announcementsLoading ? t('loading') :
                       priorityAnnouncement ? priorityAnnouncement.title :
-                      'No announcements'}
+                      t('noAnnouncements')}
                    </Text>
                  </View>
                </View>
@@ -333,7 +336,7 @@ export default function HomeScreen() {
                      letterSpacing: 0.2,
                      marginBottom: 1,
                    }}>
-                     {todayHours?.includes('Opens') ? 'Closed' : 'Open Now'}
+                     {todayHours?.includes('Opens') ? t('closed') : t('openNow')}
                    </Text>
                    <Text
                      style={{
@@ -344,8 +347,8 @@ export default function HomeScreen() {
                      }}
                      numberOfLines={1}
                    >
-                     {gymScheduleLoading ? 'Loading...' :
-                      todayHours || 'Not available'}
+                     {gymScheduleLoading ? t('loading') :
+                      todayHours || t('notAvailable')}
                    </Text>
                  </View>
                </View>
@@ -456,7 +459,7 @@ export default function HomeScreen() {
                 color: theme.colors.text.primary,
                 textAlign: 'center',
               }}>
-                Last Visit
+                {t('lastVisit')}
               </Text>
               <Text style={{
                 fontSize: theme.typography.caption.fontSize,
@@ -507,7 +510,7 @@ export default function HomeScreen() {
                 color: theme.colors.text.primary,
                 textAlign: 'center',
               }}>
-                This Month
+                {t('thisMonth')}
               </Text>
               <Text style={{
                 fontSize: theme.typography.caption.fontSize,
@@ -515,7 +518,7 @@ export default function HomeScreen() {
                 textAlign: 'center',
                 marginTop: 4,
               }}>
-                {currentMonthCheckins} visits
+                {currentMonthCheckins} {t('visits')}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -551,7 +554,7 @@ export default function HomeScreen() {
                 color: theme.colors.text.primary,
                 textAlign: 'center',
               }}>
-                In Gym Now
+                {t('inGymNow')}
               </Text>
               <Text style={{
                 fontSize: theme.typography.caption.fontSize,
@@ -559,7 +562,7 @@ export default function HomeScreen() {
                 textAlign: 'center',
                 marginTop: 4,
               }}>
-                {peopleInGym} {peopleInGym === 1 ? 'person' : 'people'}
+                {peopleInGym} {t('people')}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -584,7 +587,7 @@ export default function HomeScreen() {
                 fontWeight: theme.typography.h3.fontWeight,
                 color: theme.colors.text.primary,
               }}>
-                Available Services
+                {t('availableServices')}
               </Text>
             </View>
 
@@ -735,7 +738,7 @@ export default function HomeScreen() {
               fontWeight: '700',
               color: theme.colors.text.primary,
             }}>
-              Announcements
+              {t('announcements')}
             </Text>
             <TouchableOpacity
               onPress={() => setAnnouncementsModalVisible(false)}
@@ -850,7 +853,7 @@ export default function HomeScreen() {
                   color: theme.colors.text.secondary,
                   textAlign: 'center',
                 }}>
-                  No announcements at this time
+                  {t('noAnnouncements')}
                 </Text>
               </View>
             )}
@@ -880,7 +883,7 @@ export default function HomeScreen() {
               fontWeight: '700',
               color: theme.colors.text.primary,
             }}>
-              Gym Schedule
+              {t('gymSchedule')}
             </Text>
             <TouchableOpacity
               onPress={() => setGymScheduleModalVisible(false)}
@@ -904,7 +907,6 @@ export default function HomeScreen() {
             {gymSchedule.length > 0 ? (
               <>
                 {gymSchedule.map((schedule) => {
-                  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
                   // Get current time in Romania timezone
                   const utcNow = new Date();
@@ -988,7 +990,7 @@ export default function HomeScreen() {
                               color: theme.colors.text.primary,
                               marginBottom: 1,
                             }}>
-                              {dayNames[schedule.day_of_week]}
+                              {t(getDayTranslationKey(schedule.day_of_week))}
                             </Text>
                             <Text style={{
                               fontSize: theme.typography.caption.fontSize,
@@ -1012,7 +1014,7 @@ export default function HomeScreen() {
                               fontWeight: '700',
                               letterSpacing: 0.3,
                             }}>
-                              TODAY
+                              {t('today')}
                             </Text>
                           </View>
                         )}

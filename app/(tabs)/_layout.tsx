@@ -119,22 +119,16 @@ export default function TabLayout() {
           setTimeout(() => {
             console.log('TabLayout: Executing logout redirect');
             try {
-              // Force navigate directly to login page
-              router.dismissAll?.(); // Clear any modals if available
+              // Simple direct navigation to login page (remove dismissAll that causes POP_TO_TOP)
               router.replace('/(auth)/login');
             } catch (navError) {
-              console.warn('TabLayout: Primary navigation failed, trying alternative');
-              // Fallback navigation - try login first, then onboarding
+              console.warn('TabLayout: Navigation failed, trying fallback');
+              // Fallback to root and then login
               try {
-                router.replace('/(auth)/login');
-              } catch (loginError) {
-                console.warn('TabLayout: Login navigation failed, using onboarding');
-                if (router.canGoBack()) {
-                  router.back();
-                  setTimeout(() => router.replace('/'), 100);
-                } else {
-                  router.replace('/');
-                }
+                router.replace('/');
+                setTimeout(() => router.replace('/(auth)/login'), 100);
+              } catch (fallbackError) {
+                console.error('TabLayout: All navigation attempts failed:', fallbackError);
               }
             }
 
