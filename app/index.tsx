@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Dimensions } from 'react-native';
+import { View, Text, ScrollView, Dimensions, Image } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
@@ -91,15 +91,15 @@ export default function OnboardingScreen() {
         colors={[theme.colors.background.DEFAULT, theme.colors.background.surface]}
         style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
       >
-        <Text style={{
-          fontSize: 40,
-          fontWeight: '700',
-          color: theme.colors.primary.DEFAULT,
-          letterSpacing: -1,
-          marginBottom: theme.spacing.lg,
-        }}>
-          MITUGYM
-        </Text>
+        <Image
+          source={require('../assets/logo.png')}
+          style={{
+            width: 120,
+            height: 120,
+            marginBottom: theme.spacing.lg,
+          }}
+          resizeMode="contain"
+        />
         <Text style={{
           fontSize: theme.typography.body.fontSize,
           color: theme.colors.text.secondary,
@@ -135,14 +135,15 @@ export default function OnboardingScreen() {
           alignItems: 'center',
           marginBottom: theme.spacing.xxl,
         }}>
-          <Text style={{
-            fontSize: 40,
-            fontWeight: '700',
-            color: theme.colors.primary.DEFAULT,
-            letterSpacing: -1,
-          }}>
-            MITUGYM
-          </Text>
+          <Image
+            source={require('../assets/logo.png')}
+            style={{
+              width: 100,
+              height: 100,
+              marginBottom: theme.spacing.sm,
+            }}
+            resizeMode="contain"
+          />
           <Text style={{
             fontSize: theme.typography.caption.fontSize,
             color: theme.colors.text.secondary,

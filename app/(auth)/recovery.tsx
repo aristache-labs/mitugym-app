@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Image } from 'react-native';
 import { router, Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Mail, Key, ArrowLeft } from 'lucide-react-native';
@@ -79,17 +79,17 @@ export default function RecoveryScreen() {
           {/* Brand */}
           <View style={{
             alignItems: 'center',
-            marginBottom: theme.spacing.xxl,
+            marginBottom: theme.spacing.md,
           }}>
-            <Text style={{
-              fontSize: 32,
-              fontWeight: '700',
-              color: theme.colors.primary.DEFAULT,
-              letterSpacing: -1,
-              marginBottom: theme.spacing.sm,
-            }}>
-              MITUGYM
-            </Text>
+            <Image
+              source={require('../../assets/logo.png')}
+              style={{
+                width: 120,
+                height: 120,
+                marginBottom: theme.spacing.sm,
+              }}
+              resizeMode="contain"
+            />
             <Text style={{
               fontSize: theme.typography.body.fontSize,
               color: theme.colors.text.secondary,
@@ -113,6 +113,7 @@ export default function RecoveryScreen() {
               <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
+                justifyContent: 'center',
                 marginBottom: theme.spacing.lg,
               }}>
                 <Key

@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, Image } from 'react-native';
 import { router, Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Mail, Lock, Eye, EyeOff, Check } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { isValidEmail } from '../../lib/utils';
-import { AppHeader } from '../../components/AppHeader';
 import { PillButton } from '../../components/PillButton';
 import { SecureStorage } from '../../utils/secureStorage';
 
@@ -64,50 +63,40 @@ export default function LoginScreen() {
     }
   };
 
-  const handleBack = () => {
-    router.back();
-  };
 
   return (
     <LinearGradient
       colors={[theme.colors.background.DEFAULT, theme.colors.background.surface]}
       style={{ flex: 1 }}
     >
-      <AppHeader
-        title="Welcome Back"
-        subtitle="Sign in to your account"
-        showBack
-        onBack={handleBack}
-        transparent
-      />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView
-          contentContainerStyle={{
-            flexGrow: 1,
+        <View
+          style={{
+            flex: 1,
             paddingHorizontal: theme.spacing.lg,
-            paddingTop: 120, // Account for transparent header
+            paddingTop: theme.spacing.xxl * 2,
             paddingBottom: theme.spacing.xl,
+            justifyContent: 'center',
           }}
-          showsVerticalScrollIndicator={false}
         >
           {/* Brand */}
           <View style={{
             alignItems: 'center',
-            marginBottom: theme.spacing.xxl,
+            marginBottom: theme.spacing.md,
           }}>
-            <Text style={{
-              fontSize: 32,
-              fontWeight: '700',
-              color: theme.colors.primary.DEFAULT,
-              letterSpacing: -1,
-              marginBottom: theme.spacing.sm,
-            }}>
-              MITUGYM
-            </Text>
+            <Image
+              source={require('../../assets/logo.png')}
+              style={{
+                width: 120,
+                height: 120,
+                marginBottom: theme.spacing.sm,
+              }}
+              resizeMode="contain"
+            />
             <Text style={{
               fontSize: theme.typography.body.fontSize,
               color: theme.colors.text.secondary,
@@ -130,6 +119,7 @@ export default function LoginScreen() {
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',
+              justifyContent: 'center',
               marginBottom: theme.spacing.lg,
             }}>
               <Lock
@@ -234,44 +224,42 @@ export default function LoginScreen() {
             </View>
 
             {/* Remember Me Checkbox */}
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginBottom: theme.spacing.lg,
-            }}>
-              <TouchableOpacity
-                onPress={() => setRememberMe(!rememberMe)}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  flex: 1,
-                }}
-                activeOpacity={0.7}
-              >
-                <View style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 4,
-                  borderWidth: 2,
-                  borderColor: rememberMe ? theme.colors.primary.DEFAULT : theme.colors.text.secondary,
-                  backgroundColor: rememberMe ? theme.colors.primary.DEFAULT : 'transparent',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: theme.spacing.sm,
-                }}>
-                  {rememberMe && (
-                    <Check size={12} color={theme.colors.background.DEFAULT} strokeWidth={3} />
-                  )}
-                </View>
-                <Text style={{
-                  fontSize: theme.typography.body.fontSize,
-                  color: theme.colors.text.primary,
-                  flex: 1,
-                }}>
-                  Remember me
-                </Text>
-              </TouchableOpacity>
-            </View>
+             <View style={{
+               alignItems: 'center',
+               justifyContent: 'center',
+               marginBottom: theme.spacing.lg,
+             }}>
+               <TouchableOpacity
+                 onPress={() => setRememberMe(!rememberMe)}
+                 style={{
+                   flexDirection: 'row',
+                   alignItems: 'center',
+                 }}
+                 activeOpacity={0.7}
+               >
+                 <View style={{
+                   width: 20,
+                   height: 20,
+                   borderRadius: 4,
+                   borderWidth: 2,
+                   borderColor: rememberMe ? theme.colors.primary.DEFAULT : theme.colors.text.secondary,
+                   backgroundColor: rememberMe ? theme.colors.primary.DEFAULT : 'transparent',
+                   alignItems: 'center',
+                   justifyContent: 'center',
+                   marginRight: theme.spacing.sm,
+                 }}>
+                   {rememberMe && (
+                     <Check size={12} color={theme.colors.background.DEFAULT} strokeWidth={3} />
+                   )}
+                 </View>
+                 <Text style={{
+                   fontSize: theme.typography.body.fontSize,
+                   color: theme.colors.text.primary,
+                 }}>
+                   Remember me
+                 </Text>
+               </TouchableOpacity>
+             </View>
 
             {/* Login Button */}
             <PillButton
@@ -301,6 +289,133 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               </Link>
             </View>
+          </View>
+
+          {/* Social Login Divider */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: theme.spacing.xs,
+            marginBottom: theme.spacing.md,
+            paddingHorizontal: theme.spacing.lg,
+          }}>
+            <View style={{
+              flex: 1,
+              height: 1,
+              backgroundColor: 'rgba(179, 217, 217, 0.3)',
+            }} />
+            <Text style={{
+              fontSize: theme.typography.caption.fontSize,
+              color: theme.colors.text.secondary,
+              marginHorizontal: theme.spacing.lg,
+              fontWeight: '400',
+            }}>
+              OR CONTINUE WITH
+            </Text>
+            <View style={{
+              flex: 1,
+              height: 1,
+              backgroundColor: 'rgba(179, 217, 217, 0.3)',
+            }} />
+          </View>
+
+          {/* Social Login Buttons */}
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            paddingHorizontal: theme.spacing.lg,
+            marginBottom: theme.spacing.xl,
+            gap: theme.spacing.md,
+          }}>
+            {/* Google Login Button */}
+            <TouchableOpacity
+              onPress={() => console.log('Google login pressed')}
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#ffffff',
+                borderWidth: 1.5,
+                borderColor: 'rgba(179, 217, 217, 0.3)',
+                borderRadius: theme.borderRadius.lg,
+                paddingVertical: theme.spacing.md,
+                paddingHorizontal: theme.spacing.lg,
+                height: 54,
+                ...theme.shadows.soft,
+              }}
+              activeOpacity={0.8}
+            >
+              <View style={{
+                width: 20,
+                height: 20,
+                backgroundColor: '#4285F4',
+                borderRadius: 10,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: theme.spacing.sm,
+              }}>
+                <Text style={{
+                  color: '#ffffff',
+                  fontSize: 12,
+                  fontWeight: '700',
+                }}>
+                  G
+                </Text>
+              </View>
+              <Text style={{
+                fontSize: theme.typography.body.fontSize,
+                color: '#1f2937',
+                fontWeight: '500',
+              }}>
+                Google
+              </Text>
+            </TouchableOpacity>
+
+            {/* Facebook Login Button */}
+            <TouchableOpacity
+              onPress={() => console.log('Facebook login pressed')}
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#1877F2',
+                borderWidth: 1.5,
+                borderColor: '#1877F2',
+                borderRadius: theme.borderRadius.lg,
+                paddingVertical: theme.spacing.md,
+                paddingHorizontal: theme.spacing.lg,
+                height: 54,
+                ...theme.shadows.soft,
+              }}
+              activeOpacity={0.8}
+            >
+              <View style={{
+                width: 20,
+                height: 20,
+                backgroundColor: '#ffffff',
+                borderRadius: 10,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: theme.spacing.sm,
+              }}>
+                <Text style={{
+                  color: '#1877F2',
+                  fontSize: 12,
+                  fontWeight: '700',
+                }}>
+                  f
+                </Text>
+              </View>
+              <Text style={{
+                fontSize: theme.typography.body.fontSize,
+                color: '#ffffff',
+                fontWeight: '500',
+              }}>
+                Facebook
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Register Link */}
@@ -347,7 +462,7 @@ export default function LoginScreen() {
               Privacy Policy
             </Text>
           </Text>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </LinearGradient>
   );
