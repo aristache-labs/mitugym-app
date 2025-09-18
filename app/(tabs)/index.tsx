@@ -174,117 +174,152 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* Compact Info Row */}
-        <View style={{
-          flexDirection: 'row',
-          gap: theme.spacing.sm,
-          marginTop: theme.spacing.lg,
-          marginBottom: theme.spacing.md,
-        }}>
-          {/* Compact Announcements */}
-          <TouchableOpacity
-            onPress={() => setAnnouncementsModalVisible(true)}
-            style={{ flex: 1 }}
-            activeOpacity={0.8}
-          >
-            <View style={{
-              backgroundColor: theme.colors.background.surface,
-              borderRadius: theme.borderRadius.md,
-              padding: theme.spacing.sm,
-              borderWidth: 1,
-              borderColor: 'rgba(255, 193, 7, 0.2)',
-              ...theme.shadows.soft,
-              minHeight: 60,
-            }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                  <Bell
-                    size={16}
-                    color={theme.colors.secondary.DEFAULT}
-                    style={{ marginRight: theme.spacing.xs }}
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text style={{
-                      fontSize: theme.typography.small.fontSize,
-                      fontWeight: '600',
-                      color: theme.colors.text.primary,
-                    }}>
-                      News
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: theme.typography.caption.fontSize,
-                        color: theme.colors.text.secondary,
-                      }}
-                      numberOfLines={1}
-                    >
-                      {announcementsLoading ? 'Loading...' :
-                       priorityAnnouncement ? priorityAnnouncement.title :
-                       'No announcements'}
-                    </Text>
-                  </View>
-                </View>
-                <ChevronRight size={14} color={theme.colors.text.secondary} />
-              </View>
-            </View>
-          </TouchableOpacity>
+         {/* Compact Premium News Container */}
+         <TouchableOpacity
+           onPress={() => setAnnouncementsModalVisible(true)}
+           style={{ marginTop: theme.spacing.lg, marginBottom: theme.spacing.sm }}
+           activeOpacity={0.7}
+         >
+           <View style={{
+             backgroundColor: theme.colors.background.surface,
+             borderRadius: theme.borderRadius.md,
+             borderWidth: 1.2,
+             borderColor: 'rgba(255, 193, 7, 0.3)',
+             ...theme.shadows.soft,
+             height: 60,
+             paddingHorizontal: theme.spacing.sm,
+             justifyContent: 'center',
+           }}>
+             <View style={{
+               flexDirection: 'row',
+               alignItems: 'center',
+               justifyContent: 'space-between',
+             }}>
+               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                 <View style={{
+                   backgroundColor: 'rgba(255, 193, 7, 0.15)',
+                   borderRadius: theme.borderRadius.sm,
+                   padding: 6,
+                   marginRight: theme.spacing.sm,
+                   alignItems: 'center',
+                   justifyContent: 'center',
+                 }}>
+                   <Bell
+                     size={16}
+                     color="#F59E0B"
+                     strokeWidth={2}
+                   />
+                 </View>
+                 <View style={{ flex: 1, justifyContent: 'center' }}>
+                   <Text style={{
+                     fontSize: theme.typography.small.fontSize,
+                     fontWeight: '700',
+                     color: theme.colors.text.primary,
+                     letterSpacing: 0.2,
+                     marginBottom: 1,
+                   }}>
+                     News
+                   </Text>
+                   <Text
+                     style={{
+                       fontSize: theme.typography.caption.fontSize,
+                       color: theme.colors.text.secondary,
+                       fontWeight: '500',
+                       lineHeight: 16,
+                     }}
+                     numberOfLines={1}
+                   >
+                     {announcementsLoading ? 'Loading...' :
+                      priorityAnnouncement ? priorityAnnouncement.title :
+                      'No announcements'}
+                   </Text>
+                 </View>
+               </View>
+               <View style={{
+                 backgroundColor: 'rgba(107, 114, 128, 0.1)',
+                 borderRadius: theme.borderRadius.sm,
+                 padding: 4,
+                 alignItems: 'center',
+                 justifyContent: 'center',
+               }}>
+                 <ChevronRight size={14} color={theme.colors.text.secondary} strokeWidth={2} />
+               </View>
+             </View>
+           </View>
+         </TouchableOpacity>
 
-          {/* Compact Gym Hours */}
-          <TouchableOpacity
-            onPress={() => setGymScheduleModalVisible(true)}
-            style={{ flex: 1 }}
-            activeOpacity={0.8}
-          >
-            <View style={{
-              backgroundColor: theme.colors.background.surface,
-              borderRadius: theme.borderRadius.md,
-              padding: theme.spacing.sm,
-              borderWidth: 1,
-              borderColor: 'rgba(30, 155, 113, 0.2)',
-              ...theme.shadows.soft,
-              minHeight: 60,
-            }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                  <Clock
-                    size={16}
-                    color={theme.colors.primary.DEFAULT}
-                    style={{ marginRight: theme.spacing.xs }}
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text style={{
-                      fontSize: theme.typography.small.fontSize,
-                      fontWeight: '600',
-                      color: theme.colors.text.primary,
-                    }}>
-                      Hours
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: theme.typography.caption.fontSize,
-                        color: theme.colors.text.secondary,
-                      }}
-                      numberOfLines={1}
-                    >
-                      {gymScheduleLoading ? 'Loading...' :
-                       todayHours ? `Until ${todayHours}` :
-                       'Not available'}
-                    </Text>
-                  </View>
-                </View>
-                <ChevronRight size={14} color={theme.colors.text.secondary} />
-              </View>
-            </View>
-          </TouchableOpacity>
-        </View>
+         {/* Compact Premium Gym Hours Container */}
+         <TouchableOpacity
+           onPress={() => setGymScheduleModalVisible(true)}
+           style={{ marginBottom: theme.spacing.md }}
+           activeOpacity={0.7}
+         >
+           <View style={{
+             backgroundColor: theme.colors.background.surface,
+             borderRadius: theme.borderRadius.md,
+             borderWidth: 1.2,
+             borderColor: todayHours?.includes('Opens') ? 'rgba(239, 68, 68, 0.3)' : 'rgba(34, 197, 94, 0.3)',
+             ...theme.shadows.soft,
+             height: 60,
+             paddingHorizontal: theme.spacing.sm,
+             justifyContent: 'center',
+           }}>
+             <View style={{
+               flexDirection: 'row',
+               alignItems: 'center',
+               justifyContent: 'space-between',
+             }}>
+               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                 <View style={{
+                   backgroundColor: todayHours?.includes('Opens') ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)',
+                   borderRadius: theme.borderRadius.sm,
+                   padding: 6,
+                   marginRight: theme.spacing.sm,
+                   alignItems: 'center',
+                   justifyContent: 'center',
+                 }}>
+                   <Clock
+                     size={16}
+                     color={todayHours?.includes('Opens') ? '#EF4444' : '#22C55E'}
+                     strokeWidth={2}
+                   />
+                 </View>
+                 <View style={{ flex: 1, justifyContent: 'center' }}>
+                   <Text style={{
+                     fontSize: theme.typography.small.fontSize,
+                     fontWeight: '700',
+                     color: theme.colors.text.primary,
+                     letterSpacing: 0.2,
+                     marginBottom: 1,
+                   }}>
+                     {todayHours?.includes('Opens') ? 'Closed' : 'Open Now'}
+                   </Text>
+                   <Text
+                     style={{
+                       fontSize: theme.typography.caption.fontSize,
+                       color: theme.colors.text.secondary,
+                       fontWeight: '500',
+                       lineHeight: 16,
+                     }}
+                     numberOfLines={1}
+                   >
+                     {gymScheduleLoading ? 'Loading...' :
+                      todayHours || 'Not available'}
+                   </Text>
+                 </View>
+               </View>
+               <View style={{
+                 backgroundColor: 'rgba(107, 114, 128, 0.1)',
+                 borderRadius: theme.borderRadius.sm,
+                 padding: 4,
+                 alignItems: 'center',
+                 justifyContent: 'center',
+               }}>
+                 <ChevronRight size={14} color={theme.colors.text.secondary} strokeWidth={2} />
+               </View>
+             </View>
+           </View>
+         </TouchableOpacity>
 
         {/* Membership Status Card */}
         <View style={{ marginBottom: theme.spacing.xl }}>

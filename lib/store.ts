@@ -739,19 +739,76 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   getTodayHours: () => {
-    const { todaySchedule } = get();
+    const { todaySchedule, gymSchedule } = get();
     if (!todaySchedule) return null;
     
     // Convert 24h time to 12h format
     const formatTime = (time: string) => {
       const [hours, minutes] = time.split(':');
-      const hour = parseInt(hours || '0');
+      const hour = parseInt(hours || '0', 10);
       const ampm = hour >= 12 ? 'PM' : 'AM';
       const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
       return `${displayHour}:${minutes || '00'} ${ampm}`;
     };
 
-    return formatTime(todaySchedule.close_time);
+    // Get current time
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinutes = now.getMinutes();
+    const currentTimeInMinutes = currentHour * 60 + currentMinutes;
+
+    // Parse gym hours
+    const [openHour, openMin] = todaySchedule.open_time.split(':').map(t => parseInt(t, 10));
+    const [closeHour, closeMin] = todaySchedule.close_time.split(':').map(t => parseInt(t, 10));
+    const openTimeInMinutes = (openHour || 0) * 60 + (openMin || 0);
+    const closeTimeInMinutes = (closeHour || 0) * 60 + (closeMin || 0);
+
+    // Check if gym is currently open
+    const isOpen = currentTimeInMinutes >= openTimeInMinutes && currentTimeInMinutes < closeTimeInMinutes;
+
+    if (isOpen) {
+      // Gym is open - show closing time
+      const minutesUntilClose = closeTimeInMinutes - currentTimeInMinutes;
+      
+      if (minutesUntilClose <= 60) {
+        // Closing soon - show minutes
+        return `Closing in ${minutesUntilClose} min`;
+      } else {
+        // Show regular closing time
+        return `Until ${formatTime(todaySchedule.close_time)}`;
+      }
+    } else {
+      // Gym is closed - find next opening time
+      const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      
+      // Check if we should open later today
+      if (currentTimeInMinutes < openTimeInMinutes) {
+        return `Opens today`;
+      }
+      
+      // Find next opening day
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      let nextDay = currentDay;
+      let daysAhead = 0;
+      
+      do {
+        daysAhead++;
+        nextDay = (nextDay + 1) % 7;
+        
+        // Convert our day_of_week (0=Monday) to JS day (0=Sunday)
+        const nextScheduleDay = gymSchedule.find(schedule => {
+          const scheduleJSDay = schedule.day_of_week === 6 ? 0 : schedule.day_of_week + 1;
+          return scheduleJSDay === nextDay;
+        });
+        
+        if (nextScheduleDay) {
+          const dayName = daysAhead === 1 ? 'Tomorrow' : dayNames[nextDay];
+          return `Opens ${dayName}`;
+        }
+      } while (daysAhead < 7);
+      
+      return 'Closed';
+    }
   },
 
   // Membership state
