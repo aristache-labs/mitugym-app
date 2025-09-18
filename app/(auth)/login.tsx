@@ -2,19 +2,38 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { router, Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, Check } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { isValidEmail } from '../../lib/utils';
 import { AppHeader } from '../../components/AppHeader';
 import { PillButton } from '../../components/PillButton';
+import { SecureStorage } from '../../utils/secureStorage';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { loginWithSupabase, isAuthenticated, showToast } = useAppStore();
+
+  // Load remembered email on component mount
+  React.useEffect(() => {
+    const loadRememberedEmail = async () => {
+      try {
+        const rememberMeData = await SecureStorage.getRememberMeData();
+        if (rememberMeData?.email) {
+          setEmail(rememberMeData.email);
+          setRememberMe(true);
+        }
+      } catch (error) {
+        console.log('Failed to load remembered email:', error);
+      }
+    };
+
+    loadRememberedEmail();
+  }, []);
 
   // Redirect if already authenticated
   React.useEffect(() => {
@@ -36,7 +55,7 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     try {
-      await loginWithSupabase(email, password);
+      await loginWithSupabase(email, password, rememberMe);
       // Don't manually navigate - let the auth state change handle navigation
     } catch (error) {
       showToast('Invalid email or password', 'error');
@@ -212,6 +231,46 @@ export default function LoginScreen() {
                   )}
                 </TouchableOpacity>
               </View>
+            </View>
+
+            {/* Remember Me Checkbox */}
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: theme.spacing.lg,
+            }}>
+              <TouchableOpacity
+                onPress={() => setRememberMe(!rememberMe)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  flex: 1,
+                }}
+                activeOpacity={0.7}
+              >
+                <View style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: 4,
+                  borderWidth: 2,
+                  borderColor: rememberMe ? theme.colors.primary.DEFAULT : theme.colors.text.secondary,
+                  backgroundColor: rememberMe ? theme.colors.primary.DEFAULT : 'transparent',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: theme.spacing.sm,
+                }}>
+                  {rememberMe && (
+                    <Check size={12} color={theme.colors.background.DEFAULT} strokeWidth={3} />
+                  )}
+                </View>
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  color: theme.colors.text.primary,
+                  flex: 1,
+                }}>
+                  Remember me
+                </Text>
+              </TouchableOpacity>
             </View>
 
             {/* Login Button */}

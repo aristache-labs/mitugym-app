@@ -21,8 +21,22 @@ class AuthManager {
         console.error('AuthManager: Error getting session:', error);
       } else {
         console.log('AuthManager: Initial session:', session?.user?.email || 'none');
+
         if (session) {
           this.handleAuthChange('SIGNED_IN', session);
+        } else {
+          // No active session, check for remembered session
+          console.log('AuthManager: No active session, checking for remembered session...');
+          try {
+            const hasRememberedSession = await useAppStore.getState().checkRememberedSession();
+            if (hasRememberedSession) {
+              console.log('AuthManager: Successfully restored remembered session');
+            } else {
+              console.log('AuthManager: No valid remembered session found');
+            }
+          } catch (rememberError) {
+            console.error('AuthManager: Error checking remembered session:', rememberError);
+          }
         }
       }
 

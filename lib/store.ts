@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../utils/supabase';
+import { SecureStorage } from '../utils/secureStorage';
 import {
   mockMember,
   mockClasses,
@@ -14,10 +15,11 @@ interface AuthState {
   isAuthenticated: boolean;
   member: Member | null;
   session: any; // Supabase session
-  loginWithSupabase: (email: string, password: string) => Promise<void>;
+  loginWithSupabase: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   signUpWithSupabase: (email: string, password: string, profileData?: any) => Promise<void>;
   logout: () => Promise<void>;
   checkAuthState: () => Promise<void>;
+  checkRememberedSession: () => Promise<boolean>;
 }
 
 interface ClassState {
@@ -60,9 +62,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   session: null,
 
 
-  loginWithSupabase: async (email: string, password: string) => {
+  loginWithSupabase: async (email: string, password: string, rememberMe: boolean = false) => {
     try {
-      console.log('Attempting login for:', email);
+      console.log('Attempting login for:', email, 'rememberMe:', rememberMe);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -76,7 +78,19 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       if (data.session) {
         console.log('Login successful for:', data.session.user.email);
-        // Don't set state here - let useSupabaseAuth handle it to prevent conflicts
+
+        // Store remember me data if requested
+        if (rememberMe && data.session.access_token) {
+          try {
+            await SecureStorage.storeRememberMeData(email, data.session.access_token);
+            console.log('Remember me data stored successfully');
+          } catch (storageError) {
+            console.error('Failed to store remember me data:', storageError);
+            // Don't fail the login if storage fails
+          }
+        }
+
+        // Don't set state here - let authManager handle it to prevent conflicts
         get().showToast('Welcome back!', 'success');
       }
     } catch (error: any) {
@@ -174,6 +188,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   logout: async () => {
     try {
       console.log('Initiating logout...');
+
+      // Clear remember me data on logout
+      await SecureStorage.clearRememberMeData();
+      console.log('Remember me data cleared');
+
       const { error } = await supabase.auth.signOut();
 
       if (error) {
@@ -182,8 +201,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         return;
       }
 
-      console.log('Logout successful - auth state will be handled by useSupabaseAuth');
-      // Don't set state here - let useSupabaseAuth handle the SIGNED_OUT event
+      console.log('Logout successful - auth state will be handled by authManager');
+      // Don't set state here - let authManager handle the SIGNED_OUT event
       get().showToast('Logged out successfully', 'info');
     } catch (error: any) {
       console.log('Logout failed:', error.message);
@@ -223,6 +242,42 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
     } catch (error) {
       console.error('Error checking auth state:', error);
+    }
+  },
+
+  checkRememberedSession: async () => {
+    try {
+      console.log('Checking for remembered session...');
+      const rememberMeData = await SecureStorage.getRememberMeData();
+
+      if (!rememberMeData) {
+        console.log('No remembered session found');
+        return false;
+      }
+
+      console.log('Found remembered session for:', rememberMeData.email);
+
+      // Try to restore session using the stored token
+      const { data, error } = await supabase.auth.setSession({
+        access_token: rememberMeData.sessionToken,
+        refresh_token: '', // We don't store refresh token for security
+      });
+
+      if (error || !data.session) {
+        console.log('Failed to restore remembered session:', error?.message);
+        // Clear invalid remember me data
+        await SecureStorage.clearRememberMeData();
+        return false;
+      }
+
+      console.log('Successfully restored remembered session');
+      // Refresh the remember me data with new expiry
+      await SecureStorage.refreshRememberMeData();
+      return true;
+    } catch (error) {
+      console.error('Error checking remembered session:', error);
+      await SecureStorage.clearRememberMeData();
+      return false;
     }
   },
 
