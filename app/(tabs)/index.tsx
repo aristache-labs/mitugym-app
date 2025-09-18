@@ -897,17 +897,36 @@ export default function HomeScreen() {
           <ScrollView
             style={{ flex: 1 }}
             contentContainerStyle={{
-              padding: theme.spacing.lg,
-              paddingBottom: insets.bottom + theme.spacing.xl,
+              padding: theme.spacing.md,
+              paddingBottom: insets.bottom + theme.spacing.lg,
             }}
           >
             {gymSchedule.length > 0 ? (
               <>
                 {gymSchedule.map((schedule) => {
                   const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                  // Convert JavaScript day (0=Sunday, 1=Monday, ..., 6=Saturday) to our array index (0=Monday, ..., 6=Sunday)
-                  const jsDay = new Date().getDay();
-                  const ourDayIndex = jsDay === 0 ? 6 : jsDay - 1; // Sunday (0) becomes 6, others shift down by 1
+
+                  // Get current time in Romania timezone
+                  const utcNow = new Date();
+                  const romaniaTimeParts = new Intl.DateTimeFormat('en-CA', {
+                    timeZone: 'Europe/Bucharest',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                  }).formatToParts(utcNow);
+
+
+                  const romaniaDate = new Date(
+                    parseInt(romaniaTimeParts.find(p => p.type === 'year')?.value || '0', 10),
+                    parseInt(romaniaTimeParts.find(p => p.type === 'month')?.value || '1', 10) - 1,
+                    parseInt(romaniaTimeParts.find(p => p.type === 'day')?.value || '1', 10),
+                  );
+
+                  const jsDay = romaniaDate.getDay();
+                  const ourDayIndex = jsDay === 0 ? 6 : jsDay - 1;
                   const isToday = ourDayIndex === schedule.day_of_week;
 
                   // Keep 24h format for display
@@ -916,20 +935,21 @@ export default function HomeScreen() {
                     return `${hours || '00'}:${minutes || '00'}`;
                   };
 
+
                   return (
                     <View
                       key={schedule.id}
                       style={{
                         backgroundColor: isToday ?
-                          'rgba(30, 155, 113, 0.1)' :
-                          theme.colors.background.surface,
+                          'rgba(30, 155, 113, 0.08)' :
+                          'rgba(255, 255, 255, 0.03)',
                         borderRadius: theme.borderRadius.lg,
-                        padding: theme.spacing.lg,
-                        marginBottom: theme.spacing.md,
+                        padding: theme.spacing.md,
+                        marginBottom: theme.spacing.sm,
                         borderWidth: 1,
                         borderColor: isToday ?
-                          'rgba(30, 155, 113, 0.3)' :
-                          'rgba(255, 255, 255, 0.1)',
+                          'rgba(30, 155, 113, 0.2)' :
+                          'rgba(255, 255, 255, 0.08)',
                         ...theme.shadows.soft,
                       }}
                     >
@@ -938,41 +958,59 @@ export default function HomeScreen() {
                         alignItems: 'center',
                         justifyContent: 'space-between',
                       }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                          <Clock
-                            size={18}
-                            color={isToday ?
-                              theme.colors.primary.DEFAULT :
-                              theme.colors.text.secondary}
-                            style={{ marginRight: theme.spacing.xs }}
-                          />
-                          <Text style={{
-                            fontSize: theme.typography.body.fontSize,
-                            fontWeight: '600',
-                            color: theme.colors.text.primary,
-                            marginRight: theme.spacing.md,
+                        <View style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          flex: 1,
+                        }}>
+                          <View style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 16,
+                            backgroundColor: isToday ?
+                              'rgba(30, 155, 113, 0.15)' :
+                              'rgba(255, 255, 255, 0.1)',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: theme.spacing.sm,
                           }}>
-                            {dayNames[schedule.day_of_week]}
-                          </Text>
-                          <Text style={{
-                            fontSize: theme.typography.body.fontSize,
-                            color: theme.colors.text.primary,
-                            fontWeight: '600',
-                          }}>
-                            {formatTime(schedule.open_time)} - {formatTime(schedule.close_time)}
-                          </Text>
+                            <Clock
+                              size={16}
+                              color={isToday ?
+                                theme.colors.primary.DEFAULT :
+                                theme.colors.text.secondary}
+                            />
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text style={{
+                              fontSize: theme.typography.body.fontSize,
+                              fontWeight: '700',
+                              color: theme.colors.text.primary,
+                              marginBottom: 1,
+                            }}>
+                              {dayNames[schedule.day_of_week]}
+                            </Text>
+                            <Text style={{
+                              fontSize: theme.typography.caption.fontSize,
+                              color: theme.colors.text.secondary,
+                              fontWeight: '500',
+                            }}>
+                              {formatTime(schedule.open_time)} - {formatTime(schedule.close_time)}
+                            </Text>
+                          </View>
                         </View>
                         {isToday && (
                           <View style={{
-                            backgroundColor: theme.colors.primary.DEFAULT,
+                            backgroundColor: 'rgba(30, 155, 113, 0.15)',
                             paddingHorizontal: theme.spacing.xs,
                             paddingVertical: 2,
                             borderRadius: theme.borderRadius.sm,
                           }}>
                             <Text style={{
-                              fontSize: theme.typography.caption.fontSize,
-                              color: theme.colors.text.primary,
-                              fontWeight: '600',
+                              fontSize: theme.typography.small.fontSize,
+                              color: theme.colors.primary.DEFAULT,
+                              fontWeight: '700',
+                              letterSpacing: 0.3,
                             }}>
                               TODAY
                             </Text>
@@ -980,16 +1018,25 @@ export default function HomeScreen() {
                         )}
                       </View>
 
-                        {schedule.special_note && (
+                      {schedule.special_note && (
+                        <View style={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                          borderRadius: theme.borderRadius.sm,
+                          padding: theme.spacing.xs,
+                          marginTop: theme.spacing.xs,
+                          borderLeftWidth: 2,
+                          borderLeftColor: theme.colors.primary.DEFAULT,
+                        }}>
                           <Text style={{
-                            fontSize: theme.typography.caption.fontSize,
+                            fontSize: theme.typography.small.fontSize,
                             color: theme.colors.text.secondary,
                             fontStyle: 'italic',
-                            marginTop: theme.spacing.xs,
+                            lineHeight: 14,
                           }}>
                             {schedule.special_note}
                           </Text>
-                        )}
+                        </View>
+                      )}
                     </View>
                   );
                 })}
