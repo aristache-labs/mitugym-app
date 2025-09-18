@@ -12,19 +12,33 @@ export interface Member {
   lastCheckIn?: string;
 }
 
-export interface GymClass {
+export interface Service {
   id: string;
-  title: string;
+  name: string;
+  service_type: 'personal_trainer' | 'professional_massage';
+  session_type: string;
+  duration_minutes: number;
+  price: number;
   description: string;
-  startAt: string;
-  duration: number; // in minutes
-  spots: number;
-  spotsLeft: number;
-  level: 'Beginner' | 'Intermediate' | 'Advanced';
-  trainer: string;
-  room: string;
-  category: string;
-  rules: string[];
+  requires_advance_booking: boolean;
+  advance_booking_hours: number;
+  max_sessions?: number;
+  is_active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ServiceBooking {
+  id: string;
+  user_id: string;
+  service_id: string;
+  booking_date: string;
+  status: 'upcoming' | 'completed' | 'cancelled';
+  sessions_remaining?: number;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface MembershipPlan {
@@ -63,122 +77,10 @@ export const mockMember: Member = {
 };
 
 // Mock classes data
-export const mockClasses: GymClass[] = [
-  {
-    id: '1',
-    title: 'Morning Yoga Flow',
-    description: 'Start your day with a gentle yoga flow designed to awaken your body and mind. Suitable for all levels.',
-    startAt: '2024-09-17T07:00:00Z',
-    duration: 60,
-    spots: 20,
-    spotsLeft: 8,
-    level: 'Beginner',
-    trainer: 'Sarah Martinez',
-    room: 'Studio A',
-    category: 'Yoga',
-    rules: [
-      'Arrive 10 minutes early',
-      'Bring your own mat',
-      'No shoes in the studio',
-      'Turn off mobile devices',
-    ],
-  },
-  {
-    id: '2',
-    title: 'HIIT Bootcamp',
-    description: 'High-intensity interval training that will push your limits and maximize calorie burn.',
-    startAt: '2024-09-17T18:00:00Z',
-    duration: 45,
-    spots: 15,
-    spotsLeft: 3,
-    level: 'Advanced',
-    trainer: 'Mike Thompson',
-    room: 'Main Floor',
-    category: 'Cardio',
-    rules: [
-      'Arrive 5 minutes early',
-      'Bring water bottle',
-      'Wear proper athletic shoes',
-      'No late entries allowed',
-    ],
-  },
-  {
-    id: '3',
-    title: 'Strength Training',
-    description: 'Build muscle and increase strength with guided weight training exercises.',
-    startAt: '2024-09-17T19:30:00Z',
-    duration: 75,
-    spots: 12,
-    spotsLeft: 7,
-    level: 'Intermediate',
-    trainer: 'Emma Wilson',
-    room: 'Weight Room',
-    category: 'Strength',
-    rules: [
-      'Wipe down equipment after use',
-      'Use safety clips on barbells',
-      'Ask for help if unsure',
-      'Proper form is essential',
-    ],
-  },
-  {
-    id: '4',
-    title: 'Pilates Core',
-    description: 'Focus on core strength and stability with precision-based movements.',
-    startAt: '2024-09-18T08:30:00Z',
-    duration: 50,
-    spots: 16,
-    spotsLeft: 12,
-    level: 'Beginner',
-    trainer: 'Lisa Chen',
-    room: 'Studio B',
-    category: 'Pilates',
-    rules: [
-      'Bring a small towel',
-      'Comfortable clothing required',
-      'No previous experience needed',
-      'Listen to your body',
-    ],
-  },
-  {
-    id: '5',
-    title: 'Spin Class',
-    description: 'High-energy cycling workout with motivating music and instructor guidance.',
-    startAt: '2024-09-18T17:00:00Z',
-    duration: 45,
-    spots: 24,
-    spotsLeft: 5,
-    level: 'Intermediate',
-    trainer: 'David Rodriguez',
-    room: 'Spin Studio',
-    category: 'Cardio',
-    rules: [
-      'Arrive 10 minutes early for bike setup',
-      'Bring water and towel',
-      'Cycling shoes recommended',
-      'Adjust bike to your height',
-    ],
-  },
-  {
-    id: '6',
-    title: 'Zumba Dance',
-    description: 'Fun, energetic dance workout that feels more like a party than exercise.',
-    startAt: '2024-09-18T19:00:00Z',
-    duration: 60,
-    spots: 30,
-    spotsLeft: 18,
-    level: 'Beginner',
-    trainer: 'Maria Gonzalez',
-    room: 'Main Studio',
-    category: 'Dance',
-    rules: [
-      'No dance experience required',
-      'Wear comfortable shoes',
-      'Bring plenty of water',
-      'Have fun and let loose!',
-    ],
-  },
-];
+// Note: Services (Personal Trainer & Professional Massage) are now stored in Supabase database
+// Use the store methods to fetch services from the database
+
+export const mockServices: Service[] = [];
 
 // Note: Membership plans are now stored in Supabase database
 // Use the store methods to fetch membership plans from the database
@@ -208,22 +110,14 @@ export const mockBookingHistory: BookingHistory[] = [
   },
 ];
 
-// Helper functions
-export const getClassById = (id: string): GymClass | undefined => {
-  return mockClasses.find(cls => cls.id === id);
+// Helper functions - updated for services
+export const getServiceById = (id: string, services: Service[]): Service | undefined => {
+  return services.find(srv => srv.id === id);
 };
 
-export const getClassesByCategory = (category?: string): GymClass[] => {
-  if (!category || category === 'All') {return mockClasses;}
-  return mockClasses.filter(cls => cls.category === category);
-};
-
-export const getClassesForToday = (): GymClass[] => {
-  const today = new Date().toDateString();
-  return mockClasses.filter(cls => {
-    const classDate = new Date(cls.startAt).toDateString();
-    return classDate === today;
-  });
+export const getServicesByType = (services: Service[], type?: string): Service[] => {
+  if (!type || type === 'All') {return services;}
+  return services.filter(srv => srv.service_type === type);
 };
 
 export const generateQRToken = (): string => {

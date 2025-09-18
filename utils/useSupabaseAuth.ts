@@ -133,8 +133,6 @@ export function _useSupabaseAuth_deprecated() {
                   isAuthenticated: false,
                   session: null,
                   member: null,
-                  bookings: new Set(),
-                  bookingHistory: [],
                 });
                 isProcessingAuthChange = false;
               }

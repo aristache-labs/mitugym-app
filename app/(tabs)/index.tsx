@@ -7,17 +7,14 @@ import {
   QrCode,
   Calendar,
   Clock,
-  TrendingUp,
   ChevronRight,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { formatRelativeDate } from '../../lib/utils';
-import { getClassesForToday, mockClasses } from '../../lib/mock';
 import { AppHeader } from '../../components/AppHeader';
 import { StatusCard } from '../../components/StatusCard';
-import { ClassCard } from '../../components/ClassCard';
 import { PillButton } from '../../components/PillButton';
 
 export default function HomeScreen() {
@@ -26,20 +23,23 @@ export default function HomeScreen() {
 
   const {
     member,
-    isClassReserved,
-    reserveClass,
-    cancelReservation,
+    services,
+    servicesLoading,
+    fetchServices,
     renewMembership,
   } = useAppStore();
 
-  // Get today's classes (limit to 2 for preview)
-  const todayClasses = getClassesForToday().slice(0, 2);
-  const upcomingClasses = mockClasses.slice(0, 2);
+  // Load services on component mount
+  React.useEffect(() => {
+    fetchServices();
+  }, [fetchServices]);
+
+  // Get available services (limit to 2 for preview)
+  const availableServices = services.slice(0, 2);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    // Simulate API refresh
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await fetchServices();
     setRefreshing(false);
   };
 
@@ -47,20 +47,9 @@ export default function HomeScreen() {
     router.push('/(tabs)/qr');
   };
 
-  const handleClassPress = (classId: string) => {
-    router.push(`/class/${classId}`);
-  };
 
-  const handleClassReserve = (classId: string) => {
-    if (isClassReserved(classId)) {
-      cancelReservation(classId);
-    } else {
-      reserveClass(classId);
-    }
-  };
-
-  const handleViewAllClasses = () => {
-    router.push('/(tabs)/classes');
+  const handleViewAllServices = () => {
+    router.push('/(tabs)/services');
   };
 
   const handleMembershipPress = () => {
@@ -248,12 +237,12 @@ export default function HomeScreen() {
                 fontWeight: theme.typography.h3.fontWeight,
                 color: theme.colors.text.primary,
               }}>
-                Today at the Gym
+                Available Services
               </Text>
             </View>
 
             <TouchableOpacity
-              onPress={handleViewAllClasses}
+              onPress={handleViewAllServices}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -273,16 +262,72 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          {todayClasses.length > 0 ? (
-            todayClasses.map(gymClass => (
-              <ClassCard
-                key={gymClass.id}
-                gymClass={gymClass}
-                isReserved={isClassReserved(gymClass.id)}
-                onPress={() => handleClassPress(gymClass.id)}
-                onReserve={() => handleClassReserve(gymClass.id)}
-                compact
-              />
+          {servicesLoading ? (
+            <View style={{
+              backgroundColor: theme.colors.background.surface,
+              borderRadius: theme.borderRadius.lg,
+              padding: theme.spacing.xl,
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: 'rgba(30, 155, 113, 0.2)',
+            }}>
+              <Text style={{
+                fontSize: theme.typography.body.fontSize,
+                color: theme.colors.text.secondary,
+                textAlign: 'center',
+              }}>
+                Loading services...
+              </Text>
+            </View>
+          ) : availableServices.length > 0 ? (
+            availableServices.map(service => (
+              <View
+                key={service.id}
+                style={{
+                  backgroundColor: theme.colors.background.surface,
+                  borderRadius: theme.borderRadius.lg,
+                  padding: theme.spacing.lg,
+                  marginBottom: theme.spacing.md,
+                  borderWidth: 1,
+                  borderColor: 'rgba(30, 155, 113, 0.2)',
+                }}
+              >
+                <Text style={{
+                  fontSize: theme.typography.h3.fontSize,
+                  fontWeight: theme.typography.h3.fontWeight,
+                  color: theme.colors.text.primary,
+                  marginBottom: theme.spacing.sm,
+                }}>
+                  {service.name}
+                </Text>
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  color: theme.colors.text.secondary,
+                  marginBottom: theme.spacing.sm,
+                }}>
+                  {service.description}
+                </Text>
+                <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}>
+                  <Text style={{
+                    fontSize: theme.typography.h2.fontSize,
+                    fontWeight: '700',
+                    color: theme.colors.primary.DEFAULT,
+                  }}>
+                    ${service.price}
+                  </Text>
+                  <Text style={{
+                    fontSize: theme.typography.caption.fontSize,
+                    color: theme.colors.text.secondary,
+                  }}>
+                    {service.duration_minutes} minutes
+                    {service.requires_advance_booking && ' • Advance booking required'}
+                  </Text>
+                </View>
+              </View>
             ))
           ) : (
             <View style={{
@@ -303,51 +348,17 @@ export default function HomeScreen() {
                 color: theme.colors.text.secondary,
                 textAlign: 'center',
               }}>
-                No classes scheduled for today
+                No services available
               </Text>
             </View>
           )}
         </View>
 
-        {/* Upcoming Classes Preview */}
+        {/* All Services Button */}
         <View style={{ marginBottom: theme.spacing.xl }}>
-          <View style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: theme.spacing.lg,
-          }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <TrendingUp
-                size={24}
-                color={theme.colors.secondary.DEFAULT}
-                style={{ marginRight: theme.spacing.sm }}
-              />
-              <Text style={{
-                fontSize: theme.typography.h3.fontSize,
-                fontWeight: theme.typography.h3.fontWeight,
-                color: theme.colors.text.primary,
-              }}>
-                Popular Classes
-              </Text>
-            </View>
-          </View>
-
-          {upcomingClasses.map(gymClass => (
-            <ClassCard
-              key={gymClass.id}
-              gymClass={gymClass}
-              isReserved={isClassReserved(gymClass.id)}
-              onPress={() => handleClassPress(gymClass.id)}
-              onReserve={() => handleClassReserve(gymClass.id)}
-              showDate
-              compact
-            />
-          ))}
-
           <PillButton
-            title="Explore All Classes"
-            onPress={handleViewAllClasses}
+            title="Explore All Services"
+            onPress={handleViewAllServices}
             variant="outline"
             fullWidth
             icon={Calendar}

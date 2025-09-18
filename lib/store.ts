@@ -3,11 +3,11 @@ import { supabase } from '../utils/supabase';
 import { SecureStorage } from '../utils/secureStorage';
 import {
   mockMember,
-  mockClasses,
   mockBookingHistory,
   generateQRToken,
   type Member,
-  type GymClass,
+  type Service,
+  type ServiceBooking,
   type BookingHistory,
   type MembershipPlan,
 } from './mock';
@@ -24,13 +24,15 @@ interface AuthState {
   loadMemberProfile: () => Promise<void>;
 }
 
-interface ClassState {
-  classes: GymClass[];
-  bookings: Set<string>;
+interface ServiceState {
+  services: Service[];
+  servicesLoading: boolean;
+  serviceBookings: ServiceBooking[];
   bookingHistory: BookingHistory[];
-  reserveClass: (classId: string) => void;
-  cancelReservation: (classId: string) => void;
-  isClassReserved: (classId: string) => boolean;
+  fetchServices: () => Promise<void>;
+  bookService: (serviceId: string, bookingDate: string, notes?: string) => Promise<void>;
+  cancelServiceBooking: (bookingId: string) => void;
+  fetchServiceBookings: () => Promise<void>;
 }
 
 interface QRState {
@@ -58,7 +60,7 @@ interface ToastState {
   hideToast: () => void;
 }
 
-type AppState = AuthState & ClassState & QRState & MembershipState & ToastState;
+type AppState = AuthState & ServiceState & QRState & MembershipState & ToastState;
 
 export const useAppStore = create<AppState>((set, get) => ({
   // Auth state
@@ -330,82 +332,150 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  // Class state
-  classes: mockClasses,
-  bookings: new Set(),
+  // Service state
+  services: [],
+  servicesLoading: false,
+  serviceBookings: [],
   bookingHistory: mockBookingHistory,
-  reserveClass: (classId: string) => {
-    const { classes, bookings } = get();
-    const classToReserve = classes.find(cls => cls.id === classId);
 
-    if (!classToReserve || classToReserve.spotsLeft <= 0) {
-      get().showToast('Cannot reserve class - no spots available', 'error');
-      return;
+  fetchServices: async () => {
+    set({ servicesLoading: true });
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching services:', error);
+        get().showToast('Failed to load services', 'error');
+        return;
+      }
+
+      set({ services: data || [] });
+    } catch (error) {
+      console.error('Error fetching services:', error);
+      get().showToast('Failed to load services', 'error');
+    } finally {
+      set({ servicesLoading: false });
     }
-
-    if (bookings.has(classId)) {
-      get().showToast('Class already reserved', 'info');
-      return;
-    }
-
-    const updatedClasses = classes.map(cls =>
-      cls.id === classId
-        ? { ...cls, spotsLeft: cls.spotsLeft - 1 }
-        : cls,
-    );
-
-    const newBooking: BookingHistory = {
-      id: Date.now().toString(),
-      classId,
-      className: classToReserve.title,
-      date: classToReserve.startAt,
-      status: 'upcoming',
-    };
-
-    set({
-      classes: updatedClasses,
-      bookings: new Set([...bookings, classId]),
-      bookingHistory: [newBooking, ...get().bookingHistory],
-    });
-
-    get().showToast(`Reserved ${classToReserve.title}`, 'success');
   },
 
-  cancelReservation: (classId: string) => {
-    const { classes, bookings, bookingHistory } = get();
-    const classToCancel = classes.find(cls => cls.id === classId);
+  bookService: async (serviceId: string, bookingDate: string, notes?: string) => {
+    try {
+      const { session } = get();
+      if (!session?.user?.id) {
+        get().showToast('Please log in to book services', 'error');
+        return;
+      }
 
-    if (!classToCancel || !bookings.has(classId)) {
-      get().showToast('No reservation found to cancel', 'error');
-      return;
+      const service = get().services.find(s => s.id === serviceId);
+      if (!service) {
+        get().showToast('Service not found', 'error');
+        return;
+      }
+
+      // Check advance booking requirement
+      if (service.requires_advance_booking) {
+        const bookingDateTime = new Date(bookingDate);
+        const now = new Date();
+        const hoursUntilBooking = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+        
+        if (hoursUntilBooking < service.advance_booking_hours) {
+          get().showToast(`This service requires ${service.advance_booking_hours} hours advance booking`, 'error');
+          return;
+        }
+      }
+
+      const bookingData = {
+        user_id: session.user.id,
+        service_id: serviceId,
+        booking_date: bookingDate,
+        status: 'upcoming' as const,
+        sessions_remaining: service.max_sessions || null,
+        notes: notes || null,
+      };
+
+      const { data, error } = await supabase
+        .from('service_bookings')
+        .insert([bookingData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error booking service:', error);
+        get().showToast('Failed to book service', 'error');
+        return;
+      }
+
+      if (data) {
+        // Add to local state
+        set({
+          serviceBookings: [...get().serviceBookings, data],
+        });
+        
+        get().showToast(`Booked ${service.name} successfully!`, 'success');
+      }
+    } catch (error) {
+      console.error('Error booking service:', error);
+      get().showToast('Failed to book service', 'error');
     }
-
-    const updatedClasses = classes.map(cls =>
-      cls.id === classId
-        ? { ...cls, spotsLeft: cls.spotsLeft + 1 }
-        : cls,
-    );
-
-    const newBookings = new Set(bookings);
-    newBookings.delete(classId);
-
-    const updatedHistory = bookingHistory.map(booking =>
-      booking.classId === classId && booking.status === 'upcoming'
-        ? { ...booking, status: 'cancelled' as const }
-        : booking,
-    );
-
-    set({
-      classes: updatedClasses,
-      bookings: newBookings,
-      bookingHistory: updatedHistory,
-    });
-
-    get().showToast(`Cancelled ${classToCancel.title}`, 'info');
   },
 
-  isClassReserved: (classId: string) => {
-    return get().bookings.has(classId);
+  cancelServiceBooking: async (bookingId: string) => {
+    try {
+      const { error } = await supabase
+        .from('service_bookings')
+        .update({ status: 'cancelled' })
+        .eq('id', bookingId);
+
+      if (error) {
+        console.error('Error cancelling booking:', error);
+        get().showToast('Failed to cancel booking', 'error');
+        return;
+      }
+
+      // Update local state
+      const updatedBookings = get().serviceBookings.map(booking =>
+        booking.id === bookingId
+          ? { ...booking, status: 'cancelled' as const }
+          : booking,
+      );
+
+      set({ serviceBookings: updatedBookings });
+      get().showToast('Booking cancelled successfully', 'info');
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      get().showToast('Failed to cancel booking', 'error');
+    }
+  },
+
+  fetchServiceBookings: async () => {
+    try {
+      const { session } = get();
+      if (!session?.user?.id) {
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('service_bookings')
+        .select(`
+          *,
+          services(name, service_type, duration_minutes)
+        `)
+        .eq('user_id', session.user.id)
+        .order('booking_date', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching service bookings:', error);
+        return;
+      }
+
+      set({ serviceBookings: data || [] });
+    } catch (error) {
+      console.error('Error fetching service bookings:', error);
+    }
   },
 
   // QR state

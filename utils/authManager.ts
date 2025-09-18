@@ -106,8 +106,6 @@ class AuthManager {
               isAuthenticated: false,
               session: null,
               member: null,
-              bookings: new Set(),
-              bookingHistory: [],
             });
             this.isProcessing = false;
             console.log('AuthManager: Sign out state applied successfully');

@@ -28,7 +28,7 @@ function TabIcon({ name, color, size }: TabIconProps) {
       return <Home {...iconProps} />;
     case 'qr':
       return <QrCode {...iconProps} />;
-    case 'classes':
+    case 'services':
       return <Calendar {...iconProps} />;
     case 'membership':
       return <CreditCard {...iconProps} />;
@@ -217,9 +217,9 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="classes"
+          name="services"
           options={{
-            title: 'Classes',
+            title: 'Services',
           }}
         />
         <Tabs.Screen
