@@ -42,6 +42,7 @@ export default function HomeScreen() {
     fetchAnnouncements,
     gymSchedule,
     gymScheduleLoading,
+    isGymOpen,
     getTodayHours,
     fetchGymSchedule,
     getValidatedPeopleInGym,
@@ -133,7 +134,8 @@ export default function HomeScreen() {
 
   const lastVisit = getLastVisit();
   const currentMonthCheckins = getCurrentMonthCheckinsCount();
-  const todayHours = getTodayHours();
+  const todayHours = getTodayHours(t);
+  const gymIsOpen = isGymOpen();
 
   // Get priority announcement to display
   const priorityAnnouncement = announcements.find(a => a.priority === 3) || announcements[0];
@@ -197,8 +199,8 @@ export default function HomeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background.DEFAULT }}>
       <AppHeader
-        title={`Hello, ${member.name.split(' ')[0]}! 👋`}
-        subtitle="Ready for your workout?"
+        title={`${t('hello')}, ${member.name.split(' ')[0]}! 👋`}
+        subtitle={t('readyForWorkout')}
         showNotifications
         onNotificationPress={() => console.log('Notifications pressed')}
       />
@@ -302,7 +304,7 @@ export default function HomeScreen() {
              backgroundColor: theme.colors.background.surface,
              borderRadius: theme.borderRadius.md,
              borderWidth: 1.2,
-             borderColor: todayHours?.includes('Opens') ? 'rgba(239, 68, 68, 0.3)' : 'rgba(34, 197, 94, 0.3)',
+             borderColor: gymIsOpen ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)',
              ...theme.shadows.soft,
              height: 60,
              paddingHorizontal: theme.spacing.sm,
@@ -315,7 +317,7 @@ export default function HomeScreen() {
              }}>
                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                  <View style={{
-                   backgroundColor: todayHours?.includes('Opens') ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)',
+                   backgroundColor: gymIsOpen ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
                    borderRadius: theme.borderRadius.sm,
                    padding: 6,
                    marginRight: theme.spacing.sm,
@@ -324,7 +326,7 @@ export default function HomeScreen() {
                  }}>
                    <Clock
                      size={16}
-                     color={todayHours?.includes('Opens') ? '#EF4444' : '#22C55E'}
+                     color={gymIsOpen ? '#22C55E' : '#EF4444'}
                      strokeWidth={2}
                    />
                  </View>
@@ -336,7 +338,7 @@ export default function HomeScreen() {
                      letterSpacing: 0.2,
                      marginBottom: 1,
                    }}>
-                     {todayHours?.includes('Opens') ? t('closed') : t('openNow')}
+                     {gymIsOpen ? t('openNow') : t('closed')}
                    </Text>
                    <Text
                      style={{
@@ -415,7 +417,7 @@ export default function HomeScreen() {
                 color: theme.colors.text.primary,
                 textAlign: 'center',
               }}>
-                Open QR
+                {t('openQR')}
               </Text>
               <Text style={{
                 fontSize: theme.typography.caption.fontSize,
@@ -423,7 +425,7 @@ export default function HomeScreen() {
                 textAlign: 'center',
                 marginTop: 4,
               }}>
-                Quick entry
+                {t('scanForEntry')}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -707,7 +709,7 @@ export default function HomeScreen() {
         {/* All Services Button */}
         <View style={{ marginBottom: theme.spacing.xl }}>
           <PillButton
-            title="Explore All Services"
+            title={t('exploreAllServices')}
             onPress={handleViewAllServices}
             variant="outline"
             fullWidth

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '../utils/supabase';
 import { SecureStorage } from '../utils/secureStorage';
+import type { TranslationKey } from './translations';
 import {
   mockMember,
   mockBookingHistory,
@@ -70,7 +71,8 @@ interface GymScheduleState {
   gymScheduleLoading: boolean;
   todaySchedule: GymSchedule | null;
   fetchGymSchedule: () => Promise<void>;
-  getTodayHours: () => string | null;
+  isGymOpen: () => boolean;
+  getTodayHours: (t?: (key: TranslationKey) => string) => string | null;
 }
 
 interface MembershipState {
@@ -825,108 +827,158 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  getTodayHours: () => {
-    const { todaySchedule, gymSchedule } = get();
+        isGymOpen: () => {
+          const { todaySchedule } = get();
 
-    if (!todaySchedule) {return null;}
+          if (!todaySchedule) {return false;}
 
-    // Keep 24h format for display
-    const formatTime = (time: string) => {
-      const [hours, minutes] = time.split(':');
-      return `${hours || '00'}:${minutes || '00'}`;
-    };
+          // Get current time in Romania timezone
+          const utcNow = new Date();
+          const romaniaTimeParts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Europe/Bucharest',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }).formatToParts(utcNow);
 
-    // Get current time in Romania timezone using a more reliable method
-    const utcNow = new Date();
-    const romaniaTimeParts = new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'Europe/Bucharest',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }).formatToParts(utcNow);
+          // Parse the 12-hour format correctly
+          let hour = parseInt(romaniaTimeParts.find(p => p.type === 'hour')?.value || '0', 10);
+          const minute = parseInt(romaniaTimeParts.find(p => p.type === 'minute')?.value || '0', 10);
+          const second = parseInt(romaniaTimeParts.find(p => p.type === 'second')?.value || '0', 10);
+          const dayPeriod = romaniaTimeParts.find(p => p.type === 'dayPeriod')?.value;
 
-    // Parse the 12-hour format correctly
-    let hour = parseInt(romaniaTimeParts.find(p => p.type === 'hour')?.value || '0', 10);
-    const minute = parseInt(romaniaTimeParts.find(p => p.type === 'minute')?.value || '0', 10);
-    const second = parseInt(romaniaTimeParts.find(p => p.type === 'second')?.value || '0', 10);
-    const dayPeriod = romaniaTimeParts.find(p => p.type === 'dayPeriod')?.value;
+          // Convert 12-hour to 24-hour format
+          if (dayPeriod === 'AM' && hour === 12) {
+            hour = 0; // 12 AM = 0 hours
+          } else if (dayPeriod === 'PM' && hour !== 12) {
+            hour += 12; // PM hours except 12 PM
+          }
 
-    // Convert 12-hour to 24-hour format
-    if (dayPeriod === 'AM' && hour === 12) {
-      hour = 0; // 12 AM = 0 hours
-    } else if (dayPeriod === 'PM' && hour !== 12) {
-      hour += 12; // PM hours except 12 PM
-    }
+          const now = new Date(
+            parseInt(romaniaTimeParts.find(p => p.type === 'year')?.value || '0', 10),
+            parseInt(romaniaTimeParts.find(p => p.type === 'month')?.value || '1', 10) - 1,
+            parseInt(romaniaTimeParts.find(p => p.type === 'day')?.value || '1', 10),
+            hour,
+            minute,
+            second,
+          );
+          const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
 
-    const now = new Date(
-      parseInt(romaniaTimeParts.find(p => p.type === 'year')?.value || '0', 10),
-      parseInt(romaniaTimeParts.find(p => p.type === 'month')?.value || '1', 10) - 1,
-      parseInt(romaniaTimeParts.find(p => p.type === 'day')?.value || '1', 10),
-      hour,
-      minute,
-      second,
-    );
-    const currentHour = now.getHours();
-    const currentMinutes = now.getMinutes();
-    const currentTimeInMinutes = currentHour * 60 + currentMinutes;
+          // Parse gym hours
+          const [openHour, openMin] = todaySchedule.open_time.split(':').map(time => parseInt(time, 10));
+          const [closeHour, closeMin] = todaySchedule.close_time.split(':').map(time => parseInt(time, 10));
+          const openTimeInMinutes = (openHour || 0) * 60 + (openMin || 0);
+          const closeTimeInMinutes = (closeHour || 0) * 60 + (closeMin || 0);
 
-    // Parse gym hours
-    const [openHour, openMin] = todaySchedule.open_time.split(':').map(t => parseInt(t, 10));
-    const [closeHour, closeMin] = todaySchedule.close_time.split(':').map(t => parseInt(t, 10));
-    const openTimeInMinutes = (openHour || 0) * 60 + (openMin || 0);
-    const closeTimeInMinutes = (closeHour || 0) * 60 + (closeMin || 0);
+          // Check if gym is currently open
+          return currentTimeInMinutes >= openTimeInMinutes && currentTimeInMinutes < closeTimeInMinutes;
+        },
 
-    // Check if gym is currently open
-    const isOpen = currentTimeInMinutes >= openTimeInMinutes && currentTimeInMinutes < closeTimeInMinutes;
+        getTodayHours: (t?: (key: TranslationKey) => string) => {
+          const { todaySchedule, gymSchedule } = get();
 
-    if (isOpen) {
-      // Gym is open - show closing time
-      const minutesUntilClose = closeTimeInMinutes - currentTimeInMinutes;
+          if (!todaySchedule) {return null;}
 
-      if (minutesUntilClose <= 60) {
-        // Closing soon - show minutes
-        return `Closing in ${minutesUntilClose} min`;
-      } else {
-        // Show regular closing time
-        return `Until ${formatTime(todaySchedule.close_time)}`;
-      }
-    } else {
-      // Gym is closed - find next opening time
-      const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+          // Keep 24h format for display
+          const formatTime = (time: string) => {
+            const [hours, minutes] = time.split(':');
+            return `${hours || '00'}:${minutes || '00'}`;
+          };
 
-      // Check if we should open later today
-      if (currentTimeInMinutes < openTimeInMinutes) {
-        return `Opens today at ${formatTime(todaySchedule.open_time)}`;
-      }
+          // Get current time in Romania timezone using a more reliable method
+          const utcNow = new Date();
+          const romaniaTimeParts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Europe/Bucharest',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }).formatToParts(utcNow);
 
-      // Find next opening day
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      let nextDay = currentDay;
-      let daysAhead = 0;
+          // Parse the 12-hour format correctly
+          let hour = parseInt(romaniaTimeParts.find(p => p.type === 'hour')?.value || '0', 10);
+          const minute = parseInt(romaniaTimeParts.find(p => p.type === 'minute')?.value || '0', 10);
+          const second = parseInt(romaniaTimeParts.find(p => p.type === 'second')?.value || '0', 10);
+          const dayPeriod = romaniaTimeParts.find(p => p.type === 'dayPeriod')?.value;
 
-      do {
-        daysAhead++;
-        nextDay = (nextDay + 1) % 7;
+          // Convert 12-hour to 24-hour format
+          if (dayPeriod === 'AM' && hour === 12) {
+            hour = 0; // 12 AM = 0 hours
+          } else if (dayPeriod === 'PM' && hour !== 12) {
+            hour += 12; // PM hours except 12 PM
+          }
 
-        // Convert our day_of_week (0=Monday) to JS day (0=Sunday)
-        const nextScheduleDay = gymSchedule.find(schedule => {
-          const scheduleJSDay = schedule.day_of_week === 6 ? 0 : schedule.day_of_week + 1;
-          return scheduleJSDay === nextDay;
-        });
+          const now = new Date(
+            parseInt(romaniaTimeParts.find(p => p.type === 'year')?.value || '0', 10),
+            parseInt(romaniaTimeParts.find(p => p.type === 'month')?.value || '1', 10) - 1,
+            parseInt(romaniaTimeParts.find(p => p.type === 'day')?.value || '1', 10),
+            hour,
+            minute,
+            second,
+          );
+          const currentHour = now.getHours();
+          const currentMinutes = now.getMinutes();
+          const currentTimeInMinutes = currentHour * 60 + currentMinutes;
 
-        if (nextScheduleDay) {
-          const dayName = daysAhead === 1 ? 'Tomorrow' : dayNames[nextDay];
-          const openTime = formatTime(nextScheduleDay.open_time);
-          return `Opens ${dayName} at ${openTime}`;
-        }
-      } while (daysAhead < 7);
+          // Parse gym hours
+          const [openHour, openMin] = todaySchedule.open_time.split(':').map(time => parseInt(time, 10));
+          const [closeHour, closeMin] = todaySchedule.close_time.split(':').map(time => parseInt(time, 10));
+          const openTimeInMinutes = (openHour || 0) * 60 + (openMin || 0);
+          const closeTimeInMinutes = (closeHour || 0) * 60 + (closeMin || 0);
 
-      return 'Closed';
-    }
-  },
+          // Check if gym is currently open
+          const isOpen = currentTimeInMinutes >= openTimeInMinutes && currentTimeInMinutes < closeTimeInMinutes;
+
+          if (isOpen) {
+            // Gym is open - show closing time
+            const minutesUntilClose = closeTimeInMinutes - currentTimeInMinutes;
+
+            if (minutesUntilClose <= 60) {
+              // Closing soon - show minutes
+              return t ? `${t('closingIn')} ${minutesUntilClose} ${t('min')}` : `Closing in ${minutesUntilClose} min`;
+            } else {
+              // Show regular closing time
+              return t ? `${t('until')} ${formatTime(todaySchedule.close_time)}` : `Until ${formatTime(todaySchedule.close_time)}`;
+            }
+          } else {
+            // Gym is closed - find next opening time
+            const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+            // Check if we should open later today
+            if (currentTimeInMinutes < openTimeInMinutes) {
+              return t ? `${t('opensTodayAt')} ${formatTime(todaySchedule.open_time)}` : `Opens today at ${formatTime(todaySchedule.open_time)}`;
+            }
+
+            // Find next opening day
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            let nextDay = currentDay;
+            let daysAhead = 0;
+
+            do {
+              daysAhead++;
+              nextDay = (nextDay + 1) % 7;
+
+              // Convert our day_of_week (0=Monday) to JS day (0=Sunday)
+              const nextScheduleDay = gymSchedule.find(schedule => {
+                const scheduleJSDay = schedule.day_of_week === 6 ? 0 : schedule.day_of_week + 1;
+                return scheduleJSDay === nextDay;
+              });
+
+              if (nextScheduleDay) {
+                const dayName = daysAhead === 1 ? (t ? t('tomorrow') : 'Tomorrow') : dayNames[nextDay];
+                const openTime = formatTime(nextScheduleDay.open_time);
+                return t ? `${t('opensAt')} ${dayName} ${t('at')} ${openTime}` : `Opens ${dayName} at ${openTime}`;
+              }
+            } while (daysAhead < 7);
+
+            return t ? t('closed') : 'Closed';
+          }
+        },
 
   // Membership state
   membershipPlans: [],

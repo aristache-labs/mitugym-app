@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { CheckCircle, XCircle, Calendar } from 'lucide-react-native';
 import { theme } from '../lib/theme';
 import { getMembershipStatusColor, getDaysLeftText } from '../lib/utils';
+import { useLanguage } from '../lib/LanguageContext';
 
 interface StatusCardProps {
   status: 'active' | 'expired';
@@ -22,6 +23,7 @@ export function StatusCard({
   onPress,
   onRenew,
 }: StatusCardProps) {
+  const { t } = useLanguage();
   const statusColor = getMembershipStatusColor(status);
   const StatusIcon = status === 'active' ? CheckCircle : XCircle;
 
@@ -67,7 +69,7 @@ export function StatusCard({
               fontWeight: theme.typography.h3.fontWeight,
               color: theme.colors.text.primary,
             }}>
-              Membership Status
+              {t('membershipStatus')}
             </Text>
           </View>
         </View>
@@ -85,7 +87,7 @@ export function StatusCard({
               color: theme.colors.text.secondary,
               marginBottom: 4,
             }}>
-              Current Plan
+              {t('currentPlan')}
             </Text>
             <Text style={{
               fontSize: theme.typography.h2.fontSize,
@@ -110,7 +112,7 @@ export function StatusCard({
               color: statusColor,
               textTransform: 'uppercase',
             }}>
-              {status}
+              {t(status)}
             </Text>
           </View>
         </View>
@@ -136,7 +138,7 @@ export function StatusCard({
                 fontSize: theme.typography.caption.fontSize,
                 color: theme.colors.text.secondary,
               }}>
-                {getDaysLeftText(daysLeft)}
+                {getDaysLeftText(daysLeft, t)}
               </Text>
             </View>
           )}
@@ -157,7 +159,7 @@ export function StatusCard({
                 fontSize: theme.typography.caption.fontSize,
                 color: theme.colors.text.secondary,
               }}>
-                Expires: {new Date(expiryDate).toLocaleDateString()}
+                {t('expires')}: {new Date(expiryDate).toLocaleDateString()}
               </Text>
             </View>
           )}
@@ -181,7 +183,7 @@ export function StatusCard({
               fontWeight: '600',
               color: '#ffffff',
             }}>
-              Renew Membership
+              {t('renewMembership')}
             </Text>
           </TouchableOpacity>
         )}

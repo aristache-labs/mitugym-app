@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import type { TranslationKey } from './translations';
 
 // Timer utilities for QR countdown
 export const formatCountdown = (seconds: number): string => {
@@ -61,10 +62,14 @@ export const getMembershipStatusColor = (status: 'active' | 'expired'): string =
   return status === 'active' ? '#2ecc71' : '#e74c3c';
 };
 
-export const getDaysLeftText = (daysLeft?: number): string => {
-  if (!daysLeft || daysLeft <= 0) {return 'Expired';}
-  if (daysLeft === 1) {return '1 day left';}
-  return `${daysLeft} days left`;
+export const getDaysLeftText = (daysLeft?: number, t?: (key: TranslationKey) => string): string => {
+  if (!daysLeft || daysLeft <= 0) {
+    return t ? t('expired') : 'Expired';
+  }
+  if (daysLeft === 1) {
+    return t ? `1 ${t('dayLeft')}` : '1 day left';
+  }
+  return t ? `${daysLeft} ${t('daysLeft')}` : `${daysLeft} days left`;
 };
 
 export const getVisitsLeftText = (visitsLeft?: number): string => {
