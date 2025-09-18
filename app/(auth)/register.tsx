@@ -8,6 +8,7 @@ import { theme } from '../../lib/theme';
 import { isValidEmail } from '../../lib/utils';
 import { AppHeader } from '../../components/AppHeader';
 import { PillButton } from '../../components/PillButton';
+import { useLanguage } from '../../lib/LanguageContext';
 import { NativeDatePicker } from '../../components/NativeDatePicker';
 import { DropdownPicker, DropdownOption } from '../../components/DropdownPicker';
 
@@ -27,11 +28,12 @@ export default function RegisterScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { signUpWithSupabase, isAuthenticated, showToast } = useAppStore();
+  const { t } = useLanguage();
 
   const genderOptions: DropdownOption[] = [
-    { label: 'Male', value: 'male' },
-    { label: 'Female', value: 'female' },
-    { label: 'Other', value: 'other' },
+    { label: t('male'), value: 'male' },
+    { label: t('female'), value: 'female' },
+    { label: t('other'), value: 'other' },
   ];
 
   // Redirect if already authenticated
@@ -129,8 +131,8 @@ export default function RegisterScreen() {
       style={{ flex: 1 }}
     >
       <AppHeader
-        title="Create Account"
-        subtitle="Join the fitness community"
+        title={t('createAccount')}
+        subtitle={t('createAccountSubtitle')}
         showBack
         onBack={handleBack}
         transparent={false}
@@ -167,7 +169,7 @@ export default function RegisterScreen() {
               color: theme.colors.text.secondary,
               textAlign: 'center',
             }}>
-              Start your fitness journey today
+              {t('registerFormSubtitle')}
             </Text>
           </View>
 
@@ -197,7 +199,7 @@ export default function RegisterScreen() {
                 fontWeight: theme.typography.h3.fontWeight,
                 color: theme.colors.text.primary,
               }}>
-                Sign Up
+                {t('signUp')}
               </Text>
             </View>
 
@@ -221,7 +223,7 @@ export default function RegisterScreen() {
                 <TextInput
                   value={firstName}
                   onChangeText={setFirstName}
-                  placeholder="First name"
+                  placeholder={t('firstName')}
                   placeholderTextColor={theme.colors.text.secondary}
                   autoCapitalize="words"
                   autoCorrect={false}
@@ -257,7 +259,7 @@ export default function RegisterScreen() {
                 <TextInput
                   value={lastName}
                   onChangeText={setLastName}
-                  placeholder="Last name"
+                  placeholder={t('lastName')}
                   placeholderTextColor={theme.colors.text.secondary}
                   autoCapitalize="words"
                   autoCorrect={false}
@@ -278,7 +280,7 @@ export default function RegisterScreen() {
               <NativeDatePicker
                 value={dateOfBirth}
                 onDateChange={setDateOfBirth}
-                placeholder="Select your date of birth"
+                placeholder={t('selectDateOfBirth')}
                 maximumDate={new Date(new Date().getFullYear() - 13, 11, 31)} // Must be at least 13 years old
                 minimumDate={new Date(new Date().getFullYear() - 120, 0, 1)} // Max 120 years old
               />
@@ -304,7 +306,7 @@ export default function RegisterScreen() {
                 <TextInput
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="Email address"
+                  placeholder={t('emailAddress')}
                   placeholderTextColor={theme.colors.text.secondary}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -341,7 +343,7 @@ export default function RegisterScreen() {
                 <TextInput
                   value={phone}
                   onChangeText={setPhone}
-                  placeholder="Phone number"
+                  placeholder={t('phone')}
                   placeholderTextColor={theme.colors.text.secondary}
                   keyboardType="phone-pad"
                   autoComplete="tel"
@@ -376,7 +378,7 @@ export default function RegisterScreen() {
                 <TextInput
                   value={address}
                   onChangeText={setAddress}
-                  placeholder="Address (optional)"
+                  placeholder={t('addressOptional')}
                   placeholderTextColor={theme.colors.text.secondary}
                   autoComplete="street-address"
                   style={{
@@ -410,7 +412,7 @@ export default function RegisterScreen() {
                 <TextInput
                   value={city}
                   onChangeText={setCity}
-                  placeholder="City (optional)"
+                  placeholder={t('cityOptional')}
                   placeholderTextColor={theme.colors.text.secondary}
                   autoComplete="address-line2"
                   style={{
@@ -444,7 +446,7 @@ export default function RegisterScreen() {
                 <TextInput
                   value={county}
                   onChangeText={setCounty}
-                  placeholder="County (optional)"
+                  placeholder={t('countyOptional')}
                   placeholderTextColor={theme.colors.text.secondary}
                   autoComplete="address-line1"
                   style={{
@@ -464,8 +466,9 @@ export default function RegisterScreen() {
                 value={gender}
                 onValueChange={setGender}
                 options={genderOptions}
-                placeholder="Select your gender"
-                label="Gender"
+                placeholder={t('selectGender')}
+                label={t('gender')}
+                doneButtonText={t('done')}
               />
             </View>
 
@@ -489,7 +492,7 @@ export default function RegisterScreen() {
                 <TextInput
                   value={password}
                   onChangeText={setPassword}
-                  placeholder="Password (min 6 characters)"
+                  placeholder={t('password')}
                   placeholderTextColor={theme.colors.text.secondary}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
@@ -539,7 +542,7 @@ export default function RegisterScreen() {
                 <TextInput
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  placeholder="Confirm password"
+                  placeholder={t('confirmPassword')}
                   placeholderTextColor={theme.colors.text.secondary}
                   secureTextEntry={!showConfirmPassword}
                   autoCapitalize="none"
@@ -581,7 +584,7 @@ export default function RegisterScreen() {
 
             {/* Register Button */}
             <PillButton
-              title="Create Account"
+              title={t('createAccount')}
               onPress={handleRegister}
               variant="primary"
               size="medium"
@@ -603,7 +606,7 @@ export default function RegisterScreen() {
               color: theme.colors.text.secondary,
               marginRight: theme.spacing.sm,
             }}>
-              Already have an account?
+              {t('alreadyHaveAccount')}
             </Text>
             <Link href="/(auth)/login" asChild>
               <TouchableOpacity>
@@ -612,7 +615,7 @@ export default function RegisterScreen() {
                   color: theme.colors.primary.DEFAULT,
                   fontWeight: '600',
                 }}>
-                  Sign In
+                  {t('signIn')}
                 </Text>
               </TouchableOpacity>
             </Link>
@@ -626,13 +629,13 @@ export default function RegisterScreen() {
             marginTop: theme.spacing.xl,
             lineHeight: 18,
           }}>
-            By creating an account, you agree to our{' '}
+            {t('byCreatingAccount')}{' '}
             <Text style={{ color: theme.colors.primary.DEFAULT }}>
-              Terms of Service
+              {t('termsOfService')}
             </Text>{' '}
-            and{' '}
+            {t('and')}{' '}
             <Text style={{ color: theme.colors.primary.DEFAULT }}>
-              Privacy Policy
+              {t('privacyPolicy')}
             </Text>
           </Text>
         </ScrollView>

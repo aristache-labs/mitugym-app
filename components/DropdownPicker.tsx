@@ -15,6 +15,7 @@ interface DropdownPickerProps {
   options: DropdownOption[];
   placeholder?: string;
   label?: string;
+  doneButtonText?: string;
 }
 
 export function DropdownPicker({
@@ -23,6 +24,7 @@ export function DropdownPicker({
   options,
   placeholder = 'Select option',
   label,
+  doneButtonText = 'Done',
 }: DropdownPickerProps) {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -154,7 +156,7 @@ export function DropdownPicker({
               paddingTop: theme.spacing.md,
             }}>
               <PillButton
-                title="Done"
+                title={doneButtonText}
                 onPress={() => setIsVisible(false)}
                 variant="primary"
                 size="medium"

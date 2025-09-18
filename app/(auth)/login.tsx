@@ -8,6 +8,7 @@ import { theme } from '../../lib/theme';
 import { isValidEmail } from '../../lib/utils';
 import { PillButton } from '../../components/PillButton';
 import { SecureStorage } from '../../utils/secureStorage';
+import { useLanguage } from '../../lib/LanguageContext';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -16,6 +17,7 @@ export default function LoginScreen() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { loginWithSupabase, isAuthenticated, showToast } = useAppStore();
+  const { t } = useLanguage();
 
   // Load remembered email on component mount
   React.useEffect(() => {
@@ -43,12 +45,12 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!isValidEmail(email)) {
-      showToast('Please enter a valid email address', 'error');
+      showToast(t('loginError'), 'error');
       return;
     }
 
     if (password.length < 6) {
-      showToast('Password must be at least 6 characters', 'error');
+      showToast(t('loginError'), 'error');
       return;
     }
 
@@ -57,7 +59,7 @@ export default function LoginScreen() {
       await loginWithSupabase(email, password, rememberMe);
       // Don't manually navigate - let the auth state change handle navigation
     } catch (error) {
-      showToast('Invalid email or password', 'error');
+      showToast(t('loginError'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +101,7 @@ export default function LoginScreen() {
               color: theme.colors.text.secondary,
               textAlign: 'center',
             }}>
-              Your fitness journey continues
+              {t('fitnessJourneySubtitle')}
             </Text>
           </View>
 
@@ -129,7 +131,7 @@ export default function LoginScreen() {
                 fontWeight: theme.typography.h3.fontWeight,
                 color: theme.colors.text.primary,
               }}>
-                Sign In
+                {t('signIn')}
               </Text>
             </View>
 
@@ -153,7 +155,7 @@ export default function LoginScreen() {
                 <TextInput
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="Email address"
+                  placeholder={t('emailAddress')}
                   placeholderTextColor={theme.colors.text.secondary}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -190,7 +192,7 @@ export default function LoginScreen() {
                 <TextInput
                   value={password}
                   onChangeText={setPassword}
-                  placeholder="Password"
+                  placeholder={t('password')}
                   placeholderTextColor={theme.colors.text.secondary}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
@@ -253,14 +255,14 @@ export default function LoginScreen() {
                    fontSize: theme.typography.body.fontSize,
                    color: theme.colors.text.primary,
                  }}>
-                   Remember me
+                   {t('rememberMe')}
                  </Text>
                </TouchableOpacity>
              </View>
 
             {/* Login Button */}
             <PillButton
-              title="Sign In"
+              title={t('signIn')}
               onPress={handleLogin}
               variant="primary"
               size="medium"
@@ -281,7 +283,7 @@ export default function LoginScreen() {
                     color: theme.colors.primary.DEFAULT,
                     textAlign: 'center',
                   }}>
-                    Forgot your password?
+                    {t('forgotPassword')}
                   </Text>
                 </TouchableOpacity>
               </Link>
@@ -307,7 +309,7 @@ export default function LoginScreen() {
               marginHorizontal: theme.spacing.lg,
               fontWeight: '400',
             }}>
-              OR CONTINUE WITH
+              {t('orContinueWith')}
             </Text>
             <View style={{
               flex: 1,
@@ -365,7 +367,7 @@ export default function LoginScreen() {
                 color: '#1f2937',
                 fontWeight: '500',
               }}>
-                Google
+                {t('google')}
               </Text>
             </TouchableOpacity>
 
@@ -410,7 +412,7 @@ export default function LoginScreen() {
                 color: '#ffffff',
                 fontWeight: '500',
               }}>
-                Facebook
+                {t('facebook')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -427,7 +429,7 @@ export default function LoginScreen() {
               color: theme.colors.text.secondary,
               marginRight: theme.spacing.sm,
             }}>
-              Don't have an account?
+              {t('dontHaveAccount')}
             </Text>
             <Link href="/(auth)/register" asChild>
               <TouchableOpacity>
@@ -436,7 +438,7 @@ export default function LoginScreen() {
                   color: theme.colors.primary.DEFAULT,
                   fontWeight: '600',
                 }}>
-                  Sign Up
+                  {t('signUp')}
                 </Text>
               </TouchableOpacity>
             </Link>
@@ -450,13 +452,13 @@ export default function LoginScreen() {
             marginTop: theme.spacing.xl,
             lineHeight: 18,
           }}>
-            By signing in, you agree to our{' '}
+            {t('bySigningIn')}{' '}
             <Text style={{ color: theme.colors.primary.DEFAULT }}>
-              Terms of Service
+              {t('termsOfService')}
             </Text>{' '}
-            and{' '}
+            {t('and')}{' '}
             <Text style={{ color: theme.colors.primary.DEFAULT }}>
-              Privacy Policy
+              {t('privacyPolicy')}
             </Text>
           </Text>
         </View>

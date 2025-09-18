@@ -8,6 +8,7 @@ import { theme } from '../../lib/theme';
 import { isValidEmail } from '../../lib/utils';
 import { AppHeader } from '../../components/AppHeader';
 import { PillButton } from '../../components/PillButton';
+import { useLanguage } from '../../lib/LanguageContext';
 import { supabase } from '../../utils/supabase';
 
 export default function RecoveryScreen() {
@@ -15,6 +16,7 @@ export default function RecoveryScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const { showToast } = useAppStore();
+  const { t } = useLanguage();
 
   const handlePasswordReset = async () => {
     if (!isValidEmail(email)) {
@@ -56,8 +58,8 @@ export default function RecoveryScreen() {
       style={{ flex: 1 }}
     >
       <AppHeader
-        title="Reset Password"
-        subtitle="Recover your account"
+        title={t('resetPassword')}
+        subtitle={t('recoverYourAccount')}
         showBack
         onBack={handleBack}
         transparent={false}
@@ -94,7 +96,7 @@ export default function RecoveryScreen() {
               color: theme.colors.text.secondary,
               textAlign: 'center',
             }}>
-              Don't worry, we'll help you get back
+              {t('recoveryFormSubtitle')}
             </Text>
           </View>
 
@@ -125,7 +127,7 @@ export default function RecoveryScreen() {
                   fontWeight: theme.typography.h3.fontWeight,
                   color: theme.colors.text.primary,
                 }}>
-                  Reset Password
+                  {t('resetPassword')}
                 </Text>
               </View>
 
@@ -135,7 +137,7 @@ export default function RecoveryScreen() {
                 lineHeight: 22,
                 marginBottom: theme.spacing.lg,
               }}>
-                Enter your email address and we'll send you a secure link to reset your password.
+                {t('resetPasswordDescription')}
               </Text>
 
               {/* Email Input */}
@@ -158,7 +160,7 @@ export default function RecoveryScreen() {
                   <TextInput
                     value={email}
                     onChangeText={setEmail}
-                    placeholder="Enter your email address"
+                    placeholder={t('emailAddress')}
                     placeholderTextColor={theme.colors.text.secondary}
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -177,7 +179,7 @@ export default function RecoveryScreen() {
 
               {/* Reset Button */}
               <PillButton
-                title="Send Reset Link"
+                title={t('sendResetLink')}
                 onPress={handlePasswordReset}
                 variant="primary"
                 size="medium"
@@ -193,7 +195,7 @@ export default function RecoveryScreen() {
                 marginTop: theme.spacing.md,
                 lineHeight: 18,
               }}>
-                This link will expire in 60 minutes for security
+                {t('linkExpiresInfo')}
               </Text>
             </View>
           ) : (
@@ -232,7 +234,7 @@ export default function RecoveryScreen() {
                   textAlign: 'center',
                   marginBottom: theme.spacing.md,
                 }}>
-                  Check Your Email
+                  {t('checkYourEmail')}
                 </Text>
                 <Text style={{
                   fontSize: theme.typography.body.fontSize,
@@ -241,7 +243,7 @@ export default function RecoveryScreen() {
                   lineHeight: 22,
                   marginBottom: theme.spacing.lg,
                 }}>
-                  We've sent a password reset link to{'\n'}
+                  {t('resetEmailSent')}{'\n'}
                   <Text style={{ fontWeight: '600', color: theme.colors.text.primary }}>
                     {email}
                   </Text>
@@ -249,7 +251,7 @@ export default function RecoveryScreen() {
               </View>
 
               <PillButton
-                title="Resend Email"
+                title={t('resendEmail')}
                 onPress={handleResendEmail}
                 variant="outline"
                 size="small"
@@ -288,7 +290,7 @@ export default function RecoveryScreen() {
                   color: theme.colors.primary.DEFAULT,
                   fontWeight: '600',
                 }}>
-                  Back to Sign In
+                  {t('backToSignIn')}
                 </Text>
               </TouchableOpacity>
             </Link>
@@ -302,9 +304,9 @@ export default function RecoveryScreen() {
             marginTop: theme.spacing.xl,
             lineHeight: 18,
           }}>
-            Still having trouble?{' '}
+            {t('stillHavingTrouble')}{' '}
             <Text style={{ color: theme.colors.primary.DEFAULT }}>
-              Contact Support
+              {t('contactSupport')}
             </Text>
           </Text>
         </ScrollView>
