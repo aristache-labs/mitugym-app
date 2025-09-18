@@ -847,7 +847,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       // Check if we should open later today
       if (currentTimeInMinutes < openTimeInMinutes) {
-        return 'Opens today';
+        return `Opens today at ${formatTime(todaySchedule.open_time)}`;
       }
 
       // Find next opening day
@@ -867,7 +867,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 
         if (nextScheduleDay) {
           const dayName = daysAhead === 1 ? 'Tomorrow' : dayNames[nextDay];
-          return `Opens ${dayName}`;
+          const openTime = formatTime(nextScheduleDay.open_time);
+          return `Opens ${dayName} at ${openTime}`;
         }
       } while (daysAhead < 7);
 
