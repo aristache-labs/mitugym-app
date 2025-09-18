@@ -11,6 +11,8 @@ import {
   type BookingHistory,
   type MembershipPlan,
   type Checkin,
+  type Announcement,
+  type GymSchedule,
 } from './mock';
 
 interface AuthState {
@@ -54,6 +56,20 @@ interface CheckinState {
   checkOut: (notes?: string) => Promise<void>;
 }
 
+interface AnnouncementState {
+  announcements: Announcement[];
+  announcementsLoading: boolean;
+  fetchAnnouncements: () => Promise<void>;
+}
+
+interface GymScheduleState {
+  gymSchedule: GymSchedule[];
+  gymScheduleLoading: boolean;
+  todaySchedule: GymSchedule | null;
+  fetchGymSchedule: () => Promise<void>;
+  getTodayHours: () => string | null;
+}
+
 interface MembershipState {
   membershipPlans: MembershipPlan[];
   membershipPlansLoading: boolean;
@@ -71,7 +87,7 @@ interface ToastState {
   hideToast: () => void;
 }
 
-type AppState = AuthState & ServiceState & QRState & CheckinState & MembershipState & ToastState;
+type AppState = AuthState & ServiceState & QRState & CheckinState & AnnouncementState & GymScheduleState & MembershipState & ToastState;
 
 export const useAppStore = create<AppState>((set, get) => ({
   // Auth state
@@ -653,6 +669,89 @@ export const useAppStore = create<AppState>((set, get) => ({
       console.error('Error checking out:', error);
       get().showToast('Failed to check out', 'error');
     }
+  },
+
+  // Announcement state
+  announcements: [],
+  announcementsLoading: false,
+
+  fetchAnnouncements: async () => {
+    set({ announcementsLoading: true });
+    try {
+      const { data, error } = await supabase
+        .from('announcements')
+        .select('*')
+        .eq('is_active', true)
+        .lte('start_date', new Date().toISOString())
+        .or('end_date.is.null,end_date.gte.' + new Date().toISOString())
+        .order('priority', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching announcements:', error);
+        get().showToast('Failed to load announcements', 'error');
+        return;
+      }
+
+      set({ announcements: data || [] });
+    } catch (error) {
+      console.error('Error fetching announcements:', error);
+      get().showToast('Failed to load announcements', 'error');
+    } finally {
+      set({ announcementsLoading: false });
+    }
+  },
+
+  // Gym Schedule state
+  gymSchedule: [],
+  gymScheduleLoading: false,
+  todaySchedule: null,
+
+  fetchGymSchedule: async () => {
+    set({ gymScheduleLoading: true });
+    try {
+      const { data, error } = await supabase
+        .from('gym_schedule')
+        .select('*')
+        .eq('is_active', true)
+        .order('day_of_week', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching gym schedule:', error);
+        get().showToast('Failed to load gym schedule', 'error');
+        return;
+      }
+
+      const schedule = data || [];
+      const today = new Date().getDay(); // 0=Sunday, 1=Monday, etc.
+      const todaySchedule = schedule.find(s => s.day_of_week === today) || null;
+
+      set({ 
+        gymSchedule: schedule,
+        todaySchedule 
+      });
+    } catch (error) {
+      console.error('Error fetching gym schedule:', error);
+      get().showToast('Failed to load gym schedule', 'error');
+    } finally {
+      set({ gymScheduleLoading: false });
+    }
+  },
+
+  getTodayHours: () => {
+    const { todaySchedule } = get();
+    if (!todaySchedule) return null;
+    
+    // Convert 24h time to 12h format
+    const formatTime = (time: string) => {
+      const [hours, minutes] = time.split(':');
+      const hour = parseInt(hours || '0');
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      return `${displayHour}:${minutes || '00'} ${ampm}`;
+    };
+
+    return formatTime(todaySchedule.close_time);
   },
 
   // Membership state

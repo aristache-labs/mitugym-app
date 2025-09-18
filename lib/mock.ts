@@ -53,6 +53,30 @@ export interface Checkin {
   updated_at: string;
 }
 
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  priority: 1 | 2 | 3; // 1=low, 2=medium, 3=high
+  is_active: boolean;
+  start_date: string;
+  end_date?: string;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GymSchedule {
+  id: string;
+  day_of_week: number; // 0=Sunday, 1=Monday, ..., 6=Saturday
+  open_time: string;
+  close_time: string;
+  is_active: boolean;
+  special_note?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface MembershipPlan {
   id: string;
   name: string;

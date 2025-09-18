@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Modal } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -9,6 +9,8 @@ import {
   Clock,
   ChevronRight,
   Users,
+  Bell,
+  X,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStore } from '../../lib/store';
@@ -21,6 +23,8 @@ import { PillButton } from '../../components/PillButton';
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = React.useState(false);
+  const [announcementsModalVisible, setAnnouncementsModalVisible] = React.useState(false);
+  const [gymScheduleModalVisible, setGymScheduleModalVisible] = React.useState(false);
 
   const {
     member,
@@ -30,30 +34,39 @@ export default function HomeScreen() {
     renewMembership,
     checkins,
     fetchCheckins,
+    announcements,
+    announcementsLoading,
+    fetchAnnouncements,
+    gymSchedule,
+    gymScheduleLoading,
+    getTodayHours,
+    fetchGymSchedule,
   } = useAppStore();
 
-  // Load services and checkins on component mount
+  // Load data on component mount
   React.useEffect(() => {
     fetchServices();
     fetchCheckins();
-  }, [fetchServices, fetchCheckins]);
+    fetchAnnouncements();
+    fetchGymSchedule();
+  }, [fetchServices, fetchCheckins, fetchAnnouncements, fetchGymSchedule]);
 
   // Get available services (limit to 2 for preview)
   const availableServices = services.slice(0, 2);
 
   // Calculate last visit from checkins
   const getLastVisit = () => {
-    if (checkins.length === 0) return null;
-    
+    if (checkins.length === 0) {return null;}
+
     // Get the most recent completed checkin (has check_out_time)
     const completedCheckins = checkins.filter(c => c.check_out_time);
-    if (completedCheckins.length === 0) return null;
-    
+    if (completedCheckins.length === 0) {return null;}
+
     // Sort by check_in_time and get the most recent
-    const lastVisit = completedCheckins.sort((a, b) => 
-      new Date(b.check_in_time).getTime() - new Date(a.check_in_time).getTime()
+    const lastVisit = completedCheckins.sort((a, b) =>
+      new Date(b.check_in_time).getTime() - new Date(a.check_in_time).getTime(),
     )[0];
-    
+
     return lastVisit?.check_in_time;
   };
 
@@ -62,10 +75,10 @@ export default function HomeScreen() {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
-    
+
     return checkins.filter(checkin => {
       const checkinDate = new Date(checkin.check_in_time);
-      return checkinDate.getMonth() === currentMonth && 
+      return checkinDate.getMonth() === currentMonth &&
              checkinDate.getFullYear() === currentYear;
     }).length;
   };
@@ -78,10 +91,19 @@ export default function HomeScreen() {
   const lastVisit = getLastVisit();
   const currentMonthCheckins = getCurrentMonthCheckinsCount();
   const peopleInGym = getPeopleInGym();
+  const todayHours = getTodayHours();
+
+  // Get priority announcement to display
+  const priorityAnnouncement = announcements.find(a => a.priority === 3) || announcements[0];
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchServices(), fetchCheckins()]);
+    await Promise.all([
+      fetchServices(),
+      fetchCheckins(),
+      fetchAnnouncements(),
+      fetchGymSchedule(),
+    ]);
     setRefreshing(false);
   };
 
@@ -152,8 +174,120 @@ export default function HomeScreen() {
           />
         }
       >
+        {/* Compact Info Row */}
+        <View style={{
+          flexDirection: 'row',
+          gap: theme.spacing.sm,
+          marginTop: theme.spacing.lg,
+          marginBottom: theme.spacing.md,
+        }}>
+          {/* Compact Announcements */}
+          <TouchableOpacity
+            onPress={() => setAnnouncementsModalVisible(true)}
+            style={{ flex: 1 }}
+            activeOpacity={0.8}
+          >
+            <View style={{
+              backgroundColor: theme.colors.background.surface,
+              borderRadius: theme.borderRadius.md,
+              padding: theme.spacing.sm,
+              borderWidth: 1,
+              borderColor: 'rgba(255, 193, 7, 0.2)',
+              ...theme.shadows.soft,
+              minHeight: 60,
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                  <Bell
+                    size={16}
+                    color={theme.colors.secondary.DEFAULT}
+                    style={{ marginRight: theme.spacing.xs }}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{
+                      fontSize: theme.typography.small.fontSize,
+                      fontWeight: '600',
+                      color: theme.colors.text.primary,
+                    }}>
+                      News
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: theme.typography.caption.fontSize,
+                        color: theme.colors.text.secondary,
+                      }}
+                      numberOfLines={1}
+                    >
+                      {announcementsLoading ? 'Loading...' :
+                       priorityAnnouncement ? priorityAnnouncement.title :
+                       'No announcements'}
+                    </Text>
+                  </View>
+                </View>
+                <ChevronRight size={14} color={theme.colors.text.secondary} />
+              </View>
+            </View>
+          </TouchableOpacity>
+
+          {/* Compact Gym Hours */}
+          <TouchableOpacity
+            onPress={() => setGymScheduleModalVisible(true)}
+            style={{ flex: 1 }}
+            activeOpacity={0.8}
+          >
+            <View style={{
+              backgroundColor: theme.colors.background.surface,
+              borderRadius: theme.borderRadius.md,
+              padding: theme.spacing.sm,
+              borderWidth: 1,
+              borderColor: 'rgba(30, 155, 113, 0.2)',
+              ...theme.shadows.soft,
+              minHeight: 60,
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                  <Clock
+                    size={16}
+                    color={theme.colors.primary.DEFAULT}
+                    style={{ marginRight: theme.spacing.xs }}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{
+                      fontSize: theme.typography.small.fontSize,
+                      fontWeight: '600',
+                      color: theme.colors.text.primary,
+                    }}>
+                      Hours
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: theme.typography.caption.fontSize,
+                        color: theme.colors.text.secondary,
+                      }}
+                      numberOfLines={1}
+                    >
+                      {gymScheduleLoading ? 'Loading...' :
+                       todayHours ? `Until ${todayHours}` :
+                       'Not available'}
+                    </Text>
+                  </View>
+                </View>
+                <ChevronRight size={14} color={theme.colors.text.secondary} />
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* Membership Status Card */}
-        <View style={{ marginTop: theme.spacing.lg, marginBottom: theme.spacing.xl }}>
+        <View style={{ marginBottom: theme.spacing.xl }}>
           <StatusCard
             status={member.membershipStatus}
             membershipPlan={member.membershipPlan}
@@ -502,6 +636,317 @@ export default function HomeScreen() {
           />
         </View>
       </ScrollView>
+
+      {/* Announcements Modal */}
+      <Modal
+        visible={announcementsModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setAnnouncementsModalVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: theme.colors.background.DEFAULT }}>
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: theme.spacing.lg,
+            paddingTop: insets.top + theme.spacing.md,
+            borderBottomWidth: 1,
+            borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+          }}>
+            <Text style={{
+              fontSize: theme.typography.h2.fontSize,
+              fontWeight: '700',
+              color: theme.colors.text.primary,
+            }}>
+              Announcements
+            </Text>
+            <TouchableOpacity
+              onPress={() => setAnnouncementsModalVisible(false)}
+              style={{
+                padding: theme.spacing.sm,
+                borderRadius: theme.borderRadius.md,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              }}
+            >
+              <X size={20} color={theme.colors.text.primary} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{
+              padding: theme.spacing.lg,
+              paddingBottom: insets.bottom + theme.spacing.xl,
+            }}
+          >
+            {announcements.length > 0 ? (
+              announcements.map((announcement) => (
+                <View
+                  key={announcement.id}
+                  style={{
+                    backgroundColor: theme.colors.background.surface,
+                    borderRadius: theme.borderRadius.lg,
+                    padding: theme.spacing.lg,
+                    marginBottom: theme.spacing.md,
+                    borderWidth: 1,
+                    borderColor: announcement.priority === 3 ?
+                      'rgba(255, 193, 7, 0.3)' :
+                      'rgba(255, 255, 255, 0.1)',
+                    ...theme.shadows.soft,
+                  }}
+                >
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: theme.spacing.sm,
+                  }}>
+                    <Bell
+                      size={18}
+                      color={announcement.priority === 3 ?
+                        theme.colors.secondary.DEFAULT :
+                        theme.colors.text.secondary}
+                      style={{ marginRight: theme.spacing.xs }}
+                    />
+                    <Text style={{
+                      fontSize: theme.typography.body.fontSize,
+                      fontWeight: '600',
+                      color: theme.colors.text.primary,
+                      flex: 1,
+                    }}>
+                      {announcement.title}
+                    </Text>
+                    {announcement.priority === 3 && (
+                      <View style={{
+                        backgroundColor: theme.colors.secondary.DEFAULT,
+                        paddingHorizontal: theme.spacing.xs,
+                        paddingVertical: 2,
+                        borderRadius: theme.borderRadius.sm,
+                      }}>
+                        <Text style={{
+                          fontSize: theme.typography.caption.fontSize,
+                          color: theme.colors.text.primary,
+                          fontWeight: '600',
+                        }}>
+                          URGENT
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <Text style={{
+                    fontSize: theme.typography.body.fontSize,
+                    color: theme.colors.text.secondary,
+                    lineHeight: 22,
+                    marginBottom: theme.spacing.sm,
+                  }}>
+                    {announcement.content}
+                  </Text>
+
+                  <Text style={{
+                    fontSize: theme.typography.caption.fontSize,
+                    color: theme.colors.text.secondary,
+                  }}>
+                    {new Date(announcement.created_at).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <View style={{
+                backgroundColor: theme.colors.background.surface,
+                borderRadius: theme.borderRadius.lg,
+                padding: theme.spacing.xl,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+              }}>
+                <Bell
+                  size={48}
+                  color={theme.colors.text.secondary}
+                  style={{ marginBottom: theme.spacing.md }}
+                />
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  color: theme.colors.text.secondary,
+                  textAlign: 'center',
+                }}>
+                  No announcements at this time
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* Gym Schedule Modal */}
+      <Modal
+        visible={gymScheduleModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setGymScheduleModalVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: theme.colors.background.DEFAULT }}>
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: theme.spacing.lg,
+            paddingTop: insets.top + theme.spacing.md,
+            borderBottomWidth: 1,
+            borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+          }}>
+            <Text style={{
+              fontSize: theme.typography.h2.fontSize,
+              fontWeight: '700',
+              color: theme.colors.text.primary,
+            }}>
+              Gym Schedule
+            </Text>
+            <TouchableOpacity
+              onPress={() => setGymScheduleModalVisible(false)}
+              style={{
+                padding: theme.spacing.sm,
+                borderRadius: theme.borderRadius.md,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              }}
+            >
+              <X size={20} color={theme.colors.text.primary} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{
+              padding: theme.spacing.lg,
+              paddingBottom: insets.bottom + theme.spacing.xl,
+            }}
+          >
+            {gymSchedule.length > 0 ? (
+              <>
+                {gymSchedule.map((schedule) => {
+                  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                  // Convert JavaScript day (0=Sunday, 1=Monday, ..., 6=Saturday) to our array index (0=Monday, ..., 6=Sunday)
+                  const jsDay = new Date().getDay();
+                  const ourDayIndex = jsDay === 0 ? 6 : jsDay - 1; // Sunday (0) becomes 6, others shift down by 1
+                  const isToday = ourDayIndex === schedule.day_of_week;
+
+                  // Format time from 24h to 12h
+                  const formatTime = (time: string) => {
+                    const [hours, minutes] = time.split(':');
+                    const hour = parseInt(hours || '0', 10);
+                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+                    return `${displayHour}:${minutes || '00'} ${ampm}`;
+                  };
+
+                  return (
+                    <View
+                      key={schedule.id}
+                      style={{
+                        backgroundColor: isToday ?
+                          'rgba(30, 155, 113, 0.1)' :
+                          theme.colors.background.surface,
+                        borderRadius: theme.borderRadius.lg,
+                        padding: theme.spacing.lg,
+                        marginBottom: theme.spacing.md,
+                        borderWidth: 1,
+                        borderColor: isToday ?
+                          'rgba(30, 155, 113, 0.3)' :
+                          'rgba(255, 255, 255, 0.1)',
+                        ...theme.shadows.soft,
+                      }}
+                    >
+                      <View style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                          <Clock
+                            size={18}
+                            color={isToday ?
+                              theme.colors.primary.DEFAULT :
+                              theme.colors.text.secondary}
+                            style={{ marginRight: theme.spacing.xs }}
+                          />
+                          <Text style={{
+                            fontSize: theme.typography.body.fontSize,
+                            fontWeight: '600',
+                            color: theme.colors.text.primary,
+                            marginRight: theme.spacing.md,
+                          }}>
+                            {dayNames[schedule.day_of_week]}
+                          </Text>
+                          <Text style={{
+                            fontSize: theme.typography.body.fontSize,
+                            color: theme.colors.text.primary,
+                            fontWeight: '600',
+                          }}>
+                            {formatTime(schedule.open_time)} - {formatTime(schedule.close_time)}
+                          </Text>
+                        </View>
+                        {isToday && (
+                          <View style={{
+                            backgroundColor: theme.colors.primary.DEFAULT,
+                            paddingHorizontal: theme.spacing.xs,
+                            paddingVertical: 2,
+                            borderRadius: theme.borderRadius.sm,
+                          }}>
+                            <Text style={{
+                              fontSize: theme.typography.caption.fontSize,
+                              color: theme.colors.text.primary,
+                              fontWeight: '600',
+                            }}>
+                              TODAY
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+
+                        {schedule.special_note && (
+                          <Text style={{
+                            fontSize: theme.typography.caption.fontSize,
+                            color: theme.colors.text.secondary,
+                            fontStyle: 'italic',
+                            marginTop: theme.spacing.xs,
+                          }}>
+                            {schedule.special_note}
+                          </Text>
+                        )}
+                    </View>
+                  );
+                })}
+              </>
+            ) : (
+              <View style={{
+                backgroundColor: theme.colors.background.surface,
+                borderRadius: theme.borderRadius.lg,
+                padding: theme.spacing.xl,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+              }}>
+                <Clock
+                  size={48}
+                  color={theme.colors.text.secondary}
+                  style={{ marginBottom: theme.spacing.md }}
+                />
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  color: theme.colors.text.secondary,
+                  textAlign: 'center',
+                }}>
+                  Schedule not available
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 }

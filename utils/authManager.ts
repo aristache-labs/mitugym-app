@@ -98,6 +98,17 @@ class AuthManager {
             } catch (error) {
               console.error('AuthManager: Failed to load check-ins:', error);
             }
+
+            // Load announcements and gym schedule
+            try {
+              await Promise.all([
+                useAppStore.getState().fetchAnnouncements(),
+                useAppStore.getState().fetchGymSchedule()
+              ]);
+              console.log('AuthManager: Announcements and gym schedule loaded successfully');
+            } catch (error) {
+              console.error('AuthManager: Failed to load announcements/schedule:', error);
+            }
             
             this.isProcessing = false;
           }, 300);
