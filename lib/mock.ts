@@ -69,7 +69,7 @@ export interface Announcement {
 
 export interface GymSchedule {
   id: string;
-  day_of_week: number; // 0=Sunday, 1=Monday, ..., 6=Saturday
+  day_of_week: number; // 0=Monday, 1=Tuesday, ..., 6=Sunday
   open_time: string;
   close_time: string;
   is_active: boolean;

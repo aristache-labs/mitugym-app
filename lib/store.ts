@@ -779,7 +779,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       const { data, error } = await supabase
         .from('gym_schedule')
         .select('*')
-        .eq('is_active', true)
         .order('day_of_week', { ascending: true });
 
       if (error) {

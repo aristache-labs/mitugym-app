@@ -944,16 +944,20 @@ export default function HomeScreen() {
                     <View
                       key={schedule.id}
                       style={{
-                        backgroundColor: isToday ?
-                          'rgba(30, 155, 113, 0.08)' :
-                          'rgba(255, 255, 255, 0.03)',
+                        backgroundColor: !schedule.is_active ?
+                          'rgba(239, 68, 68, 0.05)' :
+                          (isToday ?
+                            'rgba(30, 155, 113, 0.08)' :
+                            'rgba(255, 255, 255, 0.03)'),
                         borderRadius: theme.borderRadius.lg,
                         padding: theme.spacing.md,
                         marginBottom: theme.spacing.sm,
                         borderWidth: 1,
-                        borderColor: isToday ?
-                          'rgba(30, 155, 113, 0.2)' :
-                          'rgba(255, 255, 255, 0.08)',
+                        borderColor: !schedule.is_active ?
+                          'rgba(239, 68, 68, 0.2)' :
+                          (isToday ?
+                            'rgba(30, 155, 113, 0.2)' :
+                            'rgba(255, 255, 255, 0.08)'),
                         ...theme.shadows.soft,
                       }}
                     >
@@ -971,18 +975,22 @@ export default function HomeScreen() {
                             width: 32,
                             height: 32,
                             borderRadius: 16,
-                            backgroundColor: isToday ?
-                              'rgba(30, 155, 113, 0.15)' :
-                              'rgba(255, 255, 255, 0.1)',
+                            backgroundColor: !schedule.is_active ?
+                              'rgba(239, 68, 68, 0.15)' :
+                              (isToday ?
+                                'rgba(30, 155, 113, 0.15)' :
+                                'rgba(255, 255, 255, 0.1)'),
                             alignItems: 'center',
                             justifyContent: 'center',
                             marginRight: theme.spacing.sm,
                           }}>
                             <Clock
                               size={16}
-                              color={isToday ?
-                                theme.colors.primary.DEFAULT :
-                                theme.colors.text.secondary}
+                              color={!schedule.is_active ?
+                                theme.colors.status.error :
+                                (isToday ?
+                                  theme.colors.primary.DEFAULT :
+                                  theme.colors.text.secondary)}
                             />
                           </View>
                           <View style={{ flex: 1 }}>
@@ -996,10 +1004,13 @@ export default function HomeScreen() {
                             </Text>
                             <Text style={{
                               fontSize: theme.typography.caption.fontSize,
-                              color: theme.colors.text.secondary,
+                              color: schedule.is_active ? theme.colors.text.secondary : theme.colors.status.error,
                               fontWeight: '500',
                             }}>
-                              {formatTime(schedule.open_time)} - {formatTime(schedule.close_time)}
+                              {schedule.is_active
+                                ? `${formatTime(schedule.open_time)} - ${formatTime(schedule.close_time)}`
+                                : t('closed')
+                              }
                             </Text>
                           </View>
                         </View>
