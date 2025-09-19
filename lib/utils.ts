@@ -191,6 +191,19 @@ export const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };
 
+// Format date and time as dd.mm.yy hh:mm
+export const formatCheckinDateTime = (dateString: string): string => {
+  const date = new Date(dateString);
+
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear().toString().slice(-2);
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+
+  return `${day}.${month}.${year} ${hours}:${minutes}`;
+};
+
 // Gender translation mapping
 export const translateGender = (gender: string | null | undefined, t: (key: TranslationKey) => string): string => {
   if (!gender) {

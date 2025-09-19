@@ -8,10 +8,13 @@ import {
   CheckCircle,
   MapPin,
   Calendar,
+  UserCheck,
+  LogIn,
+  LogOut,
 } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
-import { formatPrice, formatRelativeDateI18n } from '../../lib/utils';
+import { formatPrice, formatRelativeDateI18n, formatCheckinDateTime } from '../../lib/utils';
 import { AppHeader } from '../../components/AppHeader';
 import { StatusCard } from '../../components/StatusCard';
 import { PillButton } from '../../components/PillButton';
@@ -342,56 +345,95 @@ export default function MembershipScreen() {
                 <View
                   key={checkin.id}
                   style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingVertical: theme.spacing.sm,
+                    paddingVertical: theme.spacing.md,
                     borderBottomWidth: 1,
                     borderBottomColor: 'rgba(30, 155, 113, 0.1)',
                   }}
                 >
-                  <View style={{ flex: 1 }}>
+                  {/* Membership Plan Row */}
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: theme.spacing.sm,
+                  }}>
+                    <UserCheck
+                      size={16}
+                      color={theme.colors.text.secondary}
+                      style={{ marginRight: theme.spacing.xs }}
+                    />
+                    <Text style={{
+                      fontSize: theme.typography.body.fontSize,
+                      fontWeight: '500',
+                      color: theme.colors.text.primary,
+                    }}>
+                      {checkin.membership_plan_name || checkin.location || 'Basic Plan'}
+                    </Text>
+                  </View>
+                  
+                  {/* Check-in Time Row */}
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: theme.spacing.xs,
+                  }}>
+                    <LogIn
+                      size={14}
+                      color={theme.colors.primary.DEFAULT}
+                      style={{ marginRight: theme.spacing.xs }}
+                    />
+                    <Text style={{
+                      fontSize: theme.typography.caption.fontSize,
+                      color: theme.colors.text.secondary,
+                      marginRight: theme.spacing.sm,
+                    }}>
+                      {t('checkedIn')}:
+                    </Text>
+                    <Text style={{
+                      fontSize: theme.typography.caption.fontSize,
+                      color: theme.colors.text.primary,
+                      fontWeight: '500',
+                    }}>
+                      {formatCheckinDateTime(checkin.check_in_time)}
+                    </Text>
+                  </View>
+                  
+                  {/* Check-out Time Row (if exists) */}
+                  {checkin.check_out_time && (
                     <View style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      marginBottom: 2,
                     }}>
-                      <MapPin
-                        size={16}
-                        color={theme.colors.text.secondary}
-                        style={{ marginRight: theme.spacing.xs }}
-                      />
-                      <Text style={{
-                        fontSize: theme.typography.body.fontSize,
-                        fontWeight: '500',
-                        color: theme.colors.text.primary,
-                      }}>
-                        {checkin.location}
-                      </Text>
-                    </View>
-                    <View style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                    }}>
-                      <Calendar
+                      <LogOut
                         size={14}
-                        color={theme.colors.text.secondary}
+                        color={theme.colors.status.success}
                         style={{ marginRight: theme.spacing.xs }}
                       />
                       <Text style={{
                         fontSize: theme.typography.caption.fontSize,
                         color: theme.colors.text.secondary,
+                        marginRight: theme.spacing.sm,
                       }}>
-                        {formatRelativeDateI18n(checkin.check_in_time, t)}
+                        {t('checkedOut')}:
+                      </Text>
+                      <Text style={{
+                        fontSize: theme.typography.caption.fontSize,
+                        color: theme.colors.text.primary,
+                        fontWeight: '500',
+                      }}>
+                        {formatCheckinDateTime(checkin.check_out_time)}
                       </Text>
                     </View>
-                  </View>
+                  )}
+                  
+                  {/* Duration (if checked out) or In Progress */}
                   <View style={{
                     flexDirection: 'row',
                     alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    marginTop: theme.spacing.xs,
                   }}>
                     <Clock
-                      size={16}
+                      size={14}
                       color={checkin.check_out_time ? theme.colors.status.success : theme.colors.primary.DEFAULT}
                       style={{ marginRight: theme.spacing.xs }}
                     />

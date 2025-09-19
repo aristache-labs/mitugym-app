@@ -276,6 +276,11 @@ export const translations = {
     sendEmail: 'Send Email',
     loadingProfile: 'Loading profile...',
     never: 'Never',
+
+    // Checkin Display
+    checkedIn: 'Checked In',
+    checkedOut: 'Checked Out',
+    membershipType: 'Membership Type',
   },
 
   ro: {
@@ -555,6 +560,11 @@ export const translations = {
     sendEmail: 'Trimite Email',
     loadingProfile: 'Se încarcă profilul...',
     never: 'Niciodată',
+
+    // Checkin Display
+    checkedIn: 'Intrare',
+    checkedOut: 'Ieșire',
+    membershipType: 'Tip Abonament',
   },
 } as const;
 

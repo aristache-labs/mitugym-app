@@ -53,7 +53,7 @@ interface CheckinState {
   currentCheckin: Checkin | null;
   isCheckedIn: boolean;
   fetchCheckins: () => Promise<void>;
-  checkIn: (location?: string, notes?: string) => Promise<void>;
+  checkIn: (notes?: string) => Promise<void>;
   checkOut: (notes?: string) => Promise<void>;
   getValidatedPeopleInGym: () => Promise<number>;
   runAutoCheckout: () => Promise<void>;
@@ -576,9 +576,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  checkIn: async (location = 'MITUGYM Main', notes = '') => {
+  checkIn: async (notes = '') => {
     try {
-      const { session, isCheckedIn } = get();
+      const { session, isCheckedIn, member } = get();
       if (!session?.user?.id) {
         get().showToast('Please log in to check in', 'error');
         return;
@@ -592,7 +592,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const checkinData = {
         user_id: session.user.id,
         check_in_time: new Date().toISOString(),
-        location,
+        membership_plan_name: member?.membershipPlan || 'Basic Plan',
         notes: notes || null,
       };
 
