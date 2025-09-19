@@ -398,7 +398,7 @@ export default function ProfileScreen() {
                       : theme.colors.status.error,
                     fontWeight: '600',
                   }}>
-                    {profile.membership_status.toUpperCase()}
+                    {profile.membership_status === 'active' ? t('active').toUpperCase() : t('expired').toUpperCase()}
                   </Text>
                 </View>
               </View>
@@ -676,21 +676,25 @@ export default function ProfileScreen() {
                   color: theme.colors.text.secondary,
                   flex: 1,
                 }}>
-                  {t('membershipPlan')}
+                  {t('plan')}
                 </Text>
               </View>
               <View style={{
                 paddingHorizontal: theme.spacing.md,
                 paddingVertical: theme.spacing.xs,
-                backgroundColor: 'rgba(77, 212, 212, 0.1)',
+                backgroundColor: profile.membership_plan 
+                  ? 'rgba(77, 212, 212, 0.1)' 
+                  : 'rgba(167, 195, 186, 0.1)',
                 borderRadius: theme.borderRadius.md,
               }}>
                 <Text style={{
                   fontSize: theme.typography.body.fontSize,
-                  color: theme.colors.primary.DEFAULT,
+                  color: profile.membership_plan 
+                    ? theme.colors.primary.DEFAULT 
+                    : theme.colors.text.secondary,
                   fontWeight: '600',
                 }}>
-                  {profile.membership_plan}
+                  {profile.membership_plan || t('none')}
                 </Text>
               </View>
             </View>

@@ -208,10 +208,10 @@ export const translations = {
 
     // Filters
     all: 'ALL',
-    oneMonth: '1M',
-    threeMonths: '3M',
-    sixMonths: '6M',
-    oneYear: '1Y',
+    oneMonth: '1 M',
+    threeMonths: '3 M',
+    sixMonths: '6 M',
+    oneYear: '1 Y',
 
     // Messages
     loginSuccess: 'Login successful!',
@@ -258,9 +258,11 @@ export const translations = {
     personalInformation: 'Personal Information',
     dateOfBirth: 'Date of Birth',
     membershipPlan: 'Membership Plan',
+    plan: 'Plan',
     notSet: 'Not set',
     notProvided: 'Not provided',
     notSpecified: 'Not specified',
+    none: 'None',
     years: 'years',
     emailVerified: 'Email verified',
     pushNotifications: 'Push Notifications',
@@ -492,10 +494,10 @@ export const translations = {
 
     // Filters
     all: 'TOATE',
-    oneMonth: '1L',
-    threeMonths: '3L',
-    sixMonths: '6L',
-    oneYear: '1A',
+    oneMonth: '1 L',
+    threeMonths: '3 L',
+    sixMonths: '6 L',
+    oneYear: '1 A',
 
     // Messages
     loginSuccess: 'Conectare reușită!',
@@ -542,9 +544,11 @@ export const translations = {
     personalInformation: 'Informații Personale',
     dateOfBirth: 'Data Nașterii',
     membershipPlan: 'Plan de Abonament',
+    plan: 'Abonament',
     notSet: 'Nu este setat',
     notProvided: 'Nu este furnizat',
     notSpecified: 'Nu este specificat',
+    none: 'Niciunul',
     years: 'ani',
     emailVerified: 'Email verificat',
     pushNotifications: 'Notificări Push',

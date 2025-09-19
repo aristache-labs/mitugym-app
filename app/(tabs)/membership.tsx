@@ -7,7 +7,6 @@ import {
   Clock,
   CheckCircle,
   MapPin,
-  Calendar,
   UserCheck,
   LogIn,
   LogOut,
@@ -77,15 +76,15 @@ export default function MembershipScreen() {
 
   // Filter checkins based on selected period
   const getFilteredCheckins = () => {
-    if (checkinFilter === 'ALL') return checkins;
-    
+    if (checkinFilter === 'ALL') {return checkins;}
+
     const now = new Date();
-    const monthsToSubtract = checkinFilter === '1M' ? 1 : 
-                           checkinFilter === '3M' ? 3 : 
+    const monthsToSubtract = checkinFilter === '1M' ? 1 :
+                           checkinFilter === '3M' ? 3 :
                            checkinFilter === '6M' ? 6 : 12;
-    
+
     const startDate = new Date(now.getFullYear(), now.getMonth() - monthsToSubtract, 1);
-    
+
     return checkins.filter(checkin => {
       const checkinDate = new Date(checkin.check_in_time);
       return checkinDate >= startDate;
@@ -94,10 +93,10 @@ export default function MembershipScreen() {
 
   const filteredCheckins = getFilteredCheckins();
   const recentCheckins = filteredCheckins.slice(0, 10); // Show more when filtered
-  
+
   // Format checkin data for display
   const formatDuration = (minutes?: number) => {
-    if (!minutes) return t('inProgress');
+    if (!minutes) {return t('inProgress');}
     const hours = Math.floor(minutes / 60);
     const mins = Math.round(minutes % 60);
     if (hours > 0) {
@@ -297,31 +296,37 @@ export default function MembershipScreen() {
             marginBottom: theme.spacing.lg,
             gap: theme.spacing.sm,
           }}>
-            {['1M', '3M', '6M', '1Y', 'ALL'].map((filter) => (
+            {[
+              { value: '1M', label: t('oneMonth') },
+              { value: '3M', label: t('threeMonths') },
+              { value: '6M', label: t('sixMonths') },
+              { value: '1Y', label: t('oneYear') },
+              { value: 'ALL', label: t('all') },
+            ].map((filter) => (
               <TouchableOpacity
-                key={filter}
-                onPress={() => setCheckinFilter(filter)}
+                key={filter.value}
+                onPress={() => setCheckinFilter(filter.value)}
                 style={{
                   paddingHorizontal: theme.spacing.md,
                   paddingVertical: theme.spacing.sm,
                   borderRadius: theme.borderRadius.md,
-                  backgroundColor: checkinFilter === filter 
-                    ? theme.colors.primary.DEFAULT 
+                  backgroundColor: checkinFilter === filter.value
+                    ? theme.colors.primary.DEFAULT
                     : 'rgba(30, 155, 113, 0.1)',
                   borderWidth: 1,
-                  borderColor: checkinFilter === filter 
-                    ? theme.colors.primary.DEFAULT 
+                  borderColor: checkinFilter === filter.value
+                    ? theme.colors.primary.DEFAULT
                     : 'rgba(30, 155, 113, 0.3)',
                 }}
               >
                 <Text style={{
                   fontSize: theme.typography.caption.fontSize,
                   fontWeight: '600',
-                  color: checkinFilter === filter 
-                    ? '#FFFFFF' 
+                  color: checkinFilter === filter.value
+                    ? '#FFFFFF'
                     : theme.colors.primary.DEFAULT,
                 }}>
-                  {filter}
+                  {filter.label}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -369,7 +374,7 @@ export default function MembershipScreen() {
                       {checkin.membership_plan_name || checkin.location || 'Basic Plan'}
                     </Text>
                   </View>
-                  
+
                   {/* Check-in Time Row */}
                   <View style={{
                     flexDirection: 'row',
@@ -396,7 +401,7 @@ export default function MembershipScreen() {
                       {formatCheckinDateTime(checkin.check_in_time)}
                     </Text>
                   </View>
-                  
+
                   {/* Check-out Time Row (if exists) */}
                   {checkin.check_out_time && (
                     <View style={{
@@ -424,7 +429,7 @@ export default function MembershipScreen() {
                       </Text>
                     </View>
                   )}
-                  
+
                   {/* Duration (if checked out) or In Progress */}
                   <View style={{
                     flexDirection: 'row',
@@ -564,9 +569,9 @@ export default function MembershipScreen() {
                         fontSize: theme.typography.caption.fontSize,
                         color: theme.colors.text.secondary,
                       }}>
-                        {plan.plan_type === 'day_entry' 
-                          ? t('oneDayAccess') 
-                          : plan.duration_months 
+                        {plan.plan_type === 'day_entry'
+                          ? t('oneDayAccess')
+                          : plan.duration_months
                             ? `${plan.duration_months} ${plan.duration_months > 1 ? t('months') : t('month')}`
                             : t('unlimitedAccess')
                         }

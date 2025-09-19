@@ -47,7 +47,8 @@ export interface Checkin {
   check_in_time: string;
   check_out_time?: string;
   duration_minutes?: number;
-  location: string;
+  location?: string; // Keep for backward compatibility
+  membership_plan_name?: string;
   notes?: string;
   created_at: string;
   updated_at: string;

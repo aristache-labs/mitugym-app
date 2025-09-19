@@ -349,7 +349,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           email: data.email || '',
           phone: data.phone || '',
           membershipStatus: data.membership_status || 'expired',
-          membershipPlan: data.membership_plan || 'No Plan',
+          membershipPlan: data.membership_plan || '',
           joinDate: data.join_date || '',
           expiryDate: data.expiry_date || '',
           daysLeft: data.days_left || 0,

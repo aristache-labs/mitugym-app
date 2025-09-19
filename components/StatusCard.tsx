@@ -94,7 +94,7 @@ export function StatusCard({
               fontWeight: theme.typography.h2.fontWeight,
               color: theme.colors.text.primary,
             }}>
-              {membershipPlan}
+              {membershipPlan || t('none')}
             </Text>
           </View>
 
