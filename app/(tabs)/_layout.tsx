@@ -13,6 +13,7 @@ import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { FloatingQRButton } from '../../components/FloatingQRButton';
 import { shouldShowFloatingQR } from '../../lib/navigation';
+import { useLanguage } from '../../lib/LanguageContext';
 
 interface TabIconProps {
   name: string;
@@ -46,6 +47,7 @@ let globalRedirectInProgress = false;
 export default function TabLayout() {
   const router = useRouter();
   const segments = useSegments();
+  const { t } = useLanguage();
   const [localAuthState, setLocalAuthState] = React.useState(true); // Start optimistic
   const hasCheckedAuth = React.useRef(false);
 
@@ -201,31 +203,31 @@ export default function TabLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: 'Home',
+            title: t('home'),
           }}
         />
         <Tabs.Screen
           name="qr"
           options={{
-            title: 'QR Code',
+            title: t('qr'),
           }}
         />
         <Tabs.Screen
           name="services"
           options={{
-            title: 'Services',
+            title: t('services'),
           }}
         />
         <Tabs.Screen
           name="membership"
           options={{
-            title: 'Membership',
+            title: t('membership'),
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
-            title: 'Profile',
+            title: t('profile'),
           }}
         />
       </Tabs>

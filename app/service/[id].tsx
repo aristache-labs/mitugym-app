@@ -4,7 +4,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Clock,
-  DollarSign,
+  Banknote,
   Calendar,
   AlertCircle,
 } from 'lucide-react-native';
@@ -13,9 +13,12 @@ import { theme } from '../../lib/theme';
 import { getServiceById } from '../../lib/mock';
 import { AppHeader } from '../../components/AppHeader';
 import { PillButton } from '../../components/PillButton';
+import { useLanguage } from '../../lib/LanguageContext';
+import { formatPrice } from '../../lib/utils';
 
 export default function ServiceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const [isBooking, setIsBooking] = useState(false);
 
@@ -137,7 +140,7 @@ export default function ServiceDetailScreen() {
             alignItems: 'center',
             marginBottom: theme.spacing.lg,
           }}>
-            <DollarSign
+            <Banknote
               size={24}
               color={theme.colors.primary.DEFAULT}
               style={{ marginRight: theme.spacing.sm }}
@@ -147,7 +150,7 @@ export default function ServiceDetailScreen() {
               fontWeight: '700',
               color: theme.colors.primary.DEFAULT,
             }}>
-              {service.price}
+              {formatPrice(service.price, t)}
             </Text>
           </View>
 

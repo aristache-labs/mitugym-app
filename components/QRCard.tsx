@@ -5,6 +5,7 @@ import { QrCode, RefreshCw } from 'lucide-react-native';
 import { theme } from '../lib/theme';
 import { formatCountdown, getCountdownColor } from '../lib/utils';
 import { PillButton } from './PillButton';
+import { useLanguage } from '../lib/LanguageContext';
 
 interface QRCardProps {
   token: string;
@@ -14,6 +15,7 @@ interface QRCardProps {
 }
 
 export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
+  const { t } = useLanguage();
   const [timeLeft, setTimeLeft] = useState(0);
   const [pulseAnim] = useState(new Animated.Value(1));
 
@@ -73,7 +75,7 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
           textTransform: 'uppercase',
           textAlign: 'center',
         }}>
-          {isValid && !isExpired ? 'Valid Now' : 'Expired — Renew'}
+          {isValid && !isExpired ? t('validNow') : t('expiredRenew')}
         </Text>
       </View>
 
@@ -127,7 +129,7 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
             color: theme.colors.text.secondary,
             marginTop: theme.spacing.sm,
           }}>
-            Member ID: #001234
+            {t('memberId')}: #001234
           </Text>
         </LinearGradient>
       </Animated.View>
@@ -142,7 +144,7 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
           color: theme.colors.text.secondary,
           marginBottom: theme.spacing.sm,
         }}>
-          {isExpired ? 'Expired' : 'Valid for'}
+          {isExpired ? t('expired') : t('validFor')}
         </Text>
 
         <Text style={{
@@ -174,7 +176,7 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
 
         {/* Refresh Button */}
         <PillButton
-          title={isExpired ? 'Generate New QR' : 'Refresh'}
+          title={isExpired ? t('generateNewQr') : t('refresh')}
           onPress={onRefresh}
           icon={RefreshCw}
           variant={isExpired ? 'primary' : 'outline'}
@@ -194,8 +196,8 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
           lineHeight: 20,
         }}>
           {isValid && !isExpired
-            ? 'Show this QR code to gym staff for entry. QR codes expire every 60 seconds for security.'
-            : 'QR code has expired. Generate a new one to enter the gym.'
+            ? t('qrInstructions')
+            : t('qrExpiredInstructions')
           }
         </Text>
       </View>

@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
-import { formatRelativeDate } from '../../lib/utils';
+import { formatRelativeDateI18n, formatPrice } from '../../lib/utils';
 import { AppHeader } from '../../components/AppHeader';
 import { StatusCard } from '../../components/StatusCard';
 import { PillButton } from '../../components/PillButton';
@@ -469,7 +469,7 @@ export default function HomeScreen() {
                 textAlign: 'center',
                 marginTop: 4,
               }}>
-                {lastVisit ? formatRelativeDate(lastVisit) : 'Never'}
+                {lastVisit ? formatRelativeDateI18n(lastVisit, t) : t('never')}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -669,7 +669,7 @@ export default function HomeScreen() {
                     fontWeight: '700',
                     color: theme.colors.primary.DEFAULT,
                   }}>
-                    ${service.price}
+                    {formatPrice(service.price, t)}
                   </Text>
                   <Text style={{
                     fontSize: theme.typography.caption.fontSize,

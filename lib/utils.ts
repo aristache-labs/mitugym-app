@@ -48,6 +48,32 @@ export const formatRelativeDate = (dateString: string): string => {
   });
 };
 
+// Internationalized version of formatRelativeDate
+export const formatRelativeDateI18n = (dateString: string, t: (key: TranslationKey) => string): string => {
+  if (isToday(dateString)) {
+    return t('todayLower');
+  }
+  if (isTomorrow(dateString)) {
+    return t('tomorrow');
+  }
+
+  const date = new Date(dateString);
+
+  // Get day of week (0 = Sunday, 1 = Monday, etc.)
+  const dayOfWeek = date.getDay();
+  const dayNames: TranslationKey[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+  // Get month (0 = January, 1 = February, etc.)
+  const month = date.getMonth();
+  const monthNames: TranslationKey[] = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+  // Get day of month
+  const dayOfMonth = date.getDate();
+
+  // Format: "Monday, Jan 15"
+  return `${t(dayNames[dayOfWeek] || 'sunday')}, ${t(monthNames[month] || 'jan')} ${dayOfMonth}`;
+};
+
 export const formatTime12Hour = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toLocaleTimeString('en-US', {
@@ -148,16 +174,42 @@ export const generateStorageKey = (prefix: string, id: string): string => {
 };
 
 // Price formatting
-export const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(price);
+export const formatPrice = (price: number, t?: (key: TranslationKey) => string): string => {
+  if (!t) {
+    // Fallback to Lei if no translation function provided
+    return `${price} lei`;
+  }
+
+  const currencySymbol = t('currencySymbol');
+
+  // Romanian Lei formatting for all languages: "100 lei"
+  return `${price} ${currencySymbol}`;
 };
 
 // Random ID generation
 export const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
+};
+
+// Gender translation mapping
+export const translateGender = (gender: string | null | undefined, t: (key: TranslationKey) => string): string => {
+  if (!gender) {
+    return t('notSpecified');
+  }
+
+  const genderLower = gender.toLowerCase();
+
+  switch (genderLower) {
+    case 'male':
+      return t('male');
+    case 'female':
+      return t('female');
+    case 'other':
+      return t('other');
+    default:
+      // Fallback for any unexpected values
+      return gender.charAt(0).toUpperCase() + gender.slice(1);
+  }
 };
 
 // Deep clone utility

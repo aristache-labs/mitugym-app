@@ -26,6 +26,7 @@ import { AppHeader } from '../../components/AppHeader';
 import { PillButton } from '../../components/PillButton';
 import { supabase } from '../../utils/supabase';
 import { useLanguage, Language } from '../../lib/LanguageContext';
+import { translateGender } from '../../lib/utils';
 
 interface SettingItem {
   id: string;
@@ -106,7 +107,7 @@ export default function ProfileScreen() {
   }, [session?.user?.id, showToast]);
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) {return 'Not set';}
+    if (!dateString) {return t('notSet');}
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -128,12 +129,12 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
+      t('signOut'),
+      t('signOutConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Sign Out',
+          text: t('signOut'),
           style: 'destructive',
           onPress: logout,
         },
@@ -143,22 +144,22 @@ export default function ProfileScreen() {
 
   const handleRateApp = () => {
     Alert.alert(
-      'Rate MITUGYM',
-      'Thank you for using MITUGYM! We would love to hear your feedback.',
+      t('rateAppTitle'),
+      t('rateAppMessage'),
       [
-        { text: 'Maybe Later', style: 'cancel' },
-        { text: 'Rate App', onPress: () => console.log('Open app store rating') },
+        { text: t('maybeLater'), style: 'cancel' },
+        { text: t('rateApp'), onPress: () => console.log('Open app store rating') },
       ],
     );
   };
 
   const handleContactSupport = () => {
     Alert.alert(
-      'Contact Support',
-      'Need help? Our support team is here for you.',
+      t('contactSupportTitle'),
+      t('contactSupportMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Send Email', onPress: () => console.log('Open email support') },
+        { text: t('cancel'), style: 'cancel' },
+        { text: t('sendEmail'), onPress: () => console.log('Open email support') },
       ],
     );
   };
@@ -193,7 +194,7 @@ export default function ProfileScreen() {
   const notificationSettings: SettingItem[] = [
     {
       id: 'push',
-      title: 'Push Notifications',
+      title: t('pushNotifications'),
       icon: Bell,
       type: 'toggle',
       value: pushNotifications,
@@ -201,7 +202,7 @@ export default function ProfileScreen() {
     },
     {
       id: 'email',
-      title: 'Email Notifications',
+      title: t('emailNotifications'),
       icon: Mail,
       type: 'toggle',
       value: emailNotifications,
@@ -209,7 +210,7 @@ export default function ProfileScreen() {
     },
     {
       id: 'reminders',
-      title: 'Class Reminders',
+      title: t('classReminders'),
       icon: Bell,
       type: 'toggle',
       value: classReminders,
@@ -240,28 +241,28 @@ export default function ProfileScreen() {
   const legalSettings: SettingItem[] = [
     {
       id: 'terms',
-      title: 'Terms of Service',
+      title: t('termsOfService'),
       icon: FileText,
       type: 'navigation',
       onPress: () => console.log('Open terms'),
     },
     {
       id: 'privacy',
-      title: 'Privacy Policy',
+      title: t('privacyPolicy'),
       icon: Shield,
       type: 'navigation',
       onPress: () => console.log('Open privacy policy'),
     },
     {
       id: 'rate',
-      title: 'Rate the App',
+      title: t('rateApp'),
       icon: Star,
       type: 'action',
       onPress: handleRateApp,
     },
     {
       id: 'support',
-      title: 'Contact Support',
+      title: t('contactSupport'),
       icon: Mail,
       type: 'action',
       onPress: handleContactSupport,
@@ -280,7 +281,7 @@ export default function ProfileScreen() {
           fontSize: theme.typography.body.fontSize,
           color: theme.colors.text.secondary,
         }}>
-          Loading profile...
+          {t('loadingProfile')}
         </Text>
       </View>
     );
@@ -294,7 +295,7 @@ export default function ProfileScreen() {
     <View style={{ flex: 1, backgroundColor: theme.colors.background.DEFAULT }}>
       <AppHeader
         title={t('profile')}
-        subtitle="Manage your account"
+        subtitle={t('manageAccount')}
         showNotifications
         onNotificationPress={() => console.log('Notifications pressed')}
       />
@@ -380,7 +381,7 @@ export default function ProfileScreen() {
                   color: theme.colors.text.secondary,
                   marginRight: theme.spacing.md,
                 }}>
-                  Member since {new Date(profile.join_date).getFullYear()}
+                  {t('memberSince')} {new Date(profile.join_date).getFullYear()}
                 </Text>
                 <View style={{
                   paddingHorizontal: theme.spacing.sm,
@@ -419,12 +420,12 @@ export default function ProfileScreen() {
                 color={theme.colors.text.secondary}
                 style={{ marginRight: theme.spacing.sm }}
               />
-              <Text style={{
-                fontSize: theme.typography.caption.fontSize,
-                color: theme.colors.text.secondary,
-              }}>
-                Email verified
-              </Text>
+                <Text style={{
+                  fontSize: theme.typography.caption.fontSize,
+                  color: theme.colors.text.secondary,
+                }}>
+                  {t('emailVerified')}
+                </Text>
             </View>
 
             <View style={{
@@ -437,12 +438,12 @@ export default function ProfileScreen() {
                 color={theme.colors.text.secondary}
                 style={{ marginRight: theme.spacing.sm }}
               />
-              <Text style={{
-                fontSize: theme.typography.caption.fontSize,
-                color: theme.colors.text.secondary,
-              }}>
-                {profile.phone || 'Not provided'}
-              </Text>
+                <Text style={{
+                  fontSize: theme.typography.caption.fontSize,
+                  color: theme.colors.text.secondary,
+                }}>
+                  {profile.phone || t('notProvided')}
+                </Text>
             </View>
           </View>
         </View>
@@ -477,7 +478,7 @@ export default function ProfileScreen() {
                 fontWeight: theme.typography.h3.fontWeight,
                 color: theme.colors.text.primary,
               }}>
-                Personal Information
+                {t('personalInformation')}
               </Text>
             </View>
             <TouchableOpacity
@@ -519,7 +520,7 @@ export default function ProfileScreen() {
                   color: theme.colors.text.secondary,
                   flex: 1,
                 }}>
-                  Date of Birth
+                  {t('dateOfBirth')}
                 </Text>
               </View>
               <Text style={{
@@ -529,7 +530,7 @@ export default function ProfileScreen() {
               }}>
                 {formatDate(profile.date_of_birth)}
                 {profile.date_of_birth && calculateAge(profile.date_of_birth) ?
-                  ` (${calculateAge(profile.date_of_birth)} years)` : ''}
+                  ` (${calculateAge(profile.date_of_birth)} ${t('years')})` : ''}
               </Text>
             </View>
 
@@ -555,7 +556,7 @@ export default function ProfileScreen() {
                   color: theme.colors.text.secondary,
                   flex: 1,
                 }}>
-                  Gender
+                  {t('gender')}
                 </Text>
               </View>
               <Text style={{
@@ -563,9 +564,7 @@ export default function ProfileScreen() {
                 color: theme.colors.text.primary,
                 fontWeight: '500',
               }}>
-                {profile.gender ?
-                  profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1) :
-                  'Not specified'}
+                {translateGender(profile.gender, t)}
               </Text>
             </View>
 
@@ -591,7 +590,7 @@ export default function ProfileScreen() {
                   color: theme.colors.text.secondary,
                   flex: 1,
                 }}>
-                  Phone
+                  {t('phone')}
                 </Text>
               </View>
               <Text style={{
@@ -599,7 +598,7 @@ export default function ProfileScreen() {
                 color: theme.colors.text.primary,
                 fontWeight: '500',
               }}>
-                {profile.phone || 'Not provided'}
+                {profile.phone || t('notProvided')}
               </Text>
             </View>
 
@@ -626,7 +625,7 @@ export default function ProfileScreen() {
                     color: theme.colors.text.secondary,
                     flex: 1,
                   }}>
-                    Address
+                    {t('address')}
                   </Text>
                 </View>
                 <View style={{ flex: 1, alignItems: 'flex-end' }}>
@@ -677,7 +676,7 @@ export default function ProfileScreen() {
                   color: theme.colors.text.secondary,
                   flex: 1,
                 }}>
-                  Membership Plan
+                  {t('membershipPlan')}
                 </Text>
               </View>
               <View style={{
@@ -723,7 +722,7 @@ export default function ProfileScreen() {
               fontWeight: theme.typography.h3.fontWeight,
               color: theme.colors.text.primary,
             }}>
-              Notifications
+              {t('notifications')}
             </Text>
           </View>
 
@@ -930,7 +929,7 @@ export default function ProfileScreen() {
               fontWeight: theme.typography.h3.fontWeight,
               color: theme.colors.text.primary,
             }}>
-              App & Legal
+              {t('appLegal')}
             </Text>
           </View>
 
@@ -987,7 +986,7 @@ export default function ProfileScreen() {
 
         {/* Sign Out */}
         <PillButton
-          title="Sign Out"
+          title={t('signOut')}
           onPress={handleLogout}
           variant="danger"
           size="medium"

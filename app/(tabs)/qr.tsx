@@ -5,9 +5,11 @@ import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { AppHeader } from '../../components/AppHeader';
 import { QRCard } from '../../components/QRCard';
+import { useLanguage } from '../../lib/LanguageContext';
 
 export default function QRScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
 
   const {
     token,
@@ -45,8 +47,8 @@ export default function QRScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background.DEFAULT }}>
       <AppHeader
-        title="Gym Entry"
-        subtitle="Show QR code to staff"
+        title={t('gymEntry')}
+        subtitle={t('showQrToStaff')}
       />
 
       <ScrollView

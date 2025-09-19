@@ -17,6 +17,10 @@ export const translations = {
     refresh: 'Refresh',
     close: 'Close',
 
+    // Currency
+    currency: 'RON',
+    currencySymbol: 'lei',
+
     // Auth
     signIn: 'Sign In',
     signUp: 'Sign Up',
@@ -80,7 +84,7 @@ export const translations = {
     home: 'Home',
     membership: 'Membership',
     services: 'Services',
-    qr: 'QR',
+    qr: 'QR Code',
     profile: 'Profile',
 
     // Home Screen
@@ -101,6 +105,17 @@ export const translations = {
     news: 'News',
     gymHours: 'Hours',
     noData: 'No data available',
+
+    // QR Page
+    gymEntry: 'Gym Entry',
+    showQrToStaff: 'Show QR code to staff',
+    validNow: 'Valid Now',
+    expiredRenew: 'Expired — Renew',
+    memberId: 'Member ID',
+    validFor: 'Valid for',
+    generateNewQr: 'Generate New QR',
+    qrInstructions: 'Show this QR code to gym staff for entry. QR codes expire every 60 seconds for security.',
+    qrExpiredInstructions: 'QR code has expired. Generate a new one to enter the gym.',
 
     // Gym Status
     closed: 'Closed',
@@ -126,6 +141,21 @@ export const translations = {
     saturday: 'Saturday',
     sunday: 'Sunday',
     today: 'TODAY',
+    todayLower: 'Today',
+
+    // Months (short)
+    jan: 'Jan',
+    feb: 'Feb',
+    mar: 'Mar',
+    apr: 'Apr',
+    may: 'May',
+    jun: 'Jun',
+    jul: 'Jul',
+    aug: 'Aug',
+    sep: 'Sep',
+    oct: 'Oct',
+    nov: 'Nov',
+    dec: 'Dec',
 
     // Membership
     membershipStatus: 'Membership Status',
@@ -144,6 +174,12 @@ export const translations = {
     date: 'Date',
 
     // Services
+    availableCount: 'available',
+    loadingServices: 'Loading services...',
+    noServicesFound: 'No Services Found',
+    noServicesDescription: 'No services are available at the moment. Please check back later.',
+    minutes: 'minutes',
+    advanceBookingRequired: 'Advance booking required',
     personalTrainer: 'Personal Trainer',
     professionalMassage: 'Professional Massage',
     bookNow: 'Book Now',
@@ -168,6 +204,7 @@ export const translations = {
     notifications: 'Notifications',
     about: 'About',
     version: 'Version',
+    rateApp: 'Rate the App',
 
     // Filters
     all: 'ALL',
@@ -194,6 +231,51 @@ export const translations = {
     appSettings: 'App Settings',
     biometricAuth: 'Biometric Authentication',
     biometricSubtitle: 'Use fingerprint or face ID to unlock',
+
+    // Additional Membership Page
+    managePlan: 'Manage your plan',
+    membershipDetails: 'Membership Details',
+    renewalDate: 'Renewal Date',
+    renewEarly: 'Renew Early',
+    recentCheckins: 'Recent Check-ins',
+    loadingCheckins: 'Loading check-ins...',
+    noCheckinsYet: 'No check-ins yet',
+    useQrToCheckin: 'Use your QR code to check in at the gym',
+    choosePlan: 'Choose your plan',
+    loadingPlans: 'Loading membership plans...',
+    confirmRenewal: 'Confirm Renewal',
+    oneDayAccess: 'One day access',
+    month: 'month',
+    months: 'months',
+    unlimitedAccess: 'Unlimited access',
+    studentDiscount: 'Student Discount',
+    inProgress: 'In progress',
+    demo: 'Demo',
+    switchTo: 'Switch to',
+
+    // Profile Page
+    manageAccount: 'Manage your account',
+    personalInformation: 'Personal Information',
+    dateOfBirth: 'Date of Birth',
+    membershipPlan: 'Membership Plan',
+    notSet: 'Not set',
+    notProvided: 'Not provided',
+    notSpecified: 'Not specified',
+    years: 'years',
+    emailVerified: 'Email verified',
+    pushNotifications: 'Push Notifications',
+    emailNotifications: 'Email Notifications',
+    classReminders: 'Class Reminders',
+    appLegal: 'App & Legal',
+    signOutConfirm: 'Are you sure you want to sign out?',
+    rateAppTitle: 'Rate MITUGYM',
+    rateAppMessage: 'Thank you for using MITUGYM! We would love to hear your feedback.',
+    maybeLater: 'Maybe Later',
+    contactSupportTitle: 'Contact Support',
+    contactSupportMessage: 'Need help? Our support team is here for you.',
+    sendEmail: 'Send Email',
+    loadingProfile: 'Loading profile...',
+    never: 'Never',
   },
 
   ro: {
@@ -213,6 +295,10 @@ export const translations = {
     retry: 'Încearcă din nou',
     refresh: 'Actualizează',
     close: 'Închide',
+
+    // Currency
+    currency: 'RON',
+    currencySymbol: 'lei',
 
     // Auth
     signIn: 'Conectează-te',
@@ -277,7 +363,7 @@ export const translations = {
     home: 'Acasă',
     membership: 'Abonament',
     services: 'Servicii',
-    qr: 'QR',
+    qr: 'Cod QR',
     profile: 'Profil',
 
     // Home Screen
@@ -298,6 +384,17 @@ export const translations = {
     news: 'Știri',
     gymHours: 'Program',
     noData: 'Nu sunt date disponibile',
+
+    // QR Page
+    gymEntry: 'Intrare în Sală',
+    showQrToStaff: 'Arată codul QR personalului',
+    validNow: 'Valid Acum',
+    expiredRenew: 'Expirat — Reînnoire',
+    memberId: 'ID Membru',
+    validFor: 'Valid pentru',
+    generateNewQr: 'Generează QR Nou',
+    qrInstructions: 'Arată acest cod QR personalului sălii pentru intrare. Codurile QR expiră la fiecare 60 de secunde pentru securitate.',
+    qrExpiredInstructions: 'Codul QR a expirat. Generează unul nou pentru a intra în sală.',
 
     // Gym Status
     closed: 'Închis',
@@ -323,6 +420,21 @@ export const translations = {
     saturday: 'Sâmbătă',
     sunday: 'Duminică',
     today: 'ASTĂZI',
+    todayLower: 'Astăzi',
+
+    // Months (short)
+    jan: 'Ian',
+    feb: 'Feb',
+    mar: 'Mar',
+    apr: 'Apr',
+    may: 'Mai',
+    jun: 'Iun',
+    jul: 'Iul',
+    aug: 'Aug',
+    sep: 'Sep',
+    oct: 'Oct',
+    nov: 'Noi',
+    dec: 'Dec',
 
     // Membership
     membershipStatus: 'Status Abonament',
@@ -341,6 +453,12 @@ export const translations = {
     date: 'Data',
 
     // Services
+    availableCount: 'disponibile',
+    loadingServices: 'Se încarcă serviciile...',
+    noServicesFound: 'Nu s-au găsit servicii',
+    noServicesDescription: 'Nu sunt servicii disponibile în acest moment. Te rugăm să revii mai târziu.',
+    minutes: 'minute',
+    advanceBookingRequired: 'Necesită rezervare în avans',
     personalTrainer: 'Antrenor Personal',
     professionalMassage: 'Masaj Profesional',
     bookNow: 'Rezervă Acum',
@@ -365,6 +483,7 @@ export const translations = {
     notifications: 'Notificări',
     about: 'Despre',
     version: 'Versiune',
+    rateApp: 'Evaluează Aplicația',
 
     // Filters
     all: 'TOATE',
@@ -391,6 +510,51 @@ export const translations = {
     appSettings: 'Setări Aplicație',
     biometricAuth: 'Autentificare Biometrică',
     biometricSubtitle: 'Folosește amprenta sau Face ID pentru deblocare',
+
+    // Additional Membership Page
+    managePlan: 'Gestionează abonamentul',
+    membershipDetails: 'Detalii Abonament',
+    renewalDate: 'Data Reînnoirii',
+    renewEarly: 'Reînnoiește Anticipat',
+    recentCheckins: 'Intrări Recente',
+    loadingCheckins: 'Se încarcă intrările...',
+    noCheckinsYet: 'Nu există intrări încă',
+    useQrToCheckin: 'Folosește codul QR pentru a intra în sală',
+    choosePlan: 'Alege planul tău',
+    loadingPlans: 'Se încarcă planurile de abonament...',
+    confirmRenewal: 'Confirmă Reînnoirea',
+    oneDayAccess: 'Acces o zi',
+    month: 'lună',
+    months: 'luni',
+    unlimitedAccess: 'Acces nelimitat',
+    studentDiscount: 'Reducere Studenți',
+    inProgress: 'În curs',
+    demo: 'Demo',
+    switchTo: 'Schimbă la',
+
+    // Profile Page
+    manageAccount: 'Gestionează contul',
+    personalInformation: 'Informații Personale',
+    dateOfBirth: 'Data Nașterii',
+    membershipPlan: 'Plan de Abonament',
+    notSet: 'Nu este setat',
+    notProvided: 'Nu este furnizat',
+    notSpecified: 'Nu este specificat',
+    years: 'ani',
+    emailVerified: 'Email verificat',
+    pushNotifications: 'Notificări Push',
+    emailNotifications: 'Notificări Email',
+    classReminders: 'Amintiri Cursuri',
+    appLegal: 'Aplicație și Legal',
+    signOutConfirm: 'Ești sigur că vrei să te deconectezi?',
+    rateAppTitle: 'Evaluează MITUGYM',
+    rateAppMessage: 'Mulțumim că folosești MITUGYM! Ne-ar plăcea să auzim părerea ta.',
+    maybeLater: 'Poate Mai Târziu',
+    contactSupportTitle: 'Contactează Suportul',
+    contactSupportMessage: 'Ai nevoie de ajutor? Echipa noastră de suport este aici pentru tine.',
+    sendEmail: 'Trimite Email',
+    loadingProfile: 'Se încarcă profilul...',
+    never: 'Niciodată',
   },
 } as const;
 

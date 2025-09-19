@@ -11,13 +11,15 @@ import {
 } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
-import { formatPrice, formatRelativeDate } from '../../lib/utils';
+import { formatPrice, formatRelativeDateI18n } from '../../lib/utils';
 import { AppHeader } from '../../components/AppHeader';
 import { StatusCard } from '../../components/StatusCard';
 import { PillButton } from '../../components/PillButton';
+import { useLanguage } from '../../lib/LanguageContext';
 
 export default function MembershipScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const [showRenewModal, setShowRenewModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [checkinFilter, setCheckinFilter] = useState('1M'); // 1M, 3M, 6M, 1Y, ALL
@@ -92,7 +94,7 @@ export default function MembershipScreen() {
   
   // Format checkin data for display
   const formatDuration = (minutes?: number) => {
-    if (!minutes) return 'In progress';
+    if (!minutes) return t('inProgress');
     const hours = Math.floor(minutes / 60);
     const mins = Math.round(minutes % 60);
     if (hours > 0) {
@@ -104,8 +106,8 @@ export default function MembershipScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background.DEFAULT }}>
       <AppHeader
-        title="Membership"
-        subtitle="Manage your plan"
+        title={t('membership')}
+        subtitle={t('managePlan')}
         showNotifications
         onNotificationPress={() => console.log('Notifications pressed')}
       />
@@ -131,7 +133,7 @@ export default function MembershipScreen() {
         {/* Demo Toggle Button */}
         <View style={{ marginBottom: theme.spacing.xl }}>
           <PillButton
-            title={`Demo: Switch to ${member.membershipStatus === 'active' ? 'Expired' : 'Active'}`}
+            title={`${t('demo')}: ${t('switchTo')} ${member.membershipStatus === 'active' ? t('expired') : t('active')}`}
             onPress={handleToggleDemo}
             variant="outline"
             size="small"
@@ -164,7 +166,7 @@ export default function MembershipScreen() {
               fontWeight: theme.typography.h3.fontWeight,
               color: theme.colors.text.primary,
             }}>
-              Membership Details
+              {t('membershipDetails')}
             </Text>
           </View>
 
@@ -178,14 +180,14 @@ export default function MembershipScreen() {
                 fontSize: theme.typography.body.fontSize,
                 color: theme.colors.text.secondary,
               }}>
-                Member Since
+                {t('memberSince')}
               </Text>
               <Text style={{
                 fontSize: theme.typography.body.fontSize,
                 fontWeight: '600',
                 color: theme.colors.text.primary,
               }}>
-                {formatRelativeDate(member.joinDate)}
+                {formatRelativeDateI18n(member.joinDate, t)}
               </Text>
             </View>
 
@@ -198,7 +200,7 @@ export default function MembershipScreen() {
                 fontSize: theme.typography.body.fontSize,
                 color: theme.colors.text.secondary,
               }}>
-                Renewal Date
+                {t('renewalDate')}
               </Text>
               <Text style={{
                 fontSize: theme.typography.body.fontSize,
@@ -207,7 +209,7 @@ export default function MembershipScreen() {
                   ? theme.colors.status.error
                   : theme.colors.text.primary,
               }}>
-                {formatRelativeDate(member.expiryDate)}
+                {formatRelativeDateI18n(member.expiryDate, t)}
               </Text>
             </View>
 
@@ -220,7 +222,7 @@ export default function MembershipScreen() {
                 fontSize: theme.typography.body.fontSize,
                 color: theme.colors.text.secondary,
               }}>
-                Member ID
+                {t('memberId')}
               </Text>
               <Text style={{
                 fontSize: theme.typography.body.fontSize,
@@ -236,7 +238,7 @@ export default function MembershipScreen() {
           {member.membershipStatus === 'active' && (
             <View style={{ marginTop: theme.spacing.lg }}>
               <PillButton
-                title="Renew Early"
+                title={t('renewEarly')}
                 onPress={handleRenewPress}
                 variant="outline"
                 fullWidth
@@ -275,14 +277,14 @@ export default function MembershipScreen() {
                 fontWeight: theme.typography.h3.fontWeight,
                 color: theme.colors.text.primary,
               }}>
-                Recent Check-ins
+                {t('recentCheckins')}
               </Text>
             </View>
             <Text style={{
               fontSize: theme.typography.caption.fontSize,
               color: theme.colors.text.secondary,
             }}>
-              {filteredCheckins.length} visits
+              {filteredCheckins.length} {t('visits')}
             </Text>
           </View>
 
@@ -331,7 +333,7 @@ export default function MembershipScreen() {
                 fontSize: theme.typography.body.fontSize,
                 color: theme.colors.text.secondary,
               }}>
-                Loading check-ins...
+                {t('loadingCheckins')}
               </Text>
             </View>
           ) : recentCheckins.length > 0 ? (
@@ -380,7 +382,7 @@ export default function MembershipScreen() {
                         fontSize: theme.typography.caption.fontSize,
                         color: theme.colors.text.secondary,
                       }}>
-                        {formatRelativeDate(checkin.check_in_time)}
+                        {formatRelativeDateI18n(checkin.check_in_time, t)}
                       </Text>
                     </View>
                   </View>
@@ -419,7 +421,7 @@ export default function MembershipScreen() {
                 color: theme.colors.text.secondary,
                 textAlign: 'center',
               }}>
-                No check-ins yet
+                {t('noCheckinsYet')}
               </Text>
               <Text style={{
                 fontSize: theme.typography.caption.fontSize,
@@ -427,7 +429,7 @@ export default function MembershipScreen() {
                 textAlign: 'center',
                 marginTop: theme.spacing.xs,
               }}>
-                Use your QR code to check in at the gym
+                {t('useQrToCheckin')}
               </Text>
             </View>
           )}
@@ -446,8 +448,8 @@ export default function MembershipScreen() {
           backgroundColor: theme.colors.background.DEFAULT,
         }}>
           <AppHeader
-            title="Renew Membership"
-            subtitle="Choose your plan"
+            title={t('renewMembership')}
+            subtitle={t('choosePlan')}
             showBack
             onBack={handleCancelRenewal}
           />
@@ -467,7 +469,7 @@ export default function MembershipScreen() {
                   fontSize: theme.typography.body.fontSize,
                   color: theme.colors.text.secondary,
                 }}>
-                  Loading membership plans...
+                  {t('loadingPlans')}
                 </Text>
               </View>
             ) : (
@@ -514,19 +516,19 @@ export default function MembershipScreen() {
                         fontWeight: '700',
                         color: theme.colors.primary.DEFAULT,
                       }}>
-                        {formatPrice(plan.price)}
+                        {formatPrice(plan.price, t)}
                       </Text>
                       <Text style={{
                         fontSize: theme.typography.caption.fontSize,
                         color: theme.colors.text.secondary,
                       }}>
                         {plan.plan_type === 'day_entry' 
-                          ? 'One day access' 
+                          ? t('oneDayAccess') 
                           : plan.duration_months 
-                            ? `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`
-                            : 'Unlimited access'
+                            ? `${plan.duration_months} ${plan.duration_months > 1 ? t('months') : t('month')}`
+                            : t('unlimitedAccess')
                         }
-                        {plan.plan_type === 'student' && ' • Student Discount'}
+                        {plan.plan_type === 'student' && ` • ${t('studentDiscount')}`}
                       </Text>
                     </View>
 
@@ -571,7 +573,7 @@ export default function MembershipScreen() {
               gap: theme.spacing.md,
             }}>
               <PillButton
-                title="Confirm Renewal"
+                title={t('confirmRenewal')}
                 onPress={handleConfirmRenewal}
                 variant="primary"
                 size="large"
@@ -580,7 +582,7 @@ export default function MembershipScreen() {
               />
 
               <PillButton
-                title="Cancel"
+                title={t('cancel')}
                 onPress={handleCancelRenewal}
                 variant="outline"
                 size="large"

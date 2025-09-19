@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, RefreshControl, Text, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Calendar, Clock, DollarSign } from 'lucide-react-native';
+import { Calendar, Clock, Banknote } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { AppHeader } from '../../components/AppHeader';
 import { EmptyState } from '../../components/EmptyState';
+import { useLanguage } from '../../lib/LanguageContext';
+import { formatPrice } from '../../lib/utils';
 
 export default function ServicesScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const [refreshing, setRefreshing] = useState(false);
 
   const {
@@ -37,8 +40,8 @@ export default function ServicesScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background.DEFAULT }}>
       <AppHeader
-        title="Services"
-        subtitle={`${services.length} available`}
+        title={t('services')}
+        subtitle={`${services.length} ${t('availableCount')}`}
         showNotifications
         onNotificationPress={() => console.log('Notifications pressed')}
       />
@@ -71,7 +74,7 @@ export default function ServicesScreen() {
               fontSize: theme.typography.body.fontSize,
               color: theme.colors.text.secondary,
             }}>
-              Loading services...
+              {t('loadingServices')}
             </Text>
           </View>
         ) : services.length > 0 ? (
@@ -109,7 +112,7 @@ export default function ServicesScreen() {
                     flexDirection: 'row',
                     alignItems: 'center',
                   }}>
-                    <DollarSign
+                    <Banknote
                       size={20}
                       color={theme.colors.primary.DEFAULT}
                       style={{ marginRight: 4 }}
@@ -119,7 +122,7 @@ export default function ServicesScreen() {
                       fontWeight: '700',
                       color: theme.colors.primary.DEFAULT,
                     }}>
-                      {service.price}
+                      {formatPrice(service.price, t)}
                     </Text>
                   </View>
                 </View>
@@ -151,7 +154,7 @@ export default function ServicesScreen() {
                       fontSize: theme.typography.caption.fontSize,
                       color: theme.colors.text.secondary,
                     }}>
-                      {service.duration_minutes} minutes
+                      {service.duration_minutes} {t('minutes')}
                     </Text>
                   </View>
 
@@ -161,7 +164,7 @@ export default function ServicesScreen() {
                       color: theme.colors.secondary.DEFAULT,
                       fontWeight: '600',
                     }}>
-                      Advance booking required
+                      {t('advanceBookingRequired')}
                     </Text>
                   )}
                 </View>
@@ -171,8 +174,8 @@ export default function ServicesScreen() {
         ) : (
           <EmptyState
             icon={Calendar}
-            title="No Services Found"
-            description="No services are available at the moment. Please check back later."
+            title={t('noServicesFound')}
+            description={t('noServicesDescription')}
           />
         )}
       </ScrollView>
