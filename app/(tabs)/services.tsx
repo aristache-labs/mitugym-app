@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, RefreshControl, Text, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Calendar, Clock, Banknote, X, Check } from 'lucide-react-native';
+import { Calendar, Clock, Banknote, X, Check, ShoppingCart } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { AppHeader } from '../../components/AppHeader';
@@ -22,20 +22,16 @@ export default function ServicesScreen() {
     servicesLoading,
     fetchServices,
     purchaseService,
-    purchasedServices,
-    fetchPurchasedServices,
   } = useAppStore();
 
-  // Load services and purchased services on component mount
+  // Load services on component mount
   useEffect(() => {
     fetchServices();
-    fetchPurchasedServices();
-  }, [fetchServices, fetchPurchasedServices]);
+  }, [fetchServices]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchServices();
-    await fetchPurchasedServices();
     setRefreshing(false);
   };
 
@@ -79,101 +75,6 @@ export default function ServicesScreen() {
         showNotifications
         onNotificationPress={() => console.log('Notifications pressed')}
       />
-
-      {/* My Purchased Services Section */}
-      {purchasedServices.length > 0 && (
-        <View style={{
-          paddingHorizontal: theme.spacing.lg,
-          paddingTop: theme.spacing.md,
-          paddingBottom: theme.spacing.sm,
-        }}>
-          <Text style={{
-            fontSize: theme.typography.h3.fontSize,
-            fontWeight: theme.typography.h3.fontWeight,
-            color: theme.colors.text.primary,
-            marginBottom: theme.spacing.sm,
-          }}>
-            {t('myPurchasedServices')}
-          </Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingRight: theme.spacing.lg }}
-          >
-            {purchasedServices.slice(0, 3).map(purchasedService => (
-              <View
-                key={purchasedService.id}
-                style={{
-                  backgroundColor: theme.colors.background.surface,
-                  borderRadius: theme.borderRadius.lg,
-                  padding: theme.spacing.md,
-                  marginRight: theme.spacing.md,
-                  width: 250,
-                  borderWidth: 1,
-                  borderColor: purchasedService.status === 'pending'
-                    ? 'rgba(243, 156, 18, 0.3)'
-                    : purchasedService.status === 'approved'
-                    ? 'rgba(30, 155, 113, 0.3)'
-                    : 'rgba(167, 195, 186, 0.3)',
-                }}
-              >
-                <View style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: theme.spacing.xs,
-                }}>
-                  <Text style={{
-                    fontSize: theme.typography.body.fontSize,
-                    fontWeight: '600',
-                    color: theme.colors.text.primary,
-                    flex: 1,
-                  }} numberOfLines={1}>
-                    {purchasedService.services?.name || 'Service'}
-                  </Text>
-                  <View style={{
-                    backgroundColor: purchasedService.status === 'pending'
-                      ? 'rgba(243, 156, 18, 0.2)'
-                      : purchasedService.status === 'approved'
-                      ? 'rgba(30, 155, 113, 0.2)'
-                      : 'rgba(167, 195, 186, 0.2)',
-                    paddingHorizontal: theme.spacing.xs,
-                    paddingVertical: 2,
-                    borderRadius: theme.borderRadius.sm,
-                  }}>
-                    <Text style={{
-                      fontSize: theme.typography.caption.fontSize,
-                      color: purchasedService.status === 'pending'
-                        ? '#f39c12'
-                        : purchasedService.status === 'approved'
-                        ? theme.colors.primary.DEFAULT
-                        : theme.colors.text.secondary,
-                      fontWeight: '600',
-                    }}>
-                      {purchasedService.status === 'pending' ? t('pending') :
-                       purchasedService.status === 'approved' ? t('approved') :
-                       purchasedService.status}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={{
-                  fontSize: theme.typography.caption.fontSize,
-                  color: theme.colors.text.secondary,
-                }}>
-                  {purchasedService.sessions_remaining} of {purchasedService.sessions_total} sessions remaining
-                </Text>
-                <Text style={{
-                  fontSize: theme.typography.caption.fontSize,
-                  color: theme.colors.text.secondary,
-                  marginTop: theme.spacing.xs,
-                }}>
-                  Purchased: {new Date(purchasedService.purchase_date).toLocaleDateString()}
-                </Text>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-      )}
 
       {/* Services List */}
       <ScrollView
@@ -319,26 +220,33 @@ export default function ServicesScreen() {
         <View style={{
           flex: 1,
           backgroundColor: theme.colors.background.DEFAULT,
-          paddingTop: insets.top,
+          paddingTop: theme.spacing.md,
         }}>
-          {/* Header */}
+          {/* Modal Header */}
           <View style={{
             flexDirection: 'row',
-            justifyContent: 'space-between',
             alignItems: 'center',
+            justifyContent: 'space-between',
             paddingHorizontal: theme.spacing.lg,
-            paddingVertical: theme.spacing.md,
+            paddingTop: theme.spacing.xs,
+            paddingBottom: theme.spacing.sm,
             borderBottomWidth: 1,
             borderBottomColor: 'rgba(30, 155, 113, 0.2)',
           }}>
-            <Text style={{
-              fontSize: theme.typography.h3.fontSize,
-              fontWeight: theme.typography.h3.fontWeight,
-              color: theme.colors.text.primary,
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
             }}>
-              {t('purchaseService')}
-            </Text>
-              <TouchableOpacity onPress={handlePurchaseCancel}>
+              <ShoppingCart size={24} color={theme.colors.secondary.DEFAULT} style={{ marginRight: theme.spacing.sm }} />
+              <Text style={{
+                fontSize: theme.typography.h3.fontSize,
+                fontWeight: theme.typography.h3.fontWeight,
+                color: theme.colors.text.primary,
+              }}>
+                {t('purchaseService')}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={handlePurchaseCancel}>
               <X size={24} color={theme.colors.text.secondary} />
             </TouchableOpacity>
           </View>
