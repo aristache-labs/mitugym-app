@@ -8,7 +8,7 @@ import { useLanguage } from '../lib/LanguageContext';
 
 interface StatusCardProps {
   status: 'active' | 'expired' | 'pending' | 'inactive' | 'frozen';
-  membershipPlan: string;
+  membershipPlan: string | null;
   daysLeft?: number | undefined;
   expiryDate?: string | undefined;
   planStartDate?: string | undefined;
@@ -125,7 +125,7 @@ export function StatusCard({
           justifyContent: 'space-between',
           marginBottom: status === 'expired' ? theme.spacing.lg : 0,
         }}>
-          {daysLeft !== undefined && (
+          {daysLeft !== undefined && membershipPlan && membershipPlan !== 'none' && membershipPlan !== 'None' && (
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -161,7 +161,7 @@ export function StatusCard({
                 fontSize: theme.typography.caption.fontSize,
                 color: theme.colors.text.secondary,
               }}>
-                {status === 'pending' && planStartDate 
+                {status === 'pending' && planStartDate
                   ? `${t('starts')}: ${new Date(planStartDate).toLocaleDateString()}`
                   : `${t('expires')}: ${new Date(expiryDate!).toLocaleDateString()}`
                 }
@@ -208,8 +208,8 @@ export function StatusCard({
             <TouchableOpacity
               onPress={onRenew}
               style={{
-                backgroundColor: status === 'expired' 
-                  ? theme.colors.primary.DEFAULT 
+                backgroundColor: status === 'expired'
+                  ? theme.colors.primary.DEFAULT
                   : 'rgba(30, 155, 113, 0.15)',
                 paddingVertical: theme.spacing.md,
                 paddingHorizontal: theme.spacing.lg,

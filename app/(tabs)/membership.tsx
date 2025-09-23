@@ -208,7 +208,7 @@ export default function MembershipScreen() {
             expiryDate={member.expiryDate}
             planStartDate={member.planStartDate}
             onRenew={(member.membershipStatus === 'expired' || member.membershipStatus === 'active') ? handleRenewPress : undefined}
-            showDetails={true}
+            showDetails={member.membershipPlan != null && member.planStartDate != null}
           />
         </View>
 
@@ -268,11 +268,11 @@ export default function MembershipScreen() {
               fontSize: theme.typography.caption.fontSize,
               color: theme.colors.text.secondary,
             }}>
-              {purchasedServices.filter(ps => ps.status === 'approved').length} {t('active')}
+              {purchasedServices.length} {t('total')}
             </Text>
           </View>
 
-          {purchasedServices.filter(ps => ps.status === 'approved').length === 0 ? (
+          {purchasedServices.length === 0 ? (
             <View style={{
               padding: theme.spacing.xl,
               alignItems: 'center',
@@ -301,7 +301,12 @@ export default function MembershipScreen() {
           ) : (
             <View style={{ gap: theme.spacing.md }}>
               {purchasedServices
-                .filter(ps => ps.status === 'approved')
+                .sort((a, b) => {
+                  // Sort by status: approved/confirmed first, then pending, then cancelled
+                  const statusOrder = { approved: 0, confirmed: 0, pending: 1, cancelled: 2 };
+                  return (statusOrder[a.status as keyof typeof statusOrder] || 3) -
+                         (statusOrder[b.status as keyof typeof statusOrder] || 3);
+                })
                 .map((purchasedService) => (
                   <View
                     key={purchasedService.id}
@@ -322,14 +327,37 @@ export default function MembershipScreen() {
                     <View style={{
                       marginBottom: theme.spacing.sm,
                     }}>
-                      <Text style={{
-                        fontSize: theme.typography.body.fontSize,
-                        fontWeight: '600',
-                        color: theme.colors.text.primary,
+                      <View style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
                         marginBottom: theme.spacing.xs,
                       }}>
-                        {purchasedService.services?.name || 'Service'}
-                      </Text>
+                        <Text style={{
+                          fontSize: theme.typography.body.fontSize,
+                          fontWeight: '600',
+                          color: theme.colors.text.primary,
+                          flex: 1,
+                        }}>
+                          {purchasedService.services?.name || 'Service'}
+                        </Text>
+                        {purchasedService.status === 'pending' && (
+                          <View style={{
+                            backgroundColor: 'rgba(255, 193, 7, 0.15)',
+                            paddingHorizontal: theme.spacing.sm,
+                            paddingVertical: theme.spacing.xs,
+                            borderRadius: theme.borderRadius.md,
+                          }}>
+                            <Text style={{
+                              fontSize: theme.typography.caption.fontSize,
+                              color: '#f59e0b',
+                              fontWeight: '600',
+                            }}>
+                              {t('pending')}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
                       <Text style={{
                         fontSize: theme.typography.caption.fontSize,
                         color: theme.colors.text.secondary,
@@ -362,8 +390,8 @@ export default function MembershipScreen() {
                     </Text>
                     </TouchableOpacity>
 
-                    {/* Book Session Button - Outside TouchableOpacity */}
-                    {purchasedService.sessions_remaining > 0 && (
+                    {/* Book Session Button - Only for approved services */}
+                    {purchasedService.sessions_remaining > 0 && purchasedService.status === 'approved' && (
                       <TouchableOpacity
                         onPress={() => handleBookSessionPress(purchasedService)}
                         style={{

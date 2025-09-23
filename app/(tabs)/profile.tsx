@@ -640,48 +640,23 @@ export default function ProfileScreen() {
                   </Text>
                 </View>
 
-                {/* Compact Contact Info */}
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: theme.spacing.md,
-                }}>
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                  }}>
-                    <Mail
-                      size={12}
-                      color={theme.colors.text.secondary}
-                      style={{ marginRight: theme.spacing.xs }}
-                    />
-                    <Text style={{
-                      fontSize: theme.typography.caption.fontSize,
-                      color: theme.colors.text.secondary,
-                    }} numberOfLines={1}>
-                      {profile.email.length > 20 ? profile.email.substring(0, 20) + '...' : profile.email}
-                    </Text>
-                  </View>
-
-                  {profile.phone && (
-                    <View style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                    }}>
-                      <Phone
-                        size={12}
-                        color={theme.colors.text.secondary}
-                        style={{ marginRight: theme.spacing.xs }}
-                      />
-                      <Text style={{
-                        fontSize: theme.typography.caption.fontSize,
-                        color: theme.colors.text.secondary,
-                      }} numberOfLines={1}>
-                        {profile.phone}
-                      </Text>
-                    </View>
-                  )}
-                </View>
+                 {/* Email Only */}
+                 <View style={{
+                   flexDirection: 'row',
+                   alignItems: 'center',
+                 }}>
+                   <Mail
+                     size={12}
+                     color={theme.colors.text.secondary}
+                     style={{ marginRight: theme.spacing.xs }}
+                   />
+                   <Text style={{
+                     fontSize: theme.typography.caption.fontSize,
+                     color: theme.colors.text.secondary,
+                   }} numberOfLines={1} ellipsizeMode="middle">
+                     {profile.email}
+                   </Text>
+                 </View>
               </View>
             </View>
           </LinearGradient>
