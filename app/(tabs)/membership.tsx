@@ -122,6 +122,8 @@ export default function MembershipScreen() {
           style: 'destructive',
           onPress: async () => {
             await cancelSession(sessionId);
+            // Refresh session bookings to update the UI
+            await fetchSessionBookings();
           },
         },
       ],
