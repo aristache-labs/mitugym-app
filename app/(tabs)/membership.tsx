@@ -1461,9 +1461,7 @@ export default function MembershipScreen() {
                                 ? theme.colors.status.warning
                                 : session.status === 'confirmed'
                                 ? theme.colors.status.success
-                                : session.status === 'completed'
-                                ? theme.colors.primary.DEFAULT
-                                : theme.colors.status.error,
+                                : theme.colors.primary.DEFAULT, // completed status
                               borderRadius: theme.borderRadius.xs,
                               paddingHorizontal: theme.spacing.sm,
                               paddingVertical: 2,

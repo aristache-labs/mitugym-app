@@ -680,12 +680,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         return;
       }
 
+      // Delete the session instead of updating status
       const { error } = await supabase
         .from('session_bookings')
-        .update({
-          status: 'cancelled',
-          updated_at: new Date().toISOString(),
-        })
+        .delete()
         .eq('id', sessionId)
         .eq('member_id', session.user.id)
         .eq('status', 'pending'); // Only allow canceling pending sessions
@@ -696,13 +694,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         return;
       }
 
-      // Update local state
+      // Remove from local state
       set({
-        sessionBookings: get().sessionBookings.map(booking =>
-          booking.id === sessionId
-            ? { ...booking, status: 'cancelled' as const, updated_at: new Date().toISOString() }
-            : booking,
-        ),
+        sessionBookings: get().sessionBookings.filter(booking => booking.id !== sessionId),
       });
 
       get().showToast('Session cancelled successfully', 'success');
