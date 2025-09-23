@@ -587,8 +587,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Upcoming Sessions Section */}
-        {(upcomingSessions.confirmed.length > 0 || upcomingSessions.pending.length > 0) && (
-          <View style={{ marginBottom: theme.spacing.xl }}>
+        <View style={{ marginBottom: theme.spacing.xl }}>
             <TouchableOpacity
               onPress={() => router.push('/(tabs)/membership')}
               activeOpacity={0.8}
@@ -840,10 +839,30 @@ export default function HomeScreen() {
                     </View>
                   </View>
                 )}
+
+                {/* No Sessions Placeholder */}
+                {(upcomingSessions.confirmed.length === 0 && upcomingSessions.pending.length === 0) && (
+                  <View style={{
+                    alignItems: 'center',
+                    paddingVertical: theme.spacing.lg,
+                  }}>
+                    <Calendar
+                      size={32}
+                      color={theme.colors.text.tertiary}
+                      style={{ marginBottom: theme.spacing.sm }}
+                    />
+                    <Text style={{
+                      fontSize: theme.typography.body.fontSize,
+                      color: theme.colors.text.secondary,
+                      textAlign: 'center',
+                    }}>
+                      {t('noUpcomingSessions')}
+                    </Text>
+                  </View>
+                )}
               </LinearGradient>
             </TouchableOpacity>
           </View>
-        )}
 
         {/* Available Services Section */}
         <View style={{ marginBottom: theme.spacing.xl }}>
