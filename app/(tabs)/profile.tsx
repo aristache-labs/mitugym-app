@@ -442,24 +442,17 @@ export default function ProfileScreen() {
                 <Text style={{
                   fontSize: theme.typography.caption.fontSize,
                   color: theme.colors.text.secondary,
-                  marginRight: theme.spacing.md,
                 }}>
-                  {t('memberSince')} {new Date(profile.join_date).getFullYear()}
+                  {t('memberSince')} {(() => {
+                    const date = new Date(profile.join_date).toLocaleDateString(language === 'ro' ? 'ro-RO' : 'en-US', {
+                      month: 'short',
+                      year: 'numeric',
+                    }).replace(/\./g, '');
+
+                    // Capitalize first letter for proper formatting
+                    return date.charAt(0).toUpperCase() + date.slice(1);
+                  })()}
                 </Text>
-                <View style={{
-                  paddingHorizontal: theme.spacing.sm,
-                  paddingVertical: 2,
-                  backgroundColor: getStatusBackgroundColor(profile.membership_status),
-                  borderRadius: theme.borderRadius.sm,
-                }}>
-                  <Text style={{
-                    fontSize: theme.typography.small.fontSize,
-                    color: getStatusTextColor(profile.membership_status),
-                    fontWeight: '600',
-                  }}>
-                    {getStatusDisplayText(profile.membership_status, t)}
-                  </Text>
-                </View>
               </View>
             </View>
           </View>
@@ -712,6 +705,82 @@ export default function ProfileScreen() {
                 </View>
               </View>
             )}
+
+            {/* Member ID */}
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingVertical: theme.spacing.sm,
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                flex: 1,
+              }}>
+                <Fingerprint
+                  size={16}
+                  color={theme.colors.text.secondary}
+                  style={{ marginRight: theme.spacing.sm }}
+                />
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  color: theme.colors.text.secondary,
+                  flex: 1,
+                }}>
+                  {t('memberID')}
+                </Text>
+              </View>
+              <Text style={{
+                fontSize: theme.typography.body.fontSize,
+                color: theme.colors.text.primary,
+                fontWeight: '500',
+                fontFamily: 'monospace',
+              }}>
+                #{profile.id.slice(-8).toUpperCase()}
+              </Text>
+            </View>
+
+            {/* Membership Status */}
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingVertical: theme.spacing.sm,
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                flex: 1,
+              }}>
+                <Shield
+                  size={16}
+                  color={theme.colors.text.secondary}
+                  style={{ marginRight: theme.spacing.sm }}
+                />
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  color: theme.colors.text.secondary,
+                  flex: 1,
+                }}>
+                  {t('status')}
+                </Text>
+              </View>
+              <View style={{
+                paddingHorizontal: theme.spacing.md,
+                paddingVertical: theme.spacing.xs,
+                backgroundColor: getStatusBackgroundColor(profile.membership_status),
+                borderRadius: theme.borderRadius.md,
+              }}>
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  color: getStatusTextColor(profile.membership_status),
+                  fontWeight: '600',
+                }}>
+                  {getStatusDisplayText(profile.membership_status, t)}
+                </Text>
+              </View>
+            </View>
 
             {/* Membership Plan */}
             <View style={{

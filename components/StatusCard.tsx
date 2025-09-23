@@ -14,6 +14,7 @@ interface StatusCardProps {
   planStartDate?: string | undefined;
   onPress?: () => void;
   onRenew?: (() => void) | undefined;
+  showDetails?: boolean;
 }
 
 export function StatusCard({
@@ -24,6 +25,7 @@ export function StatusCard({
   planStartDate,
   onPress,
   onRenew,
+  showDetails = false,
 }: StatusCardProps) {
   const { t } = useLanguage();
   const statusColor = getMembershipStatusColor(status);
@@ -170,28 +172,67 @@ export function StatusCard({
           )}
         </View>
 
-        {/* Renew Button (if expired) */}
-        {status === 'expired' && onRenew && (
-          <TouchableOpacity
-            onPress={onRenew}
-            style={{
-              backgroundColor: theme.colors.primary.DEFAULT,
-              paddingVertical: theme.spacing.md,
-              paddingHorizontal: theme.spacing.lg,
-              borderRadius: theme.borderRadius.lg,
+        {/* Additional Details */}
+        {showDetails && (
+          <View style={{
+            borderTopWidth: 1,
+            borderTopColor: 'rgba(255, 255, 255, 0.1)',
+            paddingTop: theme.spacing.md,
+            marginTop: theme.spacing.md,
+            gap: theme.spacing.sm,
+          }}>
+            {/* Plan Purchased Date */}
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
               alignItems: 'center',
-            }}
-            activeOpacity={0.8}
-          >
-            <Text style={{
-              fontSize: theme.typography.body.fontSize,
-              fontWeight: '600',
-              color: '#ffffff',
             }}>
-              {t('renewMembership')}
-            </Text>
-          </TouchableOpacity>
+              <Text style={{
+                fontSize: theme.typography.caption.fontSize,
+                color: theme.colors.text.secondary,
+              }}>
+                {t('planPurchased')}
+              </Text>
+              <Text style={{
+                fontSize: theme.typography.caption.fontSize,
+                fontWeight: '600',
+                color: theme.colors.text.primary,
+              }}>
+                {planStartDate ? new Date(planStartDate).toLocaleDateString() : new Date().toLocaleDateString()}
+              </Text>
+            </View>
+          </View>
         )}
+
+        {/* Renew Button */}
+        {showDetails && onRenew && (
+          <View style={{ marginTop: theme.spacing.lg }}>
+            <TouchableOpacity
+              onPress={onRenew}
+              style={{
+                backgroundColor: status === 'expired' 
+                  ? theme.colors.primary.DEFAULT 
+                  : 'rgba(30, 155, 113, 0.15)',
+                paddingVertical: theme.spacing.md,
+                paddingHorizontal: theme.spacing.lg,
+                borderRadius: theme.borderRadius.lg,
+                alignItems: 'center',
+                borderWidth: status === 'active' ? 1 : 0,
+                borderColor: theme.colors.primary.DEFAULT,
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={{
+                fontSize: theme.typography.body.fontSize,
+                fontWeight: '600',
+                color: status === 'expired' ? '#ffffff' : theme.colors.primary.DEFAULT,
+              }}>
+                {status === 'expired' ? t('renewMembership') : t('renewEarly')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
       </LinearGradient>
     </TouchableOpacity>
   );

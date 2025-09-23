@@ -34,7 +34,6 @@ export default function HomeScreen() {
     services,
     servicesLoading,
     fetchServices,
-    renewMembership,
     checkins,
     fetchCheckins,
     announcements,
@@ -166,9 +165,6 @@ export default function HomeScreen() {
     router.push('/(tabs)/membership');
   };
 
-  const handleRenewMembership = () => {
-    renewMembership('2'); // Mock premium plan
-  };
 
   if (!member) {
     return (
@@ -376,7 +372,6 @@ export default function HomeScreen() {
             expiryDate={member.expiryDate}
             planStartDate={member.planStartDate}
             onPress={handleMembershipPress}
-            onRenew={member.membershipStatus === 'expired' ? handleRenewMembership : undefined}
           />
         </View>
 

@@ -638,6 +638,30 @@ export const useAppStore = create<AppState>((set, get) => ({
         return;
       }
 
+      // Check for time conflicts (1 hour minimum gap between sessions)
+      const requestedTime = new Date(bookingDate);
+      const oneHourBefore = new Date(requestedTime.getTime() - (60 * 60 * 1000));
+      const oneHourAfter = new Date(requestedTime.getTime() + (60 * 60 * 1000));
+
+      const { data: conflictingBookings, error: conflictError } = await supabase
+        .from('session_bookings')
+        .select('booking_date, status')
+        .eq('member_id', session.user.id)
+        .in('status', ['pending', 'confirmed'])
+        .gt('booking_date', oneHourBefore.toISOString())
+        .lt('booking_date', oneHourAfter.toISOString());
+
+      if (conflictError) {
+        console.error('Error checking booking conflicts:', conflictError);
+        get().showToast('Failed to validate booking time', 'error');
+        return;
+      }
+
+      if (conflictingBookings && conflictingBookings.length > 0) {
+        get().showToast('You already have a session within 1 hour of this time', 'error');
+        return;
+      }
+
       const bookingData = {
         purchased_service_id: purchasedServiceId,
         member_id: session.user.id,

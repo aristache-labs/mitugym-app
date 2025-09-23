@@ -29,7 +29,7 @@ export default function BookSessionScreen() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [sessionNotes, setSessionNotes] = useState('');
 
-  const { bookSession } = useAppStore();
+  const { bookSession, sessionBookings } = useAppStore();
 
   useEffect(() => {
     // Set default date to tomorrow
@@ -99,6 +99,22 @@ export default function BookSessionScreen() {
     if (combinedDateTime <= now) {
       // Could use toast notification here instead of Alert if you have showToast in store
       Alert.alert(t('error'), t('cannotBookInPast'));
+      return;
+    }
+
+    // Check for time conflicts (1 hour minimum gap between sessions)
+    const oneHourBefore = new Date(combinedDateTime.getTime() - (60 * 60 * 1000));
+    const oneHourAfter = new Date(combinedDateTime.getTime() + (60 * 60 * 1000));
+
+    const conflictingBookings = sessionBookings.filter((booking: any) => {
+      if (booking.status !== 'pending' && booking.status !== 'confirmed') {return false;}
+
+      const sessionTime = new Date(booking.booking_date);
+      return sessionTime > oneHourBefore && sessionTime < oneHourAfter;
+    });
+
+    if (conflictingBookings.length > 0) {
+      Alert.alert(t('error'), t('bookingTimeConflict'));
       return;
     }
 

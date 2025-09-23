@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  CreditCard,
   Clock,
   CheckCircle,
   MapPin,
@@ -19,7 +18,7 @@ import {
 } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
-import { formatPrice, formatRelativeDateI18n, formatCheckinDateTime } from '../../lib/utils';
+import { formatPrice, formatCheckinDateTime } from '../../lib/utils';
 import { AppHeader } from '../../components/AppHeader';
 import { StatusCard } from '../../components/StatusCard';
 import { PillButton } from '../../components/PillButton';
@@ -28,7 +27,7 @@ import { useLanguage } from '../../lib/LanguageContext';
 export default function MembershipScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [showRenewModal, setShowRenewModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [checkinFilter, setCheckinFilter] = useState('1M'); // 1M, 3M, 6M, 1Y, ALL
@@ -44,7 +43,7 @@ export default function MembershipScreen() {
     membershipPlansLoading,
     fetchMembershipPlans,
     renewMembership,
-    toggleMembershipStatus, // For demo purposes
+    // toggleMembershipStatus removed - using live data
     checkins,
     checkinsLoading,
     fetchCheckins,
@@ -55,6 +54,10 @@ export default function MembershipScreen() {
     cancelSession,
   } = useAppStore();
 
+  const handleRenewPress = () => {
+    setShowRenewModal(true);
+  };
+
   // Fetch membership plans, checkins, and services on component mount
   useEffect(() => {
     fetchMembershipPlans();
@@ -64,9 +67,6 @@ export default function MembershipScreen() {
   }, [fetchMembershipPlans, fetchCheckins, fetchPurchasedServices, fetchSessionBookings]);
 
 
-  const handleRenewPress = () => {
-    setShowRenewModal(true);
-  };
 
   // Session booking handlers
   const handleBookSessionPress = (purchasedService: any) => {
@@ -147,10 +147,6 @@ export default function MembershipScreen() {
     setSelectedPlanId('');
   };
 
-  // Demo function to toggle membership status
-  const handleToggleDemo = () => {
-    toggleMembershipStatus();
-  };
 
   if (!member) {
     return null;
@@ -211,126 +207,12 @@ export default function MembershipScreen() {
             daysLeft={member.daysLeft}
             expiryDate={member.expiryDate}
             planStartDate={member.planStartDate}
-            onRenew={member.membershipStatus === 'expired' ? handleRenewPress : undefined}
+            onRenew={(member.membershipStatus === 'expired' || member.membershipStatus === 'active') ? handleRenewPress : undefined}
+            showDetails={true}
           />
         </View>
 
-        {/* Demo Toggle Button */}
-        <View style={{ marginBottom: theme.spacing.xl }}>
-          <PillButton
-            title={`${t('demo')}: ${t('switchTo')} ${member.membershipStatus === 'active' ? t('expired') : t('active')}`}
-            onPress={handleToggleDemo}
-            variant="outline"
-            size="small"
-            fullWidth
-          />
-        </View>
 
-        {/* Membership Details */}
-        <View style={{
-          backgroundColor: theme.colors.background.surface,
-          borderRadius: theme.borderRadius.xl,
-          padding: theme.spacing.lg,
-          marginBottom: theme.spacing.xl,
-          borderWidth: 1,
-          borderColor: 'rgba(30, 155, 113, 0.2)',
-          ...theme.shadows.medium,
-        }}>
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: theme.spacing.lg,
-          }}>
-            <CreditCard
-              size={24}
-              color={theme.colors.primary.DEFAULT}
-              style={{ marginRight: theme.spacing.sm }}
-            />
-            <Text style={{
-              fontSize: theme.typography.h3.fontSize,
-              fontWeight: theme.typography.h3.fontWeight,
-              color: theme.colors.text.primary,
-            }}>
-              {t('membershipDetails')}
-            </Text>
-          </View>
-
-          <View style={{ gap: theme.spacing.md }}>
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-              <Text style={{
-                fontSize: theme.typography.body.fontSize,
-                color: theme.colors.text.secondary,
-              }}>
-                {t('memberSince')}
-              </Text>
-              <Text style={{
-                fontSize: theme.typography.body.fontSize,
-                fontWeight: '600',
-                color: theme.colors.text.primary,
-              }}>
-                {formatRelativeDateI18n(member.joinDate, t)}
-              </Text>
-            </View>
-
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-              <Text style={{
-                fontSize: theme.typography.body.fontSize,
-                color: theme.colors.text.secondary,
-              }}>
-                {t('renewalDate')}
-              </Text>
-              <Text style={{
-                fontSize: theme.typography.body.fontSize,
-                fontWeight: '600',
-                color: member.membershipStatus === 'expired'
-                  ? theme.colors.status.error
-                  : theme.colors.text.primary,
-              }}>
-                {formatRelativeDateI18n(member.expiryDate, t)}
-              </Text>
-            </View>
-
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-              <Text style={{
-                fontSize: theme.typography.body.fontSize,
-                color: theme.colors.text.secondary,
-              }}>
-                {t('memberId')}
-              </Text>
-              <Text style={{
-                fontSize: theme.typography.body.fontSize,
-                fontWeight: '600',
-                color: theme.colors.text.primary,
-                fontFamily: 'monospace',
-              }}>
-                #001234
-              </Text>
-            </View>
-          </View>
-
-          {member.membershipStatus === 'active' && (
-            <View style={{ marginTop: theme.spacing.lg }}>
-              <PillButton
-                title={t('renewEarly')}
-                onPress={handleRenewPress}
-                variant="outline"
-                fullWidth
-              />
-            </View>
-          )}
-        </View>
 
         {/* My Services */}
         <View style={{
@@ -913,7 +795,7 @@ export default function MembershipScreen() {
         <View style={{
           flex: 1,
           backgroundColor: theme.colors.background.DEFAULT,
-          paddingTop: insets.top,
+          paddingTop: theme.spacing.md,
         }}>
           {/* Modal Header */}
           <View style={{
@@ -921,7 +803,8 @@ export default function MembershipScreen() {
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingHorizontal: theme.spacing.lg,
-            paddingVertical: theme.spacing.md,
+            paddingTop: theme.spacing.xs,
+            paddingBottom: theme.spacing.sm,
             borderBottomWidth: 1,
             borderBottomColor: 'rgba(30, 155, 113, 0.2)',
           }}>
@@ -946,29 +829,79 @@ export default function MembershipScreen() {
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: theme.spacing.lg }}>
             {selectedServiceForHistory && (
               <>
-                {/* Service Details */}
+                {/* Compact Service Header */}
                 <View style={{
                   backgroundColor: theme.colors.background.surface,
                   borderRadius: theme.borderRadius.lg,
                   padding: theme.spacing.lg,
-                  marginBottom: theme.spacing.xl,
+                  marginBottom: theme.spacing.md,
                   borderWidth: 1,
-                  borderColor: 'rgba(30, 155, 113, 0.2)',
+                  borderColor: 'rgba(30, 155, 113, 0.15)',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.06,
+                  shadowRadius: 8,
+                  elevation: 2,
                 }}>
                   <Text style={{
                     fontSize: theme.typography.h3.fontSize,
-                    fontWeight: theme.typography.h3.fontWeight,
+                    fontWeight: '700',
                     color: theme.colors.text.primary,
+                    textAlign: 'center',
                     marginBottom: theme.spacing.sm,
                   }}>
                     {selectedServiceForHistory.services?.name || 'Service'}
                   </Text>
-                  <Text style={{
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.text.secondary,
+
+                  <View style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
                   }}>
-                    {t('sessionsRemaining')}: {selectedServiceForHistory.sessions_remaining} / {selectedServiceForHistory.sessions_total}
-                  </Text>
+                    <View style={{ alignItems: 'center' }}>
+                      <Text style={{
+                        fontSize: theme.typography.caption.fontSize,
+                        color: theme.colors.text.secondary,
+                        fontWeight: '500',
+                      }}>
+                        {t('purchasedOn')}
+                      </Text>
+                      <Text style={{
+                        fontSize: theme.typography.body.fontSize,
+                        fontWeight: '600',
+                        color: theme.colors.text.primary,
+                      }}>
+                        {(() => {
+                          const options: Intl.DateTimeFormatOptions = {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          };
+                          return new Date(selectedServiceForHistory.purchase_date)
+                            .toLocaleDateString(language === 'ro' ? 'ro-RO' : 'en-US', options)
+                            .replace(/\./g, '') // Remove all dots
+                            .replace(/,/g, ', '); // Ensure proper comma spacing
+                        })()}
+                      </Text>
+                    </View>
+
+                    <View style={{ alignItems: 'center' }}>
+                      <Text style={{
+                        fontSize: theme.typography.caption.fontSize,
+                        color: theme.colors.text.secondary,
+                        fontWeight: '500',
+                      }}>
+                        {t('sessionsRemaining')}
+                      </Text>
+                      <Text style={{
+                        fontSize: theme.typography.h3.fontSize,
+                        fontWeight: '700',
+                        color: theme.colors.primary.DEFAULT,
+                      }}>
+                        {selectedServiceForHistory.sessions_remaining} / {selectedServiceForHistory.sessions_total}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
 
                 {/* Sessions List */}
@@ -992,85 +925,145 @@ export default function MembershipScreen() {
                   </View>
                 ) : (
                   <View style={{ gap: theme.spacing.md }}>
-                    {getSessionsForService(selectedServiceForHistory.id).map((session) => (
-                      <View
-                        key={session.id}
-                        style={{
-                          backgroundColor: theme.colors.background.surface,
-                          borderRadius: theme.borderRadius.lg,
-                          padding: theme.spacing.md,
-                          borderWidth: 1,
-                          borderColor: session.status === 'pending'
-                            ? theme.colors.status.warning
-                            : 'rgba(30, 155, 113, 0.2)',
-                        }}
-                      >
-                        <View style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          alignItems: 'flex-start',
-                          marginBottom: theme.spacing.sm,
-                        }}>
-                          <View style={{ flex: 1 }}>
-                            <Text style={{
-                              fontSize: theme.typography.body.fontSize,
-                              fontWeight: '600',
-                              color: theme.colors.text.primary,
-                              marginBottom: theme.spacing.xs,
-                    }}>
-                      {new Date(session.booking_date).toLocaleDateString()} {new Date(session.booking_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
+                    {getSessionsForService(selectedServiceForHistory.id).map((session) => {
+                      const sessionDate = new Date(session.booking_date);
+                      const isPending = session.status === 'pending';
+                      const isConfirmed = session.status === 'confirmed';
 
-                    {/* Status Badge */}
-                            <View style={{
-                              alignSelf: 'flex-start',
-                              backgroundColor: session.status === 'pending'
-                                ? theme.colors.status.warning
-                                : session.status === 'confirmed'
-                                ? theme.colors.status.success
-                                : theme.colors.primary.DEFAULT, // completed status
-                              borderRadius: theme.borderRadius.xs,
-                              paddingHorizontal: theme.spacing.sm,
-                              paddingVertical: 2,
-                              marginBottom: theme.spacing.xs,
-                            }}>
-                              <Text style={{
-                                fontSize: theme.typography.caption.fontSize,
-                                fontWeight: '600',
-                                color: session.status === 'pending' ? '#000' : 'white',
+                      return (
+                        <View
+                          key={session.id}
+                          style={{
+                            backgroundColor: theme.colors.background.surface,
+                            borderRadius: theme.borderRadius.lg,
+                            padding: theme.spacing.lg,
+                            borderWidth: 1,
+                            borderColor: isPending
+                              ? theme.colors.status.warning
+                              : isConfirmed
+                              ? theme.colors.status.success
+                              : 'rgba(30, 155, 113, 0.2)',
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: isPending ? 0.1 : 0.06,
+                            shadowRadius: 8,
+                            elevation: isPending ? 3 : 2,
+                          }}
+                        >
+                          <View style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}>
+                            {/* Left Side - Prominent Date & Time */}
+                            <View style={{ flex: 1 }}>
+                              {/* Date with Status Row */}
+                              <View style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                marginBottom: theme.spacing.sm,
                               }}>
-                                {t(session.status)}
-                              </Text>
+                                <Text style={{
+                                  fontSize: theme.typography.h3.fontSize,
+                                  fontWeight: '700',
+                                  color: theme.colors.text.primary,
+                                  marginRight: theme.spacing.md,
+                                  textTransform: 'capitalize',
+                                }}>
+                                {(() => {
+                                  const options: Intl.DateTimeFormatOptions = {
+                                    weekday: 'short',
+                                    month: 'short',
+                                    day: 'numeric',
+                                  };
+                                  return sessionDate.toLocaleDateString(language === 'ro' ? 'ro-RO' : 'en-US', options)
+                                    .replace(/\./g, '') // Remove all dots
+                                    .replace(/,/g, ', '); // Ensure proper comma spacing
+                                })()}
+                                </Text>
+
+                                {/* Status Badge */}
+                                <View style={{
+                                  backgroundColor: isPending
+                                    ? theme.colors.status.warning
+                                    : isConfirmed
+                                    ? theme.colors.status.success
+                                    : theme.colors.primary.DEFAULT,
+                                  borderRadius: theme.borderRadius.xs,
+                                  paddingHorizontal: theme.spacing.xs,
+                                  paddingVertical: theme.spacing.xs,
+                                }}>
+                                  <Text style={{
+                                    fontSize: theme.typography.caption.fontSize,
+                                    fontWeight: '700',
+                                    color: isPending ? '#000' : 'white',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: 0.3,
+                                  }}>
+                                    {t(session.status)}
+                                  </Text>
+                                </View>
+                              </View>
+
+                              {/* Time with Clock Icon */}
+                              <View style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                marginBottom: session.notes ? theme.spacing.sm : 0,
+                              }}>
+                                <Clock size={16} color={theme.colors.text.secondary} style={{ marginRight: theme.spacing.xs }} />
+                                <Text style={{
+                                  fontSize: theme.typography.body.fontSize,
+                                  fontWeight: '600',
+                                  color: theme.colors.text.secondary,
+                                }}>
+                                  {sessionDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </Text>
+                              </View>
+
+                              {/* Notes */}
+                              {session.notes && (
+                                <Text style={{
+                                  fontSize: theme.typography.caption.fontSize,
+                                  color: theme.colors.text.tertiary,
+                                  fontStyle: 'italic',
+                                  backgroundColor: 'rgba(30, 155, 113, 0.05)',
+                                  borderRadius: theme.borderRadius.sm,
+                                  padding: theme.spacing.sm,
+                                  borderLeftWidth: 2,
+                                  borderLeftColor: theme.colors.primary.DEFAULT,
+                                }}>
+                                  "{session.notes}"
+                                </Text>
+                              )}
                             </View>
 
-                            {session.notes && (
-                              <Text style={{
-                                fontSize: theme.typography.caption.fontSize,
-                                color: theme.colors.text.tertiary,
-                                fontStyle: 'italic',
-                              }}>
-                                {session.notes}
-                              </Text>
+                            {/* Cancel Button for Pending Sessions */}
+                            {isPending && (
+                              <TouchableOpacity
+                                onPress={() => handleCancelSession(session.id)}
+                                style={{
+                                  width: 40,
+                                  height: 40,
+                                  backgroundColor: theme.colors.status.error,
+                                  borderRadius: 20,
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  marginLeft: theme.spacing.md,
+                                  shadowColor: theme.colors.status.error,
+                                  shadowOffset: { width: 0, height: 2 },
+                                  shadowOpacity: 0.3,
+                                  shadowRadius: 4,
+                                  elevation: 3,
+                                }}
+                              >
+                                <Trash2 size={18} color="white" />
+                              </TouchableOpacity>
                             )}
                           </View>
-
-                          {/* Cancel Button for Pending Sessions */}
-                          {session.status === 'pending' && (
-                            <TouchableOpacity
-                              onPress={() => handleCancelSession(session.id)}
-                              style={{
-                                backgroundColor: theme.colors.status.error,
-                                borderRadius: theme.borderRadius.sm,
-                                padding: theme.spacing.sm,
-                                marginLeft: theme.spacing.sm,
-                              }}
-                            >
-                              <Trash2 size={16} color="white" />
-                            </TouchableOpacity>
-                          )}
                         </View>
-                      </View>
-                    ))}
+                      );
+                    })}
                   </View>
                 )}
               </>

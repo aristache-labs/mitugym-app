@@ -79,7 +79,6 @@ export const translations = {
     male: 'Male',
     female: 'Female',
     other: 'Other',
-    done: 'Done',
 
     // Navigation
     home: 'Home',
@@ -214,7 +213,11 @@ export const translations = {
   sessionBookedSuccessfully: 'Session booked successfully',
   bookingFailed: 'Booking failed',
   noServiceSelected: 'No service selected',
-  success: 'Success',
+  bookingTimeConflict: 'You already have a session within 1 hour of this time',
+  memberID: 'Member ID',
+  joinMonth: 'Join Month',
+  status: 'Status',
+  planPurchased: 'Plan Purchased',
     approved: 'Approved',
     professionalMassage: 'Professional Massage',
     bookNow: 'Book Now',
@@ -233,7 +236,7 @@ export const translations = {
 
     // Profile
     personalInfo: 'Personal Information',
-    memberSince: 'Member Since',
+    memberSince: 'Member Since:',
     settings: 'Settings',
     language: 'Language',
     notifications: 'Notifications',
@@ -400,7 +403,6 @@ export const translations = {
     male: 'Masculin',
     female: 'Feminin',
     other: 'Altul',
-    done: 'Gata',
 
     // Navigation
     home: 'Acasă',
@@ -535,7 +537,11 @@ export const translations = {
   sessionBookedSuccessfully: 'Sesiunea a fost rezervată cu succes',
   bookingFailed: 'Rezervarea a eșuat',
   noServiceSelected: 'Nu a fost selectat niciun serviciu',
-  success: 'Succes',
+  bookingTimeConflict: 'Ai deja o sesiune într-o oră de la acest timp',
+  memberID: 'ID Membru',
+  joinMonth: 'Luna Înregistrării',
+  status: 'Status',
+  planPurchased: 'Plan Achiziționat',
     approved: 'Aprobată',
     professionalMassage: 'Masaj Profesional',
     bookNow: 'Rezervă Acum',
@@ -554,7 +560,7 @@ export const translations = {
 
     // Profile
     personalInfo: 'Informații Personale',
-    memberSince: 'Membru din',
+    memberSince: 'Membru din:',
     settings: 'Setări',
     language: 'Limbă',
     notifications: 'Notificări',
