@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Modal, TextInput, Alert, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Modal, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -12,12 +13,10 @@ import {
   LogOut,
   Calendar,
   X,
-  Check,
   PlayCircle,
   Trash2,
   History,
 } from 'lucide-react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { formatPrice, formatRelativeDateI18n, formatCheckinDateTime } from '../../lib/utils';
@@ -28,19 +27,12 @@ import { useLanguage } from '../../lib/LanguageContext';
 
 export default function MembershipScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { t } = useLanguage();
   const [showRenewModal, setShowRenewModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [checkinFilter, setCheckinFilter] = useState('1M'); // 1M, 3M, 6M, 1Y, ALL
 
-  // Session booking state
-  const [sessionBookingModalVisible, setSessionBookingModalVisible] = useState(false);
-  const [selectedPurchasedService, setSelectedPurchasedService] = useState<any>(null);
-  const [bookingDate, setBookingDate] = useState(new Date());
-  const [bookingTime, setBookingTime] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const [sessionNotes, setSessionNotes] = useState('');
 
   // Session history modal state
   const [sessionHistoryModalVisible, setSessionHistoryModalVisible] = useState(false);
@@ -60,7 +52,6 @@ export default function MembershipScreen() {
     fetchPurchasedServices,
     sessionBookings,
     fetchSessionBookings,
-    bookSession,
     cancelSession,
   } = useAppStore();
 
@@ -72,116 +63,22 @@ export default function MembershipScreen() {
     fetchSessionBookings();
   }, [fetchMembershipPlans, fetchCheckins, fetchPurchasedServices, fetchSessionBookings]);
 
+
   const handleRenewPress = () => {
     setShowRenewModal(true);
   };
 
   // Session booking handlers
   const handleBookSessionPress = (purchasedService: any) => {
-    setSelectedPurchasedService(purchasedService);
-    setSessionBookingModalVisible(true);
-    // Set default date to tomorrow
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    setBookingDate(tomorrow);
-    // Set default time to 10:00 AM
-    const defaultTime = new Date();
-    defaultTime.setHours(10, 0, 0, 0);
-    setBookingTime(defaultTime);
-    setSessionNotes('');
+    router.push({
+      pathname: '/book-session',
+      params: {
+        service: JSON.stringify(purchasedService),
+      },
+    });
   };
 
-  const handleSessionBookingSubmit = async () => {
-    if (!selectedPurchasedService || !bookingDate || !bookingTime) {
-      Alert.alert(t('error'), t('pleaseFillAllFields'));
-      return;
-    }
 
-    // Combine date and time into a single datetime
-    const combinedDateTime = new Date(bookingDate);
-    combinedDateTime.setHours(bookingTime.getHours(), bookingTime.getMinutes(), 0, 0);
-
-    // Check if booking is in the past
-    const now = new Date();
-    if (combinedDateTime <= now) {
-      Alert.alert(t('error'), t('cannotBookInPast'));
-      return;
-    }
-
-    const bookingDateTime = combinedDateTime.toISOString();
-
-    try {
-      await bookSession(selectedPurchasedService.id, bookingDateTime, sessionNotes);
-      setSessionBookingModalVisible(false);
-      setSelectedPurchasedService(null);
-      setSessionNotes('');
-    } catch (error) {
-      console.error('Session booking failed:', error);
-    }
-  };
-
-  const handleSessionBookingCancel = () => {
-    setSessionBookingModalVisible(false);
-    setSelectedPurchasedService(null);
-    setBookingDate(new Date());
-    setBookingTime(new Date());
-    setSessionNotes('');
-    setShowDatePicker(false);
-    setShowTimePicker(false);
-  };
-
-  // Date/Time picker handlers
-  const onDateChange = (_event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
-    if (selectedDate) {
-      setBookingDate(selectedDate);
-    }
-  };
-
-  const onTimeChange = (_event: any, selectedTime?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowTimePicker(false);
-    }
-    if (selectedTime) {
-      setBookingTime(selectedTime);
-    }
-  };
-
-  const handleDateDone = () => {
-    // Validate that a future date is selected
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const selectedDate = new Date(bookingDate);
-    selectedDate.setHours(0, 0, 0, 0);
-
-    if (selectedDate < today) {
-      Alert.alert(t('error'), t('cannotBookInPast'));
-      return;
-    }
-
-    setShowDatePicker(false);
-  };
-
-  const handleTimeDone = () => {
-    // If booking is today, validate that time is in the future
-    const now = new Date();
-    const selectedDate = new Date(bookingDate);
-
-    if (selectedDate.toDateString() === now.toDateString()) {
-      const combinedDateTime = new Date(bookingDate);
-      combinedDateTime.setHours(bookingTime.getHours(), bookingTime.getMinutes(), 0, 0);
-
-      if (combinedDateTime <= now) {
-        Alert.alert(t('error'), t('cannotBookInPast'));
-        return;
-      }
-    }
-
-    setShowTimePicker(false);
-  };
 
   // Get count of pending session bookings
   const getPendingSessionsCount = () => {
@@ -1003,338 +900,6 @@ export default function MembershipScreen() {
         </View>
       </Modal>
 
-      {/* Session Booking Modal */}
-      <Modal
-        visible={sessionBookingModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={handleSessionBookingCancel}
-      >
-        <View style={{
-          flex: 1,
-          backgroundColor: theme.colors.background.DEFAULT,
-          paddingTop: insets.top,
-        }}>
-          {/* Modal Header */}
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: theme.spacing.lg,
-            paddingVertical: theme.spacing.md,
-            borderBottomWidth: 1,
-            borderBottomColor: 'rgba(30, 155, 113, 0.2)',
-          }}>
-            <Text style={{
-              fontSize: theme.typography.h2.fontSize,
-              fontWeight: theme.typography.h2.fontWeight,
-              color: theme.colors.text.primary,
-            }}>
-              {t('bookSession')}
-            </Text>
-            <TouchableOpacity onPress={handleSessionBookingCancel}>
-              <X size={24} color={theme.colors.text.secondary} />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: theme.spacing.lg }}>
-            {selectedPurchasedService && (
-              <>
-                {/* Service Details */}
-                <View style={{
-                  backgroundColor: theme.colors.background.surface,
-                  borderRadius: theme.borderRadius.lg,
-                  padding: theme.spacing.lg,
-                  marginBottom: theme.spacing.xl,
-                  borderWidth: 1,
-                  borderColor: 'rgba(30, 155, 113, 0.2)',
-                }}>
-                  <Text style={{
-                    fontSize: theme.typography.h3.fontSize,
-                    fontWeight: theme.typography.h3.fontWeight,
-                    color: theme.colors.text.primary,
-                    marginBottom: theme.spacing.sm,
-                  }}>
-                    {selectedPurchasedService.services?.name || 'Service'}
-                  </Text>
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginBottom: theme.spacing.sm,
-                  }}>
-                    <Clock size={16} color={theme.colors.text.secondary} style={{ marginRight: theme.spacing.xs }} />
-                    <Text style={{
-                      fontSize: theme.typography.body.fontSize,
-                      color: theme.colors.text.secondary,
-                    }}>
-                      {selectedPurchasedService.services?.duration_minutes} {t('minutes')}
-                    </Text>
-                  </View>
-                  <Text style={{
-                    fontSize: theme.typography.caption.fontSize,
-                    color: theme.colors.text.secondary,
-                  }}>
-                    {t('sessionsRemaining')}: {selectedPurchasedService.sessions_remaining} / {selectedPurchasedService.sessions_total}
-                  </Text>
-                </View>
-
-                {/* Date Input */}
-                <View style={{ marginBottom: theme.spacing.lg }}>
-                  <Text style={{
-                    fontSize: theme.typography.body.fontSize,
-                    fontWeight: '600',
-                    color: theme.colors.text.primary,
-                    marginBottom: theme.spacing.sm,
-                  }}>
-                    {t('selectDate')}
-                  </Text>
-                  <TouchableOpacity
-                    style={{
-                      backgroundColor: theme.colors.background.surface,
-                      borderRadius: theme.borderRadius.md,
-                      padding: theme.spacing.md,
-                      borderWidth: 1,
-                      borderColor: 'rgba(30, 155, 113, 0.2)',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                    onPress={() => setShowDatePicker(true)}
-                  >
-                    <Text style={{
-                      fontSize: theme.typography.body.fontSize,
-                      color: theme.colors.text.primary,
-                    }}>
-                      {bookingDate.toLocaleDateString()}
-                    </Text>
-                    <Calendar size={20} color={theme.colors.text.secondary} />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Time Input */}
-                <View style={{ marginBottom: theme.spacing.lg }}>
-                  <Text style={{
-                    fontSize: theme.typography.body.fontSize,
-                    fontWeight: '600',
-                    color: theme.colors.text.primary,
-                    marginBottom: theme.spacing.sm,
-                  }}>
-                    {t('selectTime')}
-                  </Text>
-                  <TouchableOpacity
-                    style={{
-                      backgroundColor: theme.colors.background.surface,
-                      borderRadius: theme.borderRadius.md,
-                      padding: theme.spacing.md,
-                      borderWidth: 1,
-                      borderColor: 'rgba(30, 155, 113, 0.2)',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                    onPress={() => setShowTimePicker(true)}
-                  >
-                    <Text style={{
-                      fontSize: theme.typography.body.fontSize,
-                      color: theme.colors.text.primary,
-                    }}>
-                      {bookingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                    <Clock size={20} color={theme.colors.text.secondary} />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Notes Input */}
-                <View style={{ marginBottom: theme.spacing.xl }}>
-                  <Text style={{
-                    fontSize: theme.typography.body.fontSize,
-                    fontWeight: '600',
-                    color: theme.colors.text.primary,
-                    marginBottom: theme.spacing.sm,
-                  }}>
-                    {t('notes')} ({t('optional')})
-                  </Text>
-                  <TextInput
-                    style={{
-                      backgroundColor: theme.colors.background.surface,
-                      borderRadius: theme.borderRadius.md,
-                      padding: theme.spacing.md,
-                      borderWidth: 1,
-                      borderColor: 'rgba(30, 155, 113, 0.2)',
-                      fontSize: theme.typography.body.fontSize,
-                      color: theme.colors.text.primary,
-                      minHeight: 80,
-                      textAlignVertical: 'top',
-                    }}
-                    placeholder={t('addNotesPlaceholder')}
-                    placeholderTextColor={theme.colors.text.secondary}
-                    value={sessionNotes}
-                    onChangeText={setSessionNotes}
-                    multiline
-                    numberOfLines={4}
-                  />
-                </View>
-
-                {/* Submit Button */}
-                <TouchableOpacity
-                  style={{
-                    backgroundColor: theme.colors.primary.DEFAULT,
-                    borderRadius: theme.borderRadius.md,
-                    padding: theme.spacing.md,
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginBottom: insets.bottom,
-                  }}
-                  onPress={handleSessionBookingSubmit}
-                >
-                  <Check size={20} color="white" style={{ marginRight: theme.spacing.sm }} />
-                  <Text style={{
-                    fontSize: theme.typography.body.fontSize,
-                    fontWeight: '600',
-                    color: 'white',
-                  }}>
-                    {t('submitBooking')}
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </ScrollView>
-
-          {/* Date Picker */}
-          {showDatePicker && (
-            <TouchableOpacity
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                top: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                justifyContent: 'flex-end',
-                zIndex: 1000,
-              }}
-              activeOpacity={1}
-              onPress={() => setShowDatePicker(false)}
-            >
-              <TouchableOpacity
-                style={{
-                  backgroundColor: theme.colors.background.surface,
-                  borderTopLeftRadius: theme.borderRadius.lg,
-                  borderTopRightRadius: theme.borderRadius.lg,
-                  paddingTop: theme.spacing.md,
-                  paddingBottom: Platform.OS === 'ios' ? 40 : theme.spacing.lg,
-                }}
-                activeOpacity={1}
-                onPress={() => {}} // Prevent backdrop touch propagation
-              >
-                <View style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingHorizontal: theme.spacing.lg,
-                  paddingBottom: theme.spacing.sm,
-                  borderBottomWidth: 1,
-                  borderBottomColor: 'rgba(30, 155, 113, 0.2)',
-                }}>
-                  <Text style={{
-                    fontSize: theme.typography.h3.fontSize,
-                    fontWeight: theme.typography.h3.fontWeight,
-                    color: theme.colors.text.primary,
-                  }}>
-                    {t('selectDate')}
-                  </Text>
-                  <TouchableOpacity onPress={handleDateDone}>
-                    <Text style={{
-                      fontSize: theme.typography.body.fontSize,
-                      color: theme.colors.primary.DEFAULT,
-                      fontWeight: '600',
-                    }}>
-                      {t('done')}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <DateTimePicker
-                  value={bookingDate}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'compact' : 'default'}
-                  onChange={onDateChange}
-                  minimumDate={new Date()}
-                  style={{
-                    backgroundColor: theme.colors.background.surface,
-                  }}
-                />
-              </TouchableOpacity>
-            </TouchableOpacity>
-          )}
-
-          {/* Time Picker */}
-          {showTimePicker && (
-            <TouchableOpacity
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                top: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                justifyContent: 'flex-end',
-                zIndex: 1000,
-              }}
-              activeOpacity={1}
-              onPress={() => setShowTimePicker(false)}
-            >
-              <TouchableOpacity
-                style={{
-                  backgroundColor: theme.colors.background.surface,
-                  borderTopLeftRadius: theme.borderRadius.lg,
-                  borderTopRightRadius: theme.borderRadius.lg,
-                  paddingTop: theme.spacing.md,
-                  paddingBottom: Platform.OS === 'ios' ? 40 : theme.spacing.lg,
-                }}
-                activeOpacity={1}
-                onPress={() => {}} // Prevent backdrop touch propagation
-              >
-                <View style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingHorizontal: theme.spacing.lg,
-                  paddingBottom: theme.spacing.sm,
-                  borderBottomWidth: 1,
-                  borderBottomColor: 'rgba(30, 155, 113, 0.2)',
-                }}>
-                  <Text style={{
-                    fontSize: theme.typography.h3.fontSize,
-                    fontWeight: theme.typography.h3.fontWeight,
-                    color: theme.colors.text.primary,
-                  }}>
-                    {t('selectTime')}
-                  </Text>
-                  <TouchableOpacity onPress={handleTimeDone}>
-                    <Text style={{
-                      fontSize: theme.typography.body.fontSize,
-                      color: theme.colors.primary.DEFAULT,
-                      fontWeight: '600',
-                    }}>
-                      {t('done')}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <DateTimePicker
-                  value={bookingTime}
-                  mode="time"
-                  display={Platform.OS === 'ios' ? 'compact' : 'default'}
-                  onChange={onTimeChange}
-                  style={{
-                    backgroundColor: theme.colors.background.surface,
-                  }}
-                />
-              </TouchableOpacity>
-            </TouchableOpacity>
-          )}
-        </View>
-      </Modal>
 
       {/* Session History Modal */}
       <Modal
@@ -1511,6 +1076,8 @@ export default function MembershipScreen() {
           </ScrollView>
         </View>
       </Modal>
+
+
     </View>
   );
 }
