@@ -9,6 +9,8 @@ import {
   type Member,
   type Service,
   type ServiceBooking,
+  type PurchasedService,
+  type SessionBooking,
   type BookingHistory,
   type MembershipPlan,
   type Checkin,
@@ -32,8 +34,16 @@ interface ServiceState {
   services: Service[];
   servicesLoading: boolean;
   serviceBookings: ServiceBooking[];
+  purchasedServices: PurchasedService[];
+  sessionBookings: SessionBooking[];
   bookingHistory: BookingHistory[];
   fetchServices: () => Promise<void>;
+  purchaseService: (serviceId: string, notes?: string) => Promise<void>;
+  fetchPurchasedServices: () => Promise<void>;
+  bookSession: (purchasedServiceId: string, bookingDate: string, notes?: string) => Promise<void>;
+  fetchSessionBookings: () => Promise<void>;
+  cancelSession: (sessionId: string) => Promise<void>;
+  // Legacy functions for backwards compatibility
   bookService: (serviceId: string, bookingDate: string, notes?: string) => Promise<void>;
   cancelServiceBooking: (bookingId: string) => void;
   fetchServiceBookings: () => Promise<void>;
@@ -383,6 +393,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   services: [],
   servicesLoading: false,
   serviceBookings: [],
+  purchasedServices: [],
+  sessionBookings: [],
   bookingHistory: mockBookingHistory,
 
   fetchServices: async () => {
@@ -436,10 +448,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
 
       const bookingData = {
-        user_id: session.user.id,
+        member_id: session.user.id,
         service_id: serviceId,
         booking_date: bookingDate,
-        status: 'upcoming' as const,
+        status: 'pending' as const, // Set to pending for admin approval
         sessions_remaining: service.max_sessions || null,
         notes: notes || null,
       };
@@ -462,7 +474,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           serviceBookings: [...get().serviceBookings, data],
         });
 
-        get().showToast(`Booked ${service.name} successfully!`, 'success');
+        get().showToast(`${service.name} booking submitted! Awaiting approval.`, 'success');
       }
     } catch (error) {
       console.error('Error booking service:', error);
@@ -511,7 +523,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           *,
           services(name, service_type, duration_minutes)
         `)
-        .eq('user_id', session.user.id)
+        .eq('member_id', session.user.id)
         .order('booking_date', { ascending: false });
 
       if (error) {
@@ -522,6 +534,210 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ serviceBookings: data || [] });
     } catch (error) {
       console.error('Error fetching service bookings:', error);
+    }
+  },
+
+  // New service purchase functions
+  purchaseService: async (serviceId: string, notes?: string) => {
+    try {
+      const { session } = get();
+      if (!session?.user?.id) {
+        get().showToast('Please log in to purchase services', 'error');
+        return;
+      }
+
+      const service = get().services.find(s => s.id === serviceId);
+      if (!service) {
+        get().showToast('Service not found', 'error');
+        return;
+      }
+
+      const purchaseData = {
+        member_id: session.user.id,
+        service_id: serviceId,
+        status: 'pending' as const,
+        sessions_total: service.max_sessions || 1,
+        sessions_remaining: service.max_sessions || 1,
+        notes: notes || null,
+      };
+
+      const { data, error } = await supabase
+        .from('purchased_services')
+        .insert([purchaseData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error purchasing service:', error);
+        get().showToast('Failed to purchase service', 'error');
+        return;
+      }
+
+      if (data) {
+        // Add to local state
+        set({
+          purchasedServices: [...get().purchasedServices, data],
+        });
+
+        get().showToast(`${service.name} purchase submitted! Awaiting approval.`, 'success');
+      }
+    } catch (error) {
+      console.error('Error purchasing service:', error);
+      get().showToast('Failed to purchase service', 'error');
+    }
+  },
+
+  fetchPurchasedServices: async () => {
+    try {
+      const { session } = get();
+      if (!session?.user?.id) {
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('purchased_services')
+        .select(`
+          *,
+          services(name, service_type, duration_minutes, price)
+        `)
+        .eq('member_id', session.user.id)
+        .order('purchase_date', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching purchased services:', error);
+        return;
+      }
+
+      set({ purchasedServices: data || [] });
+    } catch (error) {
+      console.error('Error fetching purchased services:', error);
+    }
+  },
+
+  bookSession: async (purchasedServiceId: string, bookingDate: string, notes?: string) => {
+    try {
+      const { session } = get();
+      if (!session?.user?.id) {
+        get().showToast('Please log in to book sessions', 'error');
+        return;
+      }
+
+      const purchasedService = get().purchasedServices.find(ps => ps.id === purchasedServiceId);
+      if (!purchasedService) {
+        get().showToast('Purchased service not found', 'error');
+        return;
+      }
+
+      if (purchasedService.status !== 'approved') {
+        get().showToast('Service must be approved before booking sessions', 'error');
+        return;
+      }
+
+      if (purchasedService.sessions_remaining <= 0) {
+        get().showToast('No sessions remaining for this service', 'error');
+        return;
+      }
+
+      const bookingData = {
+        purchased_service_id: purchasedServiceId,
+        member_id: session.user.id,
+        booking_date: bookingDate,
+        status: 'pending' as const,
+        notes: notes || null,
+      };
+
+      const { data, error } = await supabase
+        .from('session_bookings')
+        .insert([bookingData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error booking session:', error);
+        get().showToast('Failed to book session', 'error');
+        return;
+      }
+
+      if (data) {
+        // Add to local state
+        set({
+          sessionBookings: [...get().sessionBookings, data],
+        });
+
+        get().showToast('Session booking submitted! Awaiting confirmation.', 'success');
+      }
+    } catch (error) {
+      console.error('Error booking session:', error);
+      get().showToast('Failed to book session', 'error');
+    }
+  },
+
+  cancelSession: async (sessionId: string) => {
+    try {
+      const { session } = get();
+      if (!session?.user?.id) {
+        get().showToast('Please log in to cancel sessions', 'error');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('session_bookings')
+        .update({
+          status: 'cancelled',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', sessionId)
+        .eq('member_id', session.user.id)
+        .eq('status', 'pending'); // Only allow canceling pending sessions
+
+      if (error) {
+        console.error('Error canceling session:', error);
+        get().showToast('Failed to cancel session', 'error');
+        return;
+      }
+
+      // Update local state
+      set({
+        sessionBookings: get().sessionBookings.map(booking =>
+          booking.id === sessionId
+            ? { ...booking, status: 'cancelled' as const, updated_at: new Date().toISOString() }
+            : booking,
+        ),
+      });
+
+      get().showToast('Session cancelled successfully', 'success');
+    } catch (error) {
+      console.error('Error canceling session:', error);
+      get().showToast('Failed to cancel session', 'error');
+    }
+  },
+
+  fetchSessionBookings: async () => {
+    try {
+      const { session } = get();
+      if (!session?.user?.id) {
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('session_bookings')
+        .select(`
+          *,
+          purchased_services(
+            services(name, service_type, duration_minutes)
+          )
+        `)
+        .eq('member_id', session.user.id)
+        .order('booking_date', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching session bookings:', error);
+        return;
+      }
+
+      set({ sessionBookings: data || [] });
+    } catch (error) {
+      console.error('Error fetching session bookings:', error);
     }
   },
 

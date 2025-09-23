@@ -30,16 +30,60 @@ export interface Service {
   updated_at: string;
 }
 
+export interface PurchasedService {
+  id: string;
+  member_id: string;
+  service_id: string;
+  status: 'pending' | 'approved' | 'cancelled';
+  sessions_total: number;
+  sessions_remaining: number;
+  purchase_date: string;
+  approved_date?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  services?: {
+    name: string;
+    service_type: string;
+    duration_minutes: number;
+    price: number;
+  };
+}
+
+export interface SessionBooking {
+  id: string;
+  purchased_service_id: string;
+  member_id: string;
+  booking_date: string;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  purchased_services?: {
+    services: {
+      name: string;
+      service_type: string;
+      duration_minutes: number;
+    };
+  };
+}
+
+// Keep the old interface for backwards compatibility if needed
 export interface ServiceBooking {
   id: string;
-  user_id: string;
+  member_id: string;
   service_id: string;
   booking_date: string;
-  status: 'upcoming' | 'completed' | 'cancelled';
+  status: 'pending' | 'upcoming' | 'completed' | 'cancelled';
   sessions_remaining?: number;
   notes?: string;
   created_at: string;
   updated_at: string;
+  services?: {
+    name: string;
+    service_type: string;
+    duration_minutes: number;
+  };
 }
 
 export interface Checkin {
