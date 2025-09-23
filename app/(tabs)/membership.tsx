@@ -302,10 +302,29 @@ export default function MembershipScreen() {
             <View style={{ gap: theme.spacing.md }}>
               {purchasedServices
                 .sort((a, b) => {
-                  // Sort by status: approved/confirmed first, then pending, then cancelled
-                  const statusOrder = { approved: 0, confirmed: 0, pending: 1, cancelled: 2 };
-                  return (statusOrder[a.status as keyof typeof statusOrder] || 3) -
-                         (statusOrder[b.status as keyof typeof statusOrder] || 3);
+                  // First, handle approved status (highest priority)
+                  if (a.status === 'approved' && b.status !== 'approved') {
+                    return -1; // a comes first
+                  }
+                  if (b.status === 'approved' && a.status !== 'approved') {
+                    return 1; // b comes first
+                  }
+
+                  // If both are same status, sort by purchased date (newest first)
+                  if (a.status === b.status) {
+                    return new Date(b.purchase_date).getTime() - new Date(a.purchase_date).getTime();
+                  }
+
+                  // Handle other status comparisons (pending before cancelled)
+                  if (a.status === 'pending' && b.status === 'cancelled') {
+                    return -1;
+                  }
+                  if (a.status === 'cancelled' && b.status === 'pending') {
+                    return 1;
+                  }
+
+                  // Default to purchased date if unclear
+                  return new Date(b.purchase_date).getTime() - new Date(a.purchase_date).getTime();
                 })
                 .map((purchasedService) => (
                   <View
