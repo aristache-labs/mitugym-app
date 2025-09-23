@@ -439,7 +439,7 @@ export const translations = {
     pendingSessions: 'Sesiuni În Așteptare',
     viewAllSessions: 'Vezi Toate',
     noUpcomingSessions: 'Nu sunt sesiuni programate',
-    news: 'Știri',
+    news: 'Anunțuri',
     gymHours: 'Program',
     noData: 'Nu sunt date disponibile',
 

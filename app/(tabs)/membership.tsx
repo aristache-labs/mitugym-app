@@ -814,8 +814,8 @@ export default function MembershipScreen() {
             }}>
               <History size={24} color={theme.colors.secondary.DEFAULT} style={{ marginRight: theme.spacing.sm }} />
               <Text style={{
-                fontSize: theme.typography.h2.fontSize,
-                fontWeight: theme.typography.h2.fontWeight,
+                fontSize: theme.typography.h3.fontSize,
+                fontWeight: theme.typography.h3.fontWeight,
                 color: theme.colors.text.primary,
               }}>
                 {t('sessionHistory')}

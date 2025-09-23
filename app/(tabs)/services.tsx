@@ -332,8 +332,8 @@ export default function ServicesScreen() {
             borderBottomColor: 'rgba(30, 155, 113, 0.2)',
           }}>
             <Text style={{
-              fontSize: theme.typography.h2.fontSize,
-              fontWeight: theme.typography.h2.fontWeight,
+              fontSize: theme.typography.h3.fontSize,
+              fontWeight: theme.typography.h3.fontWeight,
               color: theme.colors.text.primary,
             }}>
               {t('purchaseService')}
