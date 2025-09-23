@@ -197,7 +197,7 @@ export default function ProfileScreen() {
     if (!dateString) {return t('notSet');}
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric',
     });
   };
@@ -1513,7 +1513,7 @@ export default function ProfileScreen() {
                     fontSize: theme.typography.body.fontSize,
                     color: editForm.date_of_birth ? theme.colors.text.primary : theme.colors.text.secondary,
                   }}>
-                    {editForm.date_of_birth ? new Date(editForm.date_of_birth).toLocaleDateString() : t('selectDate')}
+                    {editForm.date_of_birth ? new Date(editForm.date_of_birth).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : t('selectDate')}
                   </Text>
                   <Calendar size={20} color={theme.colors.text.secondary} />
                 </TouchableOpacity>

@@ -364,55 +364,49 @@ export default function BookSessionScreen() {
         </View>
       </ScrollView>
 
-      {/* iOS Date Picker Modal */}
-      {Platform.OS === 'ios' && (
+      {/* Date Picker for iOS */}
+      {Platform.OS === 'ios' && showDatePicker && (
         <Modal
           transparent={true}
-          visible={showDatePicker}
           animationType="slide"
-          onRequestClose={handleDateCancel}
+          visible={showDatePicker}
+          onRequestClose={() => setShowDatePicker(false)}
         >
           <TouchableOpacity
             style={{
               flex: 1,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
               justifyContent: 'flex-end',
-              backgroundColor: 'rgba(0,0,0,0.5)',
             }}
             activeOpacity={1}
             onPress={handleDateCancel}
           >
-            <TouchableOpacity
-              activeOpacity={1}
-              onPress={(e) => e.stopPropagation()}
-              style={{
-                backgroundColor: theme.colors.background.surface,
-                borderTopLeftRadius: 20,
-                borderTopRightRadius: 20,
-                paddingBottom: insets.bottom,
-                borderTopWidth: 1,
-                borderLeftWidth: 1,
-                borderRightWidth: 1,
-                borderColor: theme.colors.primary.DEFAULT,
-              }}
-            >
+            <View style={{
+              backgroundColor: theme.colors.background.surface,
+              borderTopLeftRadius: theme.borderRadius.xl,
+              borderTopRightRadius: theme.borderRadius.xl,
+              paddingBottom: insets.bottom,
+            }}>
+              {/* Picker Header */}
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: 16,
+                paddingHorizontal: theme.spacing.lg,
+                paddingVertical: theme.spacing.md,
                 borderBottomWidth: 1,
                 borderBottomColor: 'rgba(30, 155, 113, 0.2)',
               }}>
                 <TouchableOpacity onPress={handleDateCancel}>
                   <Text style={{
+                    fontSize: theme.typography.body.fontSize,
                     color: theme.colors.text.secondary,
-                    fontSize: 17,
                   }}>
                     {t('cancel')}
                   </Text>
                 </TouchableOpacity>
                 <Text style={{
-                  fontSize: 17,
+                  fontSize: theme.typography.body.fontSize,
                   fontWeight: '600',
                   color: theme.colors.text.primary,
                 }}>
@@ -420,14 +414,16 @@ export default function BookSessionScreen() {
                 </Text>
                 <TouchableOpacity onPress={handleDateDone}>
                   <Text style={{
+                    fontSize: theme.typography.body.fontSize,
                     color: theme.colors.primary.DEFAULT,
-                    fontSize: 17,
                     fontWeight: '600',
                   }}>
                     {t('done')}
                   </Text>
                 </TouchableOpacity>
               </View>
+
+              {/* Date Picker */}
               <View style={{
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -442,60 +438,54 @@ export default function BookSessionScreen() {
                   textColor={theme.colors.text.primary}
                 />
               </View>
-            </TouchableOpacity>
+            </View>
           </TouchableOpacity>
         </Modal>
       )}
 
-      {/* iOS Time Picker Modal */}
-      {Platform.OS === 'ios' && (
+      {/* Time Picker for iOS */}
+      {Platform.OS === 'ios' && showTimePicker && (
         <Modal
           transparent={true}
-          visible={showTimePicker}
           animationType="slide"
-          onRequestClose={handleTimeCancel}
+          visible={showTimePicker}
+          onRequestClose={() => setShowTimePicker(false)}
         >
           <TouchableOpacity
             style={{
               flex: 1,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
               justifyContent: 'flex-end',
-              backgroundColor: 'rgba(0,0,0,0.5)',
             }}
             activeOpacity={1}
             onPress={handleTimeCancel}
           >
-            <TouchableOpacity
-              activeOpacity={1}
-              onPress={(e) => e.stopPropagation()}
-              style={{
-                backgroundColor: theme.colors.background.surface,
-                borderTopLeftRadius: 20,
-                borderTopRightRadius: 20,
-                paddingBottom: insets.bottom,
-                borderTopWidth: 1,
-                borderLeftWidth: 1,
-                borderRightWidth: 1,
-                borderColor: theme.colors.primary.DEFAULT,
-              }}
-            >
+            <View style={{
+              backgroundColor: theme.colors.background.surface,
+              borderTopLeftRadius: theme.borderRadius.xl,
+              borderTopRightRadius: theme.borderRadius.xl,
+              paddingBottom: insets.bottom,
+            }}>
+              {/* Picker Header */}
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: 16,
+                paddingHorizontal: theme.spacing.lg,
+                paddingVertical: theme.spacing.md,
                 borderBottomWidth: 1,
                 borderBottomColor: 'rgba(30, 155, 113, 0.2)',
               }}>
                 <TouchableOpacity onPress={handleTimeCancel}>
                   <Text style={{
+                    fontSize: theme.typography.body.fontSize,
                     color: theme.colors.text.secondary,
-                    fontSize: 17,
                   }}>
                     {t('cancel')}
                   </Text>
                 </TouchableOpacity>
                 <Text style={{
-                  fontSize: 17,
+                  fontSize: theme.typography.body.fontSize,
                   fontWeight: '600',
                   color: theme.colors.text.primary,
                 }}>
@@ -503,14 +493,16 @@ export default function BookSessionScreen() {
                 </Text>
                 <TouchableOpacity onPress={handleTimeDone}>
                   <Text style={{
+                    fontSize: theme.typography.body.fontSize,
                     color: theme.colors.primary.DEFAULT,
-                    fontSize: 17,
                     fontWeight: '600',
                   }}>
                     {t('done')}
                   </Text>
                 </TouchableOpacity>
               </View>
+
+              {/* Time Picker */}
               <View style={{
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -524,24 +516,25 @@ export default function BookSessionScreen() {
                   textColor={theme.colors.text.primary}
                 />
               </View>
-            </TouchableOpacity>
+            </View>
           </TouchableOpacity>
         </Modal>
       )}
 
-      {/* Android DateTimePickers */}
+      {/* Date Picker for Android */}
       {Platform.OS === 'android' && showDatePicker && (
         <DateTimePicker
-          value={bookingDate}
+          value={tempDate}
           mode="date"
           onChange={onDateChange}
           minimumDate={new Date()}
         />
       )}
 
+      {/* Time Picker for Android */}
       {Platform.OS === 'android' && showTimePicker && (
         <DateTimePicker
-          value={bookingTime}
+          value={tempTime}
           mode="time"
           onChange={onTimeChange}
         />
