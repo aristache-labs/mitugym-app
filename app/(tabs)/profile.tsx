@@ -64,54 +64,6 @@ interface Profile {
   last_check_in?: string;
 }
 
-// Helper functions for membership status display
-const getStatusBackgroundColor = (status: string) => {
-  switch (status) {
-    case 'active':
-      return 'rgba(77, 212, 212, 0.2)';
-    case 'pending':
-      return 'rgba(243, 156, 18, 0.2)'; // Orange
-    case 'frozen':
-      return 'rgba(52, 152, 219, 0.2)'; // Blue
-    case 'inactive':
-      return 'rgba(149, 165, 166, 0.2)'; // Gray
-    case 'expired':
-    default:
-      return 'rgba(255, 107, 107, 0.2)'; // Red
-  }
-};
-
-const getStatusTextColor = (status: string) => {
-  switch (status) {
-    case 'active':
-      return '#1e9b71'; // Primary green
-    case 'pending':
-      return '#f39c12'; // Orange
-    case 'frozen':
-      return '#3498db'; // Blue
-    case 'inactive':
-      return '#95a5a6'; // Gray
-    case 'expired':
-    default:
-      return '#e74c3c'; // Red
-  }
-};
-
-const getStatusDisplayText = (status: string, t: any) => {
-  switch (status) {
-    case 'active':
-      return t('active').toUpperCase();
-    case 'pending':
-      return t('pending').toUpperCase();
-    case 'frozen':
-      return t('frozen').toUpperCase();
-    case 'inactive':
-      return t('inactive').toUpperCase();
-    case 'expired':
-    default:
-      return t('expired').toUpperCase();
-  }
-};
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -527,21 +479,22 @@ export default function ProfileScreen() {
               ...theme.shadows.strong,
             }}
           >
-            {/* Main Profile Section */}
+            {/* Compact Profile Section */}
             <View style={{
+              flexDirection: 'row',
               alignItems: 'center',
-              marginBottom: theme.spacing.xl,
+              marginBottom: theme.spacing.md,
             }}>
-              {/* Premium Avatar */}
+              {/* Compact Premium Avatar */}
               <View style={{
-                width: 100,
-                height: 100,
-                borderRadius: 50,
+                width: 70,
+                height: 70,
+                borderRadius: 35,
                 backgroundColor: theme.colors.primary.DEFAULT,
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginBottom: theme.spacing.lg,
-                borderWidth: 3,
+                marginRight: theme.spacing.lg,
+                borderWidth: 2,
                 borderColor: 'rgba(255, 255, 255, 0.2)',
                 ...theme.shadows.medium,
               }}>
@@ -553,13 +506,13 @@ export default function ProfileScreen() {
                   style={{
                     width: '100%',
                     height: '100%',
-                    borderRadius: 47,
+                    borderRadius: 33,
                     justifyContent: 'center',
                     alignItems: 'center',
                   }}
                 >
                   <Text style={{
-                    fontSize: 36,
+                    fontSize: 28,
                     fontWeight: '700',
                     color: '#ffffff',
                     textShadowColor: 'rgba(0, 0, 0, 0.3)',
@@ -572,116 +525,84 @@ export default function ProfileScreen() {
                 </LinearGradient>
               </View>
 
-              {/* User Name */}
-              <Text style={{
-                fontSize: theme.typography.h1.fontSize,
-                fontWeight: '700',
-                color: theme.colors.text.primary,
-                textAlign: 'center',
-                marginBottom: theme.spacing.sm,
-                textShadowColor: 'rgba(0, 0, 0, 0.1)',
-                textShadowOffset: { width: 0, height: 1 },
-                textShadowRadius: 2,
-              }}>
-                {profile.first_name} {profile.last_name}
-              </Text>
-
-              {/* Member Since Badge */}
-              <View style={{
-                backgroundColor: 'rgba(30, 155, 113, 0.2)',
-                paddingHorizontal: theme.spacing.lg,
-                paddingVertical: theme.spacing.sm,
-                borderRadius: theme.borderRadius.lg,
-                borderWidth: 1,
-                borderColor: 'rgba(30, 155, 113, 0.3)',
-              }}>
+              {/* User Info - Compact */}
+              <View style={{ flex: 1 }}>
                 <Text style={{
-                  fontSize: theme.typography.body.fontSize,
-                  color: theme.colors.primary.DEFAULT,
-                  fontWeight: '600',
-                  textAlign: 'center',
+                  fontSize: theme.typography.h2.fontSize,
+                  fontWeight: '700',
+                  color: theme.colors.text.primary,
+                  marginBottom: theme.spacing.xs,
                 }}>
-                  {t('memberSince')} {(() => {
-                    const date = new Date(profile.join_date).toLocaleDateString(language === 'ro' ? 'ro-RO' : 'en-US', {
-                      month: 'short',
-                      year: 'numeric',
-                    }).replace(/\./g, '');
-
-                    // Capitalize first letter for proper formatting
-                    return date.charAt(0).toUpperCase() + date.slice(1);
-                  })()}
+                  {profile.first_name} {profile.last_name}
                 </Text>
-              </View>
-            </View>
 
-            {/* Contact Information Row */}
-            <View style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              borderRadius: theme.borderRadius.lg,
-              padding: theme.spacing.lg,
-              borderWidth: 1,
-              borderColor: 'rgba(255, 255, 255, 0.1)',
-            }}>
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
-                {/* Email */}
                 <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  flex: 1,
-                  marginRight: theme.spacing.md,
+                  backgroundColor: 'rgba(30, 155, 113, 0.15)',
+                  paddingHorizontal: theme.spacing.md,
+                  paddingVertical: theme.spacing.xs,
+                  borderRadius: theme.borderRadius.md,
+                  alignSelf: 'flex-start',
+                  marginBottom: theme.spacing.xs,
                 }}>
-                  <View style={{
-                    backgroundColor: 'rgba(30, 155, 113, 0.2)',
-                    borderRadius: theme.borderRadius.sm,
-                    padding: theme.spacing.xs,
-                    marginRight: theme.spacing.sm,
-                  }}>
-                    <Mail
-                      size={14}
-                      color={theme.colors.primary.DEFAULT}
-                    />
-                  </View>
                   <Text style={{
                     fontSize: theme.typography.caption.fontSize,
-                    color: theme.colors.text.secondary,
-                    flex: 1,
-                  }} numberOfLines={1}>
-                    {profile.email}
+                    color: theme.colors.primary.DEFAULT,
+                    fontWeight: '600',
+                  }}>
+                    {t('memberSince')} {(() => {
+                      const date = new Date(profile.join_date).toLocaleDateString(language === 'ro' ? 'ro-RO' : 'en-US', {
+                        month: 'short',
+                        year: 'numeric',
+                      }).replace(/\./g, '');
+
+                      // Capitalize first letter for proper formatting
+                      return date.charAt(0).toUpperCase() + date.slice(1);
+                    })()}
                   </Text>
                 </View>
 
-                {/* Phone */}
-                {profile.phone && (
+                {/* Compact Contact Info */}
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: theme.spacing.md,
+                }}>
                   <View style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    flex: 1,
                   }}>
-                    <View style={{
-                      backgroundColor: 'rgba(30, 155, 113, 0.2)',
-                      borderRadius: theme.borderRadius.sm,
-                      padding: theme.spacing.xs,
-                      marginRight: theme.spacing.sm,
-                    }}>
-                      <Phone
-                        size={14}
-                        color={theme.colors.primary.DEFAULT}
-                      />
-                    </View>
+                    <Mail
+                      size={12}
+                      color={theme.colors.text.secondary}
+                      style={{ marginRight: theme.spacing.xs }}
+                    />
                     <Text style={{
                       fontSize: theme.typography.caption.fontSize,
                       color: theme.colors.text.secondary,
-                      textAlign: 'right',
-                      flex: 1,
                     }} numberOfLines={1}>
-                      {profile.phone}
+                      {profile.email.length > 20 ? profile.email.substring(0, 20) + '...' : profile.email}
                     </Text>
                   </View>
-                )}
+
+                  {profile.phone && (
+                    <View style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}>
+                      <Phone
+                        size={12}
+                        color={theme.colors.text.secondary}
+                        style={{ marginRight: theme.spacing.xs }}
+                      />
+                      <Text style={{
+                        fontSize: theme.typography.caption.fontSize,
+                        color: theme.colors.text.secondary,
+                      }} numberOfLines={1}>
+                        {profile.phone}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
           </LinearGradient>
@@ -928,91 +849,6 @@ export default function ProfileScreen() {
               </Text>
             </View>
 
-            {/* Membership Status */}
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              paddingVertical: theme.spacing.sm,
-            }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                flex: 1,
-              }}>
-                <Shield
-                  size={16}
-                  color={theme.colors.text.secondary}
-                  style={{ marginRight: theme.spacing.sm }}
-                />
-                <Text style={{
-                  fontSize: theme.typography.body.fontSize,
-                  color: theme.colors.text.secondary,
-                  flex: 1,
-                }}>
-                  {t('status')}
-                </Text>
-              </View>
-              <View style={{
-                paddingHorizontal: theme.spacing.md,
-                paddingVertical: theme.spacing.xs,
-                backgroundColor: getStatusBackgroundColor(profile.membership_status),
-                borderRadius: theme.borderRadius.md,
-              }}>
-                <Text style={{
-                  fontSize: theme.typography.body.fontSize,
-                  color: getStatusTextColor(profile.membership_status),
-                  fontWeight: '600',
-                }}>
-                  {getStatusDisplayText(profile.membership_status, t)}
-                </Text>
-              </View>
-            </View>
-
-            {/* Membership Plan */}
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              paddingVertical: theme.spacing.sm,
-            }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                flex: 1,
-              }}>
-                <Star
-                  size={16}
-                  color={theme.colors.text.secondary}
-                  style={{ marginRight: theme.spacing.sm }}
-                />
-                <Text style={{
-                  fontSize: theme.typography.body.fontSize,
-                  color: theme.colors.text.secondary,
-                  flex: 1,
-                }}>
-                  {t('plan')}
-                </Text>
-              </View>
-              <View style={{
-                paddingHorizontal: theme.spacing.md,
-                paddingVertical: theme.spacing.xs,
-                backgroundColor: profile.membership_plan
-                  ? 'rgba(77, 212, 212, 0.1)'
-                  : 'rgba(167, 195, 186, 0.1)',
-                borderRadius: theme.borderRadius.md,
-              }}>
-                <Text style={{
-                  fontSize: theme.typography.body.fontSize,
-                  color: profile.membership_plan
-                    ? theme.colors.primary.DEFAULT
-                    : theme.colors.text.secondary,
-                  fontWeight: '600',
-                }}>
-                  {profile.membership_plan || t('none')}
-                </Text>
-              </View>
-            </View>
           </View>
         </View>
 
