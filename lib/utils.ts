@@ -84,8 +84,20 @@ export const formatTime12Hour = (dateString: string): string => {
 };
 
 // Membership utilities
-export const getMembershipStatusColor = (status: 'active' | 'expired'): string => {
-  return status === 'active' ? '#2ecc71' : '#e74c3c';
+export const getMembershipStatusColor = (status: 'active' | 'expired' | 'pending' | 'inactive' | 'frozen'): string => {
+  switch (status) {
+    case 'active':
+      return '#2ecc71'; // Green
+    case 'pending':
+      return '#f39c12'; // Orange
+    case 'frozen':
+      return '#3498db'; // Blue  
+    case 'inactive':
+      return '#95a5a6'; // Gray
+    case 'expired':
+    default:
+      return '#e74c3c'; // Red
+  }
 };
 
 export const getDaysLeftText = (daysLeft?: number, t?: (key: TranslationKey) => string): string => {

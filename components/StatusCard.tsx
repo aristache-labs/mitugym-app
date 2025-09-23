@@ -7,10 +7,11 @@ import { getMembershipStatusColor, getDaysLeftText } from '../lib/utils';
 import { useLanguage } from '../lib/LanguageContext';
 
 interface StatusCardProps {
-  status: 'active' | 'expired';
+  status: 'active' | 'expired' | 'pending' | 'inactive' | 'frozen';
   membershipPlan: string;
   daysLeft?: number | undefined;
   expiryDate?: string | undefined;
+  planStartDate?: string | undefined;
   onPress?: () => void;
   onRenew?: (() => void) | undefined;
 }
@@ -20,12 +21,13 @@ export function StatusCard({
   membershipPlan,
   daysLeft,
   expiryDate,
+  planStartDate,
   onPress,
   onRenew,
 }: StatusCardProps) {
   const { t } = useLanguage();
   const statusColor = getMembershipStatusColor(status);
-  const StatusIcon = status === 'active' ? CheckCircle : XCircle;
+  const StatusIcon = status === 'active' ? CheckCircle : (status === 'pending' ? Calendar : XCircle);
 
   return (
     <TouchableOpacity
@@ -143,7 +145,7 @@ export function StatusCard({
             </View>
           )}
 
-          {expiryDate && (
+          {((status === 'pending' && planStartDate) || (status !== 'pending' && expiryDate)) && (
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -159,7 +161,10 @@ export function StatusCard({
                 fontSize: theme.typography.caption.fontSize,
                 color: theme.colors.text.secondary,
               }}>
-                {t('expires')}: {new Date(expiryDate).toLocaleDateString()}
+                {status === 'pending' && planStartDate 
+                  ? `${t('starts')}: ${new Date(planStartDate).toLocaleDateString()}`
+                  : `${t('expires')}: ${new Date(expiryDate!).toLocaleDateString()}`
+                }
               </Text>
             </View>
           )}

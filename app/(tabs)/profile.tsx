@@ -60,6 +60,55 @@ interface Profile {
   last_check_in?: string;
 }
 
+// Helper functions for membership status display
+const getStatusBackgroundColor = (status: string) => {
+  switch (status) {
+    case 'active':
+      return 'rgba(77, 212, 212, 0.2)';
+    case 'pending':
+      return 'rgba(243, 156, 18, 0.2)'; // Orange
+    case 'frozen':
+      return 'rgba(52, 152, 219, 0.2)'; // Blue
+    case 'inactive':
+      return 'rgba(149, 165, 166, 0.2)'; // Gray
+    case 'expired':
+    default:
+      return 'rgba(255, 107, 107, 0.2)'; // Red
+  }
+};
+
+const getStatusTextColor = (status: string) => {
+  switch (status) {
+    case 'active':
+      return '#1e9b71'; // Primary green
+    case 'pending':
+      return '#f39c12'; // Orange
+    case 'frozen':
+      return '#3498db'; // Blue
+    case 'inactive':
+      return '#95a5a6'; // Gray
+    case 'expired':
+    default:
+      return '#e74c3c'; // Red
+  }
+};
+
+const getStatusDisplayText = (status: string, t: any) => {
+  switch (status) {
+    case 'active':
+      return t('active').toUpperCase();
+    case 'pending':
+      return t('pending').toUpperCase();
+    case 'frozen':
+      return t('frozen').toUpperCase();
+    case 'inactive':
+      return t('inactive').toUpperCase();
+    case 'expired':
+    default:
+      return t('expired').toUpperCase();
+  }
+};
+
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -67,7 +116,6 @@ export default function ProfileScreen() {
   const [classReminders, setClassReminders] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  
   // App Settings States
   const [biometricAuth, setBiometricAuth] = useState(false);
 
@@ -93,7 +141,22 @@ export default function ProfileScreen() {
           console.error('Error loading profile:', error);
           showToast('Failed to load profile data', 'error');
         } else if (data) {
-          setProfile(data);
+          // Resolve membership plan ID to plan name
+          let profileData = { ...data };
+
+          if (data.membership_plan) {
+            const { data: planData } = await supabase
+              .from('membership_plans')
+              .select('name')
+              .eq('id', data.membership_plan)
+              .single();
+
+            if (planData?.name) {
+              profileData.membership_plan = planData.name;
+            }
+          }
+
+          setProfile(profileData);
         }
       } catch (error) {
         console.error('Error loading profile:', error);
@@ -182,7 +245,7 @@ export default function ProfileScreen() {
               setLanguage(lang.code);
               showToast(
                 lang.code === 'en' ? 'Language changed to English' : 'Limba schimbată în română',
-                'success'
+                'success',
               );
             }
           },
@@ -386,19 +449,15 @@ export default function ProfileScreen() {
                 <View style={{
                   paddingHorizontal: theme.spacing.sm,
                   paddingVertical: 2,
-                  backgroundColor: profile.membership_status === 'active'
-                    ? 'rgba(77, 212, 212, 0.2)'
-                    : 'rgba(255, 107, 107, 0.2)',
+                  backgroundColor: getStatusBackgroundColor(profile.membership_status),
                   borderRadius: theme.borderRadius.sm,
                 }}>
                   <Text style={{
                     fontSize: theme.typography.small.fontSize,
-                    color: profile.membership_status === 'active'
-                      ? theme.colors.primary.DEFAULT
-                      : theme.colors.status.error,
+                    color: getStatusTextColor(profile.membership_status),
                     fontWeight: '600',
                   }}>
-                    {profile.membership_status === 'active' ? t('active').toUpperCase() : t('expired').toUpperCase()}
+                    {getStatusDisplayText(profile.membership_status, t)}
                   </Text>
                 </View>
               </View>
@@ -682,15 +741,15 @@ export default function ProfileScreen() {
               <View style={{
                 paddingHorizontal: theme.spacing.md,
                 paddingVertical: theme.spacing.xs,
-                backgroundColor: profile.membership_plan 
-                  ? 'rgba(77, 212, 212, 0.1)' 
+                backgroundColor: profile.membership_plan
+                  ? 'rgba(77, 212, 212, 0.1)'
                   : 'rgba(167, 195, 186, 0.1)',
                 borderRadius: theme.borderRadius.md,
               }}>
                 <Text style={{
                   fontSize: theme.typography.body.fontSize,
-                  color: profile.membership_plan 
-                    ? theme.colors.primary.DEFAULT 
+                  color: profile.membership_plan
+                    ? theme.colors.primary.DEFAULT
                     : theme.colors.text.secondary,
                   fontWeight: '600',
                 }}>

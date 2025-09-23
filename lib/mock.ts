@@ -3,10 +3,11 @@ export interface Member {
   name: string;
   email: string;
   phone: string;
-  membershipStatus: 'active' | 'expired';
+  membershipStatus: 'active' | 'expired' | 'pending' | 'inactive' | 'frozen';
   membershipPlan: string;
   joinDate: string;
   expiryDate: string;
+  planStartDate?: string;
   visitsLeft?: number;
   daysLeft?: number;
   lastCheckIn?: string;

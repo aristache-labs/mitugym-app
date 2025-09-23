@@ -374,6 +374,7 @@ export default function HomeScreen() {
             membershipPlan={member.membershipPlan}
             daysLeft={member.daysLeft}
             expiryDate={member.expiryDate}
+            planStartDate={member.planStartDate}
             onPress={handleMembershipPress}
             onRenew={member.membershipStatus === 'expired' ? handleRenewMembership : undefined}
           />

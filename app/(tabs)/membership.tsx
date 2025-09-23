@@ -128,6 +128,7 @@ export default function MembershipScreen() {
             membershipPlan={member.membershipPlan}
             daysLeft={member.daysLeft}
             expiryDate={member.expiryDate}
+            planStartDate={member.planStartDate}
             onRenew={member.membershipStatus === 'expired' ? handleRenewPress : undefined}
           />
         </View>
