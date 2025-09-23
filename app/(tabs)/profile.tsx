@@ -508,76 +508,98 @@ export default function ProfileScreen() {
       >
         {/* Profile Header */}
         <View style={{
-          backgroundColor: theme.colors.background.surface,
-          borderRadius: theme.borderRadius.xl,
-          padding: theme.spacing.xl,
           marginTop: theme.spacing.lg,
           marginBottom: theme.spacing.xl,
-          borderWidth: 1,
-          borderColor: 'rgba(30, 155, 113, 0.2)',
-          ...theme.shadows.medium,
         }}>
           <LinearGradient
-            colors={['rgba(30, 155, 113, 0.1)', 'rgba(49, 215, 166, 0.05)']}
+            colors={[
+              'rgba(30, 155, 113, 0.15)',
+              'rgba(17, 22, 24, 0.9)',
+              'rgba(11, 15, 14, 0.95)',
+            ]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
               borderRadius: theme.borderRadius.xl,
+              padding: theme.spacing.xl,
+              borderWidth: 1,
+              borderColor: 'rgba(30, 155, 113, 0.3)',
+              ...theme.shadows.strong,
             }}
-          />
-
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: theme.spacing.lg,
-          }}>
-            {/* Avatar */}
+          >
+            {/* Main Profile Section */}
             <View style={{
-              width: 80,
-              height: 80,
-              borderRadius: 40,
-              backgroundColor: theme.colors.primary.DEFAULT,
-              justifyContent: 'center',
               alignItems: 'center',
-              marginRight: theme.spacing.lg,
+              marginBottom: theme.spacing.xl,
             }}>
-              <Text style={{
-                fontSize: 32,
-                fontWeight: '700',
-                color: '#ffffff',
+              {/* Premium Avatar */}
+              <View style={{
+                width: 100,
+                height: 100,
+                borderRadius: 50,
+                backgroundColor: theme.colors.primary.DEFAULT,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: theme.spacing.lg,
+                borderWidth: 3,
+                borderColor: 'rgba(255, 255, 255, 0.2)',
+                ...theme.shadows.medium,
               }}>
-                {profile.first_name?.[0]?.toUpperCase() || ''}
-                {profile.last_name?.[0]?.toUpperCase() || ''}
-              </Text>
-            </View>
+                <LinearGradient
+                  colors={[
+                    theme.colors.primary.DEFAULT,
+                    'rgba(30, 155, 113, 0.8)',
+                  ]}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: 47,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text style={{
+                    fontSize: 36,
+                    fontWeight: '700',
+                    color: '#ffffff',
+                    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                    textShadowOffset: { width: 1, height: 1 },
+                    textShadowRadius: 2,
+                  }}>
+                    {profile.first_name?.[0]?.toUpperCase() || ''}
+                    {profile.last_name?.[0]?.toUpperCase() || ''}
+                  </Text>
+                </LinearGradient>
+              </View>
 
-            {/* User Info */}
-            <View style={{ flex: 1 }}>
+              {/* User Name */}
               <Text style={{
-                fontSize: theme.typography.h2.fontSize,
-                fontWeight: theme.typography.h2.fontWeight,
+                fontSize: theme.typography.h1.fontSize,
+                fontWeight: '700',
                 color: theme.colors.text.primary,
-                marginBottom: theme.spacing.xs,
+                textAlign: 'center',
+                marginBottom: theme.spacing.sm,
+                textShadowColor: 'rgba(0, 0, 0, 0.1)',
+                textShadowOffset: { width: 0, height: 1 },
+                textShadowRadius: 2,
               }}>
                 {profile.first_name} {profile.last_name}
               </Text>
-              <Text style={{
-                fontSize: theme.typography.body.fontSize,
-                color: theme.colors.text.secondary,
-                marginBottom: theme.spacing.xs,
-              }}>
-                {profile.email}
-              </Text>
+
+              {/* Member Since Badge */}
               <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
+                backgroundColor: 'rgba(30, 155, 113, 0.2)',
+                paddingHorizontal: theme.spacing.lg,
+                paddingVertical: theme.spacing.sm,
+                borderRadius: theme.borderRadius.lg,
+                borderWidth: 1,
+                borderColor: 'rgba(30, 155, 113, 0.3)',
               }}>
                 <Text style={{
-                  fontSize: theme.typography.caption.fontSize,
-                  color: theme.colors.text.secondary,
+                  fontSize: theme.typography.body.fontSize,
+                  color: theme.colors.primary.DEFAULT,
+                  fontWeight: '600',
+                  textAlign: 'center',
                 }}>
                   {t('memberSince')} {(() => {
                     const date = new Date(profile.join_date).toLocaleDateString(language === 'ro' ? 'ro-RO' : 'en-US', {
@@ -591,49 +613,78 @@ export default function ProfileScreen() {
                 </Text>
               </View>
             </View>
-          </View>
 
-          {/* Contact Info */}
-          <View style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-          }}>
+            {/* Contact Information Row */}
             <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              flex: 1,
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: theme.borderRadius.lg,
+              padding: theme.spacing.lg,
+              borderWidth: 1,
+              borderColor: 'rgba(255, 255, 255, 0.1)',
             }}>
-              <Mail
-                size={16}
-                color={theme.colors.text.secondary}
-                style={{ marginRight: theme.spacing.sm }}
-              />
-                <Text style={{
-                  fontSize: theme.typography.caption.fontSize,
-                  color: theme.colors.text.secondary,
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+                {/* Email */}
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  flex: 1,
+                  marginRight: theme.spacing.md,
                 }}>
-                  {t('emailVerified')}
-                </Text>
-            </View>
+                  <View style={{
+                    backgroundColor: 'rgba(30, 155, 113, 0.2)',
+                    borderRadius: theme.borderRadius.sm,
+                    padding: theme.spacing.xs,
+                    marginRight: theme.spacing.sm,
+                  }}>
+                    <Mail
+                      size={14}
+                      color={theme.colors.primary.DEFAULT}
+                    />
+                  </View>
+                  <Text style={{
+                    fontSize: theme.typography.caption.fontSize,
+                    color: theme.colors.text.secondary,
+                    flex: 1,
+                  }} numberOfLines={1}>
+                    {profile.email}
+                  </Text>
+                </View>
 
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              flex: 1,
-            }}>
-              <Phone
-                size={16}
-                color={theme.colors.text.secondary}
-                style={{ marginRight: theme.spacing.sm }}
-              />
-                <Text style={{
-                  fontSize: theme.typography.caption.fontSize,
-                  color: theme.colors.text.secondary,
-                }}>
-                  {profile.phone || t('notProvided')}
-                </Text>
+                {/* Phone */}
+                {profile.phone && (
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    flex: 1,
+                  }}>
+                    <View style={{
+                      backgroundColor: 'rgba(30, 155, 113, 0.2)',
+                      borderRadius: theme.borderRadius.sm,
+                      padding: theme.spacing.xs,
+                      marginRight: theme.spacing.sm,
+                    }}>
+                      <Phone
+                        size={14}
+                        color={theme.colors.primary.DEFAULT}
+                      />
+                    </View>
+                    <Text style={{
+                      fontSize: theme.typography.caption.fontSize,
+                      color: theme.colors.text.secondary,
+                      textAlign: 'right',
+                      flex: 1,
+                    }} numberOfLines={1}>
+                      {profile.phone}
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
-          </View>
+          </LinearGradient>
         </View>
 
         {/* Personal Information */}
