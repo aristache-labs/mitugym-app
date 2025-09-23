@@ -691,9 +691,16 @@ export default function HomeScreen() {
                                   <Text style={{
                                     fontSize: theme.typography.caption.fontSize,
                                     color: theme.colors.text.secondary,
-                                    marginRight: theme.spacing.sm,
+                                    marginRight: theme.spacing.xs,
                                   }}>
                                     {isToday ? t('todayLower') : sessionDate.toLocaleDateString()}
+                                  </Text>
+                                  <Text style={{
+                                    fontSize: theme.typography.caption.fontSize,
+                                    color: theme.colors.text.tertiary,
+                                    marginRight: theme.spacing.xs,
+                                  }}>
+                                    •
                                   </Text>
                                   <Text style={{
                                     fontSize: theme.typography.caption.fontSize,
@@ -790,9 +797,16 @@ export default function HomeScreen() {
                                   <Text style={{
                                     fontSize: theme.typography.caption.fontSize,
                                     color: theme.colors.text.secondary,
-                                    marginRight: theme.spacing.sm,
+                                    marginRight: theme.spacing.xs,
                                   }}>
                                     {sessionDate.toLocaleDateString()}
+                                  </Text>
+                                  <Text style={{
+                                    fontSize: theme.typography.caption.fontSize,
+                                    color: theme.colors.text.tertiary,
+                                    marginRight: theme.spacing.xs,
+                                  }}>
+                                    •
                                   </Text>
                                   <Text style={{
                                     fontSize: theme.typography.caption.fontSize,
@@ -986,32 +1000,37 @@ export default function HomeScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setAnnouncementsModalVisible(false)}
       >
-        <View style={{ flex: 1, backgroundColor: theme.colors.background.DEFAULT }}>
+        <View style={{
+          flex: 1,
+          backgroundColor: theme.colors.background.DEFAULT,
+          paddingTop: theme.spacing.md,
+        }}>
+          {/* Modal Header */}
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: theme.spacing.lg,
-            paddingTop: theme.spacing.md,
+            paddingHorizontal: theme.spacing.lg,
+            paddingTop: theme.spacing.xs,
+            paddingBottom: theme.spacing.sm,
             borderBottomWidth: 1,
-            borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+            borderBottomColor: 'rgba(30, 155, 113, 0.2)',
           }}>
-            <Text style={{
-              fontSize: theme.typography.h2.fontSize,
-              fontWeight: '700',
-              color: theme.colors.text.primary,
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
             }}>
-              {t('announcements')}
-            </Text>
-            <TouchableOpacity
-              onPress={() => setAnnouncementsModalVisible(false)}
-              style={{
-                padding: theme.spacing.sm,
-                borderRadius: theme.borderRadius.md,
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              }}
-            >
-              <X size={20} color={theme.colors.text.primary} />
+              <Bell size={24} color={theme.colors.secondary.DEFAULT} style={{ marginRight: theme.spacing.sm }} />
+              <Text style={{
+                fontSize: theme.typography.h2.fontSize,
+                fontWeight: theme.typography.h2.fontWeight,
+                color: theme.colors.text.primary,
+              }}>
+                {t('announcements')}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => setAnnouncementsModalVisible(false)}>
+              <X size={24} color={theme.colors.text.secondary} />
             </TouchableOpacity>
           </View>
 
@@ -1131,32 +1150,37 @@ export default function HomeScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setGymScheduleModalVisible(false)}
       >
-        <View style={{ flex: 1, backgroundColor: theme.colors.background.DEFAULT }}>
+        <View style={{
+          flex: 1,
+          backgroundColor: theme.colors.background.DEFAULT,
+          paddingTop: theme.spacing.md,
+        }}>
+          {/* Modal Header */}
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: theme.spacing.lg,
-            paddingTop: theme.spacing.md,
+            paddingHorizontal: theme.spacing.lg,
+            paddingTop: theme.spacing.xs,
+            paddingBottom: theme.spacing.sm,
             borderBottomWidth: 1,
-            borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+            borderBottomColor: 'rgba(30, 155, 113, 0.2)',
           }}>
-            <Text style={{
-              fontSize: theme.typography.h2.fontSize,
-              fontWeight: '700',
-              color: theme.colors.text.primary,
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
             }}>
-              {t('gymSchedule')}
-            </Text>
-            <TouchableOpacity
-              onPress={() => setGymScheduleModalVisible(false)}
-              style={{
-                padding: theme.spacing.sm,
-                borderRadius: theme.borderRadius.md,
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              }}
-            >
-              <X size={20} color={theme.colors.text.primary} />
+              <Clock size={24} color={theme.colors.secondary.DEFAULT} style={{ marginRight: theme.spacing.sm }} />
+              <Text style={{
+                fontSize: theme.typography.h2.fontSize,
+                fontWeight: theme.typography.h2.fontWeight,
+                color: theme.colors.text.primary,
+              }}>
+                {t('gymSchedule')}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => setGymScheduleModalVisible(false)}>
+              <X size={24} color={theme.colors.text.secondary} />
             </TouchableOpacity>
           </View>
 
