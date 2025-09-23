@@ -11,6 +11,7 @@ import {
   Users,
   Bell,
   X,
+  CheckCircle,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStore } from '../../lib/store';
@@ -46,6 +47,8 @@ export default function HomeScreen() {
     fetchGymSchedule,
     getValidatedPeopleInGym,
     runCleanupInvalidCheckins,
+    sessionBookings,
+    fetchSessionBookings,
   } = useAppStore();
 
   // Load data on component mount
@@ -54,10 +57,27 @@ export default function HomeScreen() {
     fetchCheckins();
     fetchAnnouncements();
     fetchGymSchedule();
-  }, [fetchServices, fetchCheckins, fetchAnnouncements, fetchGymSchedule]);
+    fetchSessionBookings();
+  }, [fetchServices, fetchCheckins, fetchAnnouncements, fetchGymSchedule, fetchSessionBookings]);
 
   // Get available services (limit to 2 for preview)
   const availableServices = services.slice(0, 2);
+
+  // Get upcoming sessions separated by status
+  const getUpcomingSessions = () => {
+    const now = new Date();
+    const futureBookings = sessionBookings.filter(booking => {
+      const bookingDate = new Date(booking.booking_date);
+      return bookingDate >= now && (booking.status === 'confirmed' || booking.status === 'pending');
+    }).sort((a, b) => new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime());
+
+    return {
+      confirmed: futureBookings.filter(booking => booking.status === 'confirmed').slice(0, 3),
+      pending: futureBookings.filter(booking => booking.status === 'pending').slice(0, 3),
+    };
+  };
+
+  const upcomingSessions = getUpcomingSessions();
 
   // Calculate last visit from checkins
   const getLastVisit = () => {
@@ -565,6 +585,251 @@ export default function HomeScreen() {
             </LinearGradient>
           </TouchableOpacity>
         </View>
+
+        {/* Upcoming Sessions Section */}
+        {(upcomingSessions.confirmed.length > 0 || upcomingSessions.pending.length > 0) && (
+          <View style={{ marginBottom: theme.spacing.xl }}>
+            <TouchableOpacity
+              onPress={() => router.push('/(tabs)/membership')}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={[
+                  'rgba(30, 155, 113, 0.1)',
+                  'rgba(17, 22, 24, 0.8)',
+                  'rgba(11, 15, 14, 0.9)',
+                ]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  borderRadius: theme.borderRadius.xl,
+                  padding: theme.spacing.lg,
+                  borderWidth: 1,
+                  borderColor: 'rgba(30, 155, 113, 0.3)',
+                  ...theme.shadows.medium,
+                }}
+              >
+                {/* Header */}
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: theme.spacing.md,
+                }}>
+                  <Clock
+                    size={24}
+                    color={theme.colors.primary.DEFAULT}
+                    style={{ marginRight: theme.spacing.sm }}
+                  />
+                  <Text style={{
+                    fontSize: theme.typography.h3.fontSize,
+                    fontWeight: theme.typography.h3.fontWeight,
+                    color: theme.colors.text.primary,
+                  }}>
+                    {t('upcomingSessions')}
+                  </Text>
+                </View>
+
+                {/* Confirmed Sessions */}
+                {upcomingSessions.confirmed.length > 0 && (
+                  <View style={{ marginBottom: upcomingSessions.pending.length > 0 ? theme.spacing.md : 0 }}>
+                    <View style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginBottom: theme.spacing.sm,
+                    }}>
+                      <CheckCircle
+                        size={16}
+                        color={theme.colors.status.success}
+                        style={{ marginRight: theme.spacing.xs }}
+                      />
+                      <Text style={{
+                        fontSize: theme.typography.caption.fontSize,
+                        fontWeight: '600',
+                        color: theme.colors.text.primary,
+                        textTransform: 'uppercase',
+                        letterSpacing: 0.5,
+                      }}>
+                        {t('confirmedSessions')}
+                      </Text>
+                    </View>
+
+                    <View style={{ gap: theme.spacing.xs }}>
+                      {upcomingSessions.confirmed.slice(0, 3).map((session) => {
+                        const sessionDate = new Date(session.booking_date);
+                        const isToday = sessionDate.toDateString() === new Date().toDateString();
+
+                        return (
+                          <View
+                            key={session.id}
+                            style={{
+                              backgroundColor: 'rgba(46, 204, 113, 0.08)',
+                              borderRadius: theme.borderRadius.md,
+                              padding: theme.spacing.sm,
+                              borderLeftWidth: 3,
+                              borderLeftColor: theme.colors.status.success,
+                            }}
+                          >
+                            <View style={{
+                              flexDirection: 'row',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                            }}>
+                              <View style={{ flex: 1 }}>
+                                <Text style={{
+                                  fontSize: theme.typography.caption.fontSize,
+                                  fontWeight: '600',
+                                  color: theme.colors.text.primary,
+                                  marginBottom: 2,
+                                }}>
+                                  {session.purchased_services?.services?.name || 'Session'}
+                                </Text>
+                                <View style={{
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                }}>
+                                  <Text style={{
+                                    fontSize: theme.typography.caption.fontSize,
+                                    color: theme.colors.text.secondary,
+                                    marginRight: theme.spacing.sm,
+                                  }}>
+                                    {isToday ? t('todayLower') : sessionDate.toLocaleDateString()}
+                                  </Text>
+                                  <Text style={{
+                                    fontSize: theme.typography.caption.fontSize,
+                                    color: theme.colors.primary.DEFAULT,
+                                    fontWeight: '600',
+                                  }}>
+                                    {sessionDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </Text>
+                                </View>
+                              </View>
+
+                              {isToday && (
+                                <View style={{
+                                  backgroundColor: theme.colors.primary.DEFAULT,
+                                  paddingHorizontal: theme.spacing.xs,
+                                  paddingVertical: 2,
+                                  borderRadius: theme.borderRadius.xs,
+                                }}>
+                                  <Text style={{
+                                    fontSize: 10,
+                                    fontWeight: '600',
+                                    color: 'white',
+                                    textTransform: 'uppercase',
+                                  }}>
+                                    {t('todayLower')}
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </View>
+                )}
+
+                {/* Pending Sessions */}
+                {upcomingSessions.pending.length > 0 && (
+                  <View>
+                    <View style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginBottom: theme.spacing.sm,
+                    }}>
+                      <Calendar
+                        size={16}
+                        color={theme.colors.status.warning}
+                        style={{ marginRight: theme.spacing.xs }}
+                      />
+                      <Text style={{
+                        fontSize: theme.typography.caption.fontSize,
+                        fontWeight: '600',
+                        color: theme.colors.text.primary,
+                        textTransform: 'uppercase',
+                        letterSpacing: 0.5,
+                      }}>
+                        {t('pendingSessions')}
+                      </Text>
+                    </View>
+
+                    <View style={{ gap: theme.spacing.xs }}>
+                      {upcomingSessions.pending.slice(0, 3).map((session) => {
+                        const sessionDate = new Date(session.booking_date);
+
+                        return (
+                          <View
+                            key={session.id}
+                            style={{
+                              backgroundColor: 'rgba(255, 193, 7, 0.08)',
+                              borderRadius: theme.borderRadius.md,
+                              padding: theme.spacing.sm,
+                              borderLeftWidth: 3,
+                              borderLeftColor: theme.colors.status.warning,
+                            }}
+                          >
+                            <View style={{
+                              flexDirection: 'row',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                            }}>
+                              <View style={{ flex: 1 }}>
+                                <Text style={{
+                                  fontSize: theme.typography.caption.fontSize,
+                                  fontWeight: '600',
+                                  color: theme.colors.text.primary,
+                                  marginBottom: 2,
+                                }}>
+                                  {session.purchased_services?.services?.name || 'Session'}
+                                </Text>
+                                <View style={{
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                }}>
+                                  <Text style={{
+                                    fontSize: theme.typography.caption.fontSize,
+                                    color: theme.colors.text.secondary,
+                                    marginRight: theme.spacing.sm,
+                                  }}>
+                                    {sessionDate.toLocaleDateString()}
+                                  </Text>
+                                  <Text style={{
+                                    fontSize: theme.typography.caption.fontSize,
+                                    color: theme.colors.primary.DEFAULT,
+                                    fontWeight: '600',
+                                  }}>
+                                    {sessionDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </Text>
+                                </View>
+                              </View>
+
+                              <View style={{
+                                backgroundColor: theme.colors.status.warning,
+                                paddingHorizontal: theme.spacing.xs,
+                                paddingVertical: 2,
+                                borderRadius: theme.borderRadius.xs,
+                              }}>
+                                <Text style={{
+                                  fontSize: 10,
+                                  fontWeight: '600',
+                                  color: '#000',
+                                  textTransform: 'uppercase',
+                                }}>
+                                  {t('pending')}
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </View>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Available Services Section */}
         <View style={{ marginBottom: theme.spacing.xl }}>

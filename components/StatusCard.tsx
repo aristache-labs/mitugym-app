@@ -59,23 +59,21 @@ export function StatusCard({
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
           marginBottom: theme.spacing.md,
         }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <StatusIcon
-              size={24}
-              color={statusColor}
-              style={{ marginRight: theme.spacing.sm }}
-            />
-            <Text style={{
-              fontSize: theme.typography.h3.fontSize,
-              fontWeight: theme.typography.h3.fontWeight,
-              color: theme.colors.text.primary,
-            }}>
-              {t('membershipStatus')}
-            </Text>
-          </View>
+          <StatusIcon
+            size={24}
+            color={statusColor}
+            style={{ marginRight: theme.spacing.sm }}
+          />
+          <Text style={{
+            fontSize: theme.typography.h3.fontSize,
+            fontWeight: theme.typography.h3.fontWeight,
+            color: theme.colors.text.primary,
+          }}>
+            {t('membershipStatus')}
+          </Text>
         </View>
 
         {/* Status and Plan */}
