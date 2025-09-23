@@ -31,6 +31,7 @@ export const translations = {
     confirmPassword: 'Confirm Password',
     firstName: 'First Name',
     lastName: 'Last Name',
+    saveChanges: 'Save Changes',
     phone: 'Phone',
     rememberMe: 'Remember Me',
     forgotPassword: 'Forgot Password?',
@@ -299,6 +300,7 @@ export const translations = {
     // Profile Page
     manageAccount: 'Manage your account',
     personalInformation: 'Personal Information',
+    editPersonalInformation: 'Edit Personal Information',
     dateOfBirth: 'Date of Birth',
     membershipPlan: 'Membership Plan',
     plan: 'Plan',
@@ -360,6 +362,7 @@ export const translations = {
     confirmPassword: 'Confirmă Parola',
     firstName: 'Prenume',
     lastName: 'Nume',
+    saveChanges: 'Salvează Modificările',
     phone: 'Telefon',
     rememberMe: 'Ține-mă minte',
     forgotPassword: 'Ai uitat parola?',
@@ -628,6 +631,7 @@ export const translations = {
     // Profile Page
     manageAccount: 'Gestionează contul',
     personalInformation: 'Informații Personale',
+    editPersonalInformation: 'Editează Informațiile Personale',
     dateOfBirth: 'Data Nașterii',
     membershipPlan: 'Plan de Abonament',
     plan: 'Abonament',

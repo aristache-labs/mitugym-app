@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Switch, Alert, Modal, TextInput, Platform } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -19,6 +20,9 @@ import {
   Globe,
   Fingerprint,
   Smartphone,
+  X,
+  Save,
+  ChevronDown,
 } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
@@ -118,6 +122,26 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   // App Settings States
   const [biometricAuth, setBiometricAuth] = useState(false);
+
+// Edit Profile Modal State
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editForm, setEditForm] = useState({
+    first_name: '',
+    last_name: '',
+    phone: '',
+    address: '',
+    city: '',
+    county: '',
+    date_of_birth: '',
+    gender: '',
+  });
+
+  // Date picker state
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tempDate, setTempDate] = useState(new Date());
+
+  // Gender dropdown state
+  const [showGenderDropdown, setShowGenderDropdown] = useState(false);
 
   const { member, logout, session, showToast } = useAppStore();
   const { language, setLanguage, t } = useLanguage();
@@ -252,6 +276,118 @@ export default function ProfileScreen() {
         })),
       ],
     );
+  };
+
+  const handleEditProfile = () => {
+    if (profile) {
+      setEditForm({
+        first_name: profile.first_name || '',
+        last_name: profile.last_name || '',
+        phone: profile.phone || '',
+        address: profile.address || '',
+        city: profile.city || '',
+        county: profile.county || '',
+        date_of_birth: profile.date_of_birth || '',
+        gender: profile.gender || '',
+      });
+      // Set temp date for date picker
+      if (profile.date_of_birth) {
+        setTempDate(new Date(profile.date_of_birth));
+      } else {
+        setTempDate(new Date());
+      }
+      setEditModalVisible(true);
+    }
+  };
+
+  const handleDateChange = (_event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    if (selectedDate) {
+      setTempDate(selectedDate);
+      if (Platform.OS === 'android') {
+        // On Android, immediately update the form
+        const dateString = selectedDate.toISOString().split('T')[0] || '';
+        setEditForm({ ...editForm, date_of_birth: dateString });
+      }
+    }
+  };
+
+  const handleDateDone = () => {
+    const dateString = tempDate.toISOString().split('T')[0] || '';
+    setEditForm({ ...editForm, date_of_birth: dateString });
+    setShowDatePicker(false);
+  };
+
+  const handleDateCancel = () => {
+    // Reset temp date to original value
+    if (editForm.date_of_birth) {
+      setTempDate(new Date(editForm.date_of_birth));
+    }
+    setShowDatePicker(false);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!session?.user?.id) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          first_name: editForm.first_name,
+          last_name: editForm.last_name,
+          phone: editForm.phone,
+          address: editForm.address,
+          city: editForm.city,
+          county: editForm.county,
+          date_of_birth: editForm.date_of_birth,
+          gender: editForm.gender,
+        })
+        .eq('id', session.user.id);
+
+      if (error) {
+        console.error('Error updating profile:', error);
+        showToast('Failed to update profile', 'error');
+      } else {
+        showToast('Profile updated successfully', 'success');
+        setEditModalVisible(false);
+        // Reload profile data
+        reloadProfile();
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      showToast('Failed to update profile', 'error');
+    }
+  };
+
+  const reloadProfile = async () => {
+    if (!session?.user?.id) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (error) {
+        console.error('Error loading profile:', error);
+        showToast('Failed to load profile', 'error');
+      } else {
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      showToast('Failed to load profile', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const notificationSettings: SettingItem[] = [
@@ -534,7 +670,7 @@ export default function ProfileScreen() {
               </Text>
             </View>
             <TouchableOpacity
-              onPress={() => console.log('Edit profile')}
+              onPress={handleEditProfile}
               style={{
                 padding: theme.spacing.sm,
                 backgroundColor: 'rgba(77, 212, 212, 0.1)',
@@ -1136,6 +1272,494 @@ export default function ProfileScreen() {
           MITUGYM v1.0.0
         </Text>
       </ScrollView>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        visible={editModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: theme.colors.background.DEFAULT,
+          paddingTop: theme.spacing.md,
+        }}>
+          {/* Modal Header */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: theme.spacing.lg,
+            paddingTop: theme.spacing.xs,
+            paddingBottom: theme.spacing.sm,
+            borderBottomWidth: 1,
+            borderBottomColor: 'rgba(30, 155, 113, 0.2)',
+          }}>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
+              <Edit size={24} color={theme.colors.secondary.DEFAULT} style={{ marginRight: theme.spacing.sm }} />
+              <Text style={{
+                fontSize: theme.typography.h2.fontSize,
+                fontWeight: theme.typography.h2.fontWeight,
+                color: theme.colors.text.primary,
+              }}>
+                {t('editPersonalInformation')}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+              <X size={24} color={theme.colors.text.secondary} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{
+              padding: theme.spacing.lg,
+              paddingBottom: insets.bottom + theme.spacing.xl,
+            }}
+          >
+            {/* Form Fields */}
+            <View style={{ gap: theme.spacing.lg }}>
+              {/* First Name */}
+              <View>
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  fontWeight: '600',
+                  color: theme.colors.text.primary,
+                  marginBottom: theme.spacing.sm,
+                }}>
+                  {t('firstName')}
+                </Text>
+                <TextInput
+                  value={editForm.first_name}
+                  onChangeText={(text) => setEditForm({ ...editForm, first_name: text })}
+                  style={{
+                    backgroundColor: theme.colors.background.surface,
+                    borderRadius: theme.borderRadius.lg,
+                    padding: theme.spacing.md,
+                    fontSize: theme.typography.body.fontSize,
+                    color: theme.colors.text.primary,
+                    borderWidth: 1,
+                    borderColor: 'rgba(30, 155, 113, 0.2)',
+                  }}
+                  placeholder={t('firstName')}
+                  placeholderTextColor={theme.colors.text.secondary}
+                />
+              </View>
+
+              {/* Last Name */}
+              <View>
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  fontWeight: '600',
+                  color: theme.colors.text.primary,
+                  marginBottom: theme.spacing.sm,
+                }}>
+                  {t('lastName')}
+                </Text>
+                <TextInput
+                  value={editForm.last_name}
+                  onChangeText={(text) => setEditForm({ ...editForm, last_name: text })}
+                  style={{
+                    backgroundColor: theme.colors.background.surface,
+                    borderRadius: theme.borderRadius.lg,
+                    padding: theme.spacing.md,
+                    fontSize: theme.typography.body.fontSize,
+                    color: theme.colors.text.primary,
+                    borderWidth: 1,
+                    borderColor: 'rgba(30, 155, 113, 0.2)',
+                  }}
+                  placeholder={t('lastName')}
+                  placeholderTextColor={theme.colors.text.secondary}
+                />
+              </View>
+
+              {/* Phone */}
+              <View>
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  fontWeight: '600',
+                  color: theme.colors.text.primary,
+                  marginBottom: theme.spacing.sm,
+                }}>
+                  {t('phone')}
+                </Text>
+                <TextInput
+                  value={editForm.phone}
+                  onChangeText={(text) => setEditForm({ ...editForm, phone: text })}
+                  style={{
+                    backgroundColor: theme.colors.background.surface,
+                    borderRadius: theme.borderRadius.lg,
+                    padding: theme.spacing.md,
+                    fontSize: theme.typography.body.fontSize,
+                    color: theme.colors.text.primary,
+                    borderWidth: 1,
+                    borderColor: 'rgba(30, 155, 113, 0.2)',
+                  }}
+                  placeholder={t('phone')}
+                  placeholderTextColor={theme.colors.text.secondary}
+                  keyboardType="phone-pad"
+                />
+              </View>
+
+              {/* Address */}
+              <View>
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  fontWeight: '600',
+                  color: theme.colors.text.primary,
+                  marginBottom: theme.spacing.sm,
+                }}>
+                  {t('address')}
+                </Text>
+                <TextInput
+                  value={editForm.address}
+                  onChangeText={(text) => setEditForm({ ...editForm, address: text })}
+                  style={{
+                    backgroundColor: theme.colors.background.surface,
+                    borderRadius: theme.borderRadius.lg,
+                    padding: theme.spacing.md,
+                    fontSize: theme.typography.body.fontSize,
+                    color: theme.colors.text.primary,
+                    borderWidth: 1,
+                    borderColor: 'rgba(30, 155, 113, 0.2)',
+                  }}
+                  placeholder={t('address')}
+                  placeholderTextColor={theme.colors.text.secondary}
+                />
+              </View>
+
+              {/* City */}
+              <View>
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  fontWeight: '600',
+                  color: theme.colors.text.primary,
+                  marginBottom: theme.spacing.sm,
+                }}>
+                  {t('city')}
+                </Text>
+                <TextInput
+                  value={editForm.city}
+                  onChangeText={(text) => setEditForm({ ...editForm, city: text })}
+                  style={{
+                    backgroundColor: theme.colors.background.surface,
+                    borderRadius: theme.borderRadius.lg,
+                    padding: theme.spacing.md,
+                    fontSize: theme.typography.body.fontSize,
+                    color: theme.colors.text.primary,
+                    borderWidth: 1,
+                    borderColor: 'rgba(30, 155, 113, 0.2)',
+                  }}
+                  placeholder={t('city')}
+                  placeholderTextColor={theme.colors.text.secondary}
+                />
+              </View>
+
+              {/* County */}
+              <View>
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  fontWeight: '600',
+                  color: theme.colors.text.primary,
+                  marginBottom: theme.spacing.sm,
+                }}>
+                  {t('county')}
+                </Text>
+                <TextInput
+                  value={editForm.county}
+                  onChangeText={(text) => setEditForm({ ...editForm, county: text })}
+                  style={{
+                    backgroundColor: theme.colors.background.surface,
+                    borderRadius: theme.borderRadius.lg,
+                    padding: theme.spacing.md,
+                    fontSize: theme.typography.body.fontSize,
+                    color: theme.colors.text.primary,
+                    borderWidth: 1,
+                    borderColor: 'rgba(30, 155, 113, 0.2)',
+                  }}
+                  placeholder={t('county')}
+                  placeholderTextColor={theme.colors.text.secondary}
+                />
+              </View>
+
+              {/* Date of Birth */}
+              <View>
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  fontWeight: '600',
+                  color: theme.colors.text.primary,
+                  marginBottom: theme.spacing.sm,
+                }}>
+                  {t('dateOfBirth')}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowDatePicker(true)}
+                  style={{
+                    backgroundColor: theme.colors.background.surface,
+                    borderRadius: theme.borderRadius.lg,
+                    padding: theme.spacing.md,
+                    borderWidth: 1,
+                    borderColor: 'rgba(30, 155, 113, 0.2)',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Text style={{
+                    fontSize: theme.typography.body.fontSize,
+                    color: editForm.date_of_birth ? theme.colors.text.primary : theme.colors.text.secondary,
+                  }}>
+                    {editForm.date_of_birth ? new Date(editForm.date_of_birth).toLocaleDateString() : t('selectDate')}
+                  </Text>
+                  <Calendar size={20} color={theme.colors.text.secondary} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Gender */}
+              <View>
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  fontWeight: '600',
+                  color: theme.colors.text.primary,
+                  marginBottom: theme.spacing.sm,
+                }}>
+                  {t('gender')}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowGenderDropdown(true)}
+                  style={{
+                    backgroundColor: theme.colors.background.surface,
+                    borderRadius: theme.borderRadius.lg,
+                    padding: theme.spacing.md,
+                    borderWidth: 1,
+                    borderColor: 'rgba(30, 155, 113, 0.2)',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Text style={{
+                    fontSize: theme.typography.body.fontSize,
+                    color: editForm.gender ? theme.colors.text.primary : theme.colors.text.secondary,
+                  }}>
+                    {editForm.gender ? (editForm.gender === 'male' ? t('male') : editForm.gender === 'female' ? t('female') : t('other')) : t('selectGender')}
+                  </Text>
+                  <ChevronDown size={20} color={theme.colors.text.secondary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Action Buttons */}
+            <View style={{
+              marginTop: theme.spacing.xl,
+              gap: theme.spacing.md,
+            }}>
+              <PillButton
+                title={t('saveChanges')}
+                onPress={handleSaveProfile}
+                variant="primary"
+                size="large"
+                fullWidth
+                icon={Save}
+              />
+              <PillButton
+                title={t('cancel')}
+                onPress={() => setEditModalVisible(false)}
+                variant="outline"
+                size="large"
+                fullWidth
+              />
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* Date Picker for iOS */}
+        {Platform.OS === 'ios' && showDatePicker && (
+          <Modal
+            transparent={true}
+            animationType="slide"
+            visible={showDatePicker}
+            onRequestClose={() => setShowDatePicker(false)}
+          >
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                justifyContent: 'flex-end',
+              }}
+              activeOpacity={1}
+              onPress={handleDateCancel}
+            >
+              <View style={{
+                backgroundColor: theme.colors.background.surface,
+                borderTopLeftRadius: theme.borderRadius.xl,
+                borderTopRightRadius: theme.borderRadius.xl,
+                paddingBottom: insets.bottom,
+              }}>
+                {/* Picker Header */}
+                <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingHorizontal: theme.spacing.lg,
+                  paddingVertical: theme.spacing.md,
+                  borderBottomWidth: 1,
+                  borderBottomColor: 'rgba(30, 155, 113, 0.2)',
+                }}>
+                  <TouchableOpacity onPress={handleDateCancel}>
+                    <Text style={{
+                      fontSize: theme.typography.body.fontSize,
+                      color: theme.colors.text.secondary,
+                    }}>
+                      {t('cancel')}
+                    </Text>
+                  </TouchableOpacity>
+                  <Text style={{
+                    fontSize: theme.typography.body.fontSize,
+                    fontWeight: '600',
+                    color: theme.colors.text.primary,
+                  }}>
+                    {t('dateOfBirth')}
+                  </Text>
+                  <TouchableOpacity onPress={handleDateDone}>
+                    <Text style={{
+                      fontSize: theme.typography.body.fontSize,
+                      color: theme.colors.primary.DEFAULT,
+                      fontWeight: '600',
+                    }}>
+                      {t('done')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Date Picker */}
+                <View style={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: theme.spacing.lg,
+                }}>
+                  <DateTimePicker
+                    value={tempDate}
+                    mode="date"
+                    display="spinner"
+                    onChange={handleDateChange}
+                    maximumDate={new Date()}
+                    textColor={theme.colors.text.primary}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
+          </Modal>
+        )}
+
+        {/* Date Picker for Android */}
+        {Platform.OS === 'android' && showDatePicker && (
+          <DateTimePicker
+            value={tempDate}
+            mode="date"
+            onChange={handleDateChange}
+            maximumDate={new Date()}
+          />
+        )}
+
+        {/* Gender Dropdown Modal */}
+        {showGenderDropdown && (
+          <Modal
+            transparent={true}
+            animationType="fade"
+            visible={showGenderDropdown}
+            onRequestClose={() => setShowGenderDropdown(false)}
+          >
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingHorizontal: theme.spacing.xl,
+              }}
+              activeOpacity={1}
+              onPress={() => setShowGenderDropdown(false)}
+            >
+              <View style={{
+                backgroundColor: theme.colors.background.surface,
+                borderRadius: theme.borderRadius.xl,
+                padding: theme.spacing.lg,
+                width: '100%',
+                maxWidth: 300,
+                ...theme.shadows.strong,
+              }}>
+                <Text style={{
+                  fontSize: theme.typography.h3.fontSize,
+                  fontWeight: '600',
+                  color: theme.colors.text.primary,
+                  textAlign: 'center',
+                  marginBottom: theme.spacing.lg,
+                }}>
+                  {t('selectGender')}
+                </Text>
+
+                <View style={{ gap: theme.spacing.sm }}>
+                  {['male', 'female', 'other'].map((genderOption) => (
+                    <TouchableOpacity
+                      key={genderOption}
+                      onPress={() => {
+                        setEditForm({ ...editForm, gender: genderOption });
+                        setShowGenderDropdown(false);
+                      }}
+                      style={{
+                        backgroundColor: editForm.gender === genderOption
+                          ? theme.colors.primary.DEFAULT
+                          : 'rgba(30, 155, 113, 0.1)',
+                        borderRadius: theme.borderRadius.lg,
+                        padding: theme.spacing.md,
+                        borderWidth: 1,
+                        borderColor: editForm.gender === genderOption
+                          ? theme.colors.primary.DEFAULT
+                          : 'rgba(30, 155, 113, 0.2)',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Text style={{
+                        fontSize: theme.typography.body.fontSize,
+                        color: editForm.gender === genderOption
+                          ? 'white'
+                          : theme.colors.text.primary,
+                        fontWeight: '600',
+                      }}>
+                        {genderOption === 'male' ? t('male') : genderOption === 'female' ? t('female') : t('other')}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => setShowGenderDropdown(false)}
+                  style={{
+                    backgroundColor: 'rgba(30, 155, 113, 0.1)',
+                    borderRadius: theme.borderRadius.lg,
+                    padding: theme.spacing.md,
+                    marginTop: theme.spacing.lg,
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text style={{
+                    fontSize: theme.typography.body.fontSize,
+                    color: theme.colors.text.secondary,
+                    fontWeight: '600',
+                  }}>
+                    {t('cancel')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </Modal>
+        )}
+      </Modal>
     </View>
   );
 }
