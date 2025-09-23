@@ -167,61 +167,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       console.log('Signup data:', data);
 
       if (data.session) {
-        console.log('Session exists, creating profile...');
-        // Create profile record using the database function
-        if (profileData) {
-          console.log('Creating profile with data:', profileData);
-
-          const { data: profileResult, error: profileError } = await supabase
-            .rpc('create_user_profile', {
-              user_id: data.session.user.id,
-              user_email: email,
-              first_name: profileData.first_name,
-              last_name: profileData.last_name,
-              date_of_birth: profileData.date_of_birth,
-              phone: profileData.phone,
-              address: profileData.address || null,
-              city: profileData.city || null,
-              county: profileData.county || null,
-              gender: profileData.gender,
-            });
-
-          if (profileError) {
-            console.error('Error creating profile:', profileError);
-            get().showToast('Failed to save profile data', 'error');
-          } else {
-            console.log('Profile created successfully:', profileResult);
-          }
-        }
-
-        // Don't set state here - let useSupabaseAuth handle it to prevent conflicts
+        console.log('Session exists, profile created automatically by trigger');
         get().showToast('Account created successfully!', 'success');
       } else if (data.user && !data.session) {
         console.log('User created but no session (email confirmation required)');
-        // Email confirmation required - still create profile for when they confirm
-        if (profileData) {
-          console.log('Creating profile for unconfirmed user with data:', profileData);
-
-          const { data: profileResult, error: profileError } = await supabase
-            .rpc('create_user_profile', {
-              user_id: data.user.id,
-              user_email: email,
-              first_name: profileData.first_name,
-              last_name: profileData.last_name,
-              date_of_birth: profileData.date_of_birth,
-              phone: profileData.phone,
-              address: profileData.address || null,
-              city: profileData.city || null,
-              county: profileData.county || null,
-              gender: profileData.gender,
-            });
-
-          if (profileError) {
-            console.error('Error creating profile for unconfirmed user:', profileError);
-          } else {
-            console.log('Profile created for unconfirmed user:', profileResult);
-          }
-        }
         get().showToast('Please check your email to confirm your account', 'info');
       } else {
         console.log('No user or session created');

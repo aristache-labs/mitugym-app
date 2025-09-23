@@ -12,7 +12,6 @@ import {
   Star,
   LogOut,
   ChevronRight,
-  Settings,
   MapPin,
   Calendar,
   User,
@@ -23,6 +22,9 @@ import {
   X,
   Save,
   ChevronDown,
+  Lock,
+  Trash2,
+  Key,
 } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
@@ -69,7 +71,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(false);
-  const [classReminders, setClassReminders] = useState(true);
+  const [servicesReminders, setServicesReminders] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   // App Settings States
@@ -94,6 +96,14 @@ export default function ProfileScreen() {
 
   // Gender dropdown state
   const [showGenderDropdown, setShowGenderDropdown] = useState(false);
+
+  // Password change modal state
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
 
   const { member, logout, session, showToast } = useAppStore();
   const { language, setLanguage, t } = useLanguage();
@@ -280,6 +290,78 @@ export default function ProfileScreen() {
     setShowDatePicker(false);
   };
 
+  const handleChangePassword = async () => {
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      showToast('Please fill in all password fields', 'error');
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      showToast('New passwords do not match', 'error');
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      showToast('Password must be at least 6 characters', 'error');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: passwordForm.newPassword,
+      });
+
+      if (error) {
+        console.error('Error updating password:', error);
+        showToast('Failed to update password', 'error');
+      } else {
+        showToast('Password updated successfully', 'success');
+        setPasswordModalVisible(false);
+        setPasswordForm({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: '',
+        });
+      }
+    } catch (error) {
+      console.error('Error updating password:', error);
+      showToast('Failed to update password', 'error');
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      t('deleteAccount'),
+      t('deleteAccountConfirm'),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        {
+          text: t('delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Call the database function to safely delete all user data
+              const { error: deleteError } = await supabase
+                .rpc('delete_user_account');
+
+              if (deleteError) {
+                console.error('Error deleting account:', deleteError);
+                showToast('Failed to delete account', 'error');
+                return;
+              }
+
+              showToast('Account deleted successfully', 'success');
+              logout();
+            } catch (error) {
+              console.error('Error deleting account:', error);
+              showToast('Failed to delete account', 'error');
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const handleSaveProfile = async () => {
     if (!session?.user?.id) {
       return;
@@ -342,7 +424,24 @@ export default function ProfileScreen() {
     }
   };
 
-  const notificationSettings: SettingItem[] = [
+  const appSettings: SettingItem[] = [
+    {
+      id: 'language',
+      title: t('language'),
+      subtitle: language === 'en' ? 'English' : 'Română',
+      icon: Globe,
+      type: 'action',
+      onPress: handleLanguageChange,
+    },
+    {
+      id: 'biometric',
+      title: t('biometricAuth'),
+      subtitle: t('biometricSubtitle'),
+      icon: Fingerprint,
+      type: 'toggle',
+      value: biometricAuth,
+      onToggle: setBiometricAuth,
+    },
     {
       id: 'push',
       title: t('pushNotifications'),
@@ -361,31 +460,11 @@ export default function ProfileScreen() {
     },
     {
       id: 'reminders',
-      title: t('classReminders'),
+      title: t('servicesReminders'),
       icon: Bell,
       type: 'toggle',
-      value: classReminders,
-      onToggle: setClassReminders,
-    },
-  ];
-
-  const appSettings: SettingItem[] = [
-    {
-      id: 'language',
-      title: t('language'),
-      subtitle: language === 'en' ? 'English' : 'Română',
-      icon: Globe,
-      type: 'action',
-      onPress: handleLanguageChange,
-    },
-    {
-      id: 'biometric',
-      title: t('biometricAuth'),
-      subtitle: t('biometricSubtitle'),
-      icon: Fingerprint,
-      type: 'toggle',
-      value: biometricAuth,
-      onToggle: setBiometricAuth,
+      value: servicesReminders,
+      onToggle: setServicesReminders,
     },
   ];
 
@@ -852,7 +931,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Notification Settings */}
+        {/* Account Security */}
         <View style={{
           backgroundColor: theme.colors.background.surface,
           borderRadius: theme.borderRadius.xl,
@@ -867,7 +946,7 @@ export default function ProfileScreen() {
             alignItems: 'center',
             marginBottom: theme.spacing.lg,
           }}>
-            <Settings
+            <Lock
               size={24}
               color={theme.colors.primary.DEFAULT}
               style={{ marginRight: theme.spacing.sm }}
@@ -877,51 +956,79 @@ export default function ProfileScreen() {
               fontWeight: theme.typography.h3.fontWeight,
               color: theme.colors.text.primary,
             }}>
-              {t('notifications')}
+              {t('accountSecurity')}
             </Text>
           </View>
 
-          {notificationSettings.map((setting, index) => (
-            <View
-              key={setting.id}
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                paddingVertical: theme.spacing.md,
-                borderBottomWidth: index < notificationSettings.length - 1 ? 1 : 0,
-                borderBottomColor: 'rgba(167, 195, 186, 0.1)',
-              }}
-            >
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
+          {/* Change Password */}
+          <TouchableOpacity
+            onPress={() => setPasswordModalVisible(true)}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingVertical: theme.spacing.md,
+              borderBottomWidth: 1,
+              borderBottomColor: 'rgba(30, 155, 113, 0.1)',
+            }}
+          >
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              flex: 1,
+            }}>
+              <Key
+                size={16}
+                color={theme.colors.text.secondary}
+                style={{ marginRight: theme.spacing.sm }}
+              />
+              <Text style={{
+                fontSize: theme.typography.body.fontSize,
+                color: theme.colors.text.primary,
                 flex: 1,
               }}>
-                <setting.icon
-                  size={20}
-                  color={theme.colors.text.secondary}
-                  style={{ marginRight: theme.spacing.md }}
-                />
-                <Text style={{
-                  fontSize: theme.typography.body.fontSize,
-                  color: theme.colors.text.primary,
-                }}>
-                  {setting.title}
-                </Text>
-              </View>
-
-              <Switch
-                value={setting.value}
-                onValueChange={setting.onToggle}
-                trackColor={{
-                  false: 'rgba(167, 195, 186, 0.3)',
-                  true: theme.colors.primary.DEFAULT,
-                }}
-                thumbColor={'#ffffff'}
-              />
+                {t('changePassword')}
+              </Text>
             </View>
-          ))}
+            <ChevronRight
+              size={16}
+              color={theme.colors.text.secondary}
+            />
+          </TouchableOpacity>
+
+          {/* Delete Account */}
+          <TouchableOpacity
+            onPress={handleDeleteAccount}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingVertical: theme.spacing.md,
+            }}
+          >
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              flex: 1,
+            }}>
+              <Trash2
+                size={16}
+                color={theme.colors.status.error}
+                style={{ marginRight: theme.spacing.sm }}
+              />
+              <Text style={{
+                fontSize: theme.typography.body.fontSize,
+                color: theme.colors.status.error,
+                flex: 1,
+              }}>
+                {t('deleteAccount')}
+              </Text>
+            </View>
+            <ChevronRight
+              size={16}
+              color={theme.colors.status.error}
+            />
+          </TouchableOpacity>
         </View>
 
         {/* App Settings */}
@@ -1551,6 +1658,167 @@ export default function ProfileScreen() {
             onChange={handleDateChange}
             maximumDate={new Date()}
           />
+        )}
+
+        {/* Password Change Modal */}
+        {passwordModalVisible && (
+          <Modal
+            transparent={true}
+            animationType="slide"
+            visible={passwordModalVisible}
+            onRequestClose={() => setPasswordModalVisible(false)}
+          >
+            <View style={{
+              flex: 1,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingHorizontal: theme.spacing.xl,
+            }}>
+              <View style={{
+                backgroundColor: theme.colors.background.surface,
+                borderRadius: theme.borderRadius.xl,
+                padding: theme.spacing.xl,
+                width: '100%',
+                maxWidth: 400,
+                ...theme.shadows.strong,
+              }}>
+                {/* Modal Header */}
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: theme.spacing.lg,
+                }}>
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}>
+                    <Key size={20} color={theme.colors.primary.DEFAULT} style={{ marginRight: theme.spacing.sm }} />
+                    <Text style={{
+                      fontSize: theme.typography.h3.fontSize,
+                      fontWeight: '600',
+                      color: theme.colors.text.primary,
+                    }}>
+                      {t('changePassword')}
+                    </Text>
+                  </View>
+                  <TouchableOpacity onPress={() => setPasswordModalVisible(false)}>
+                    <X size={20} color={theme.colors.text.secondary} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Password Form */}
+                <View style={{ gap: theme.spacing.md }}>
+                  {/* Current Password */}
+                  <View>
+                    <Text style={{
+                      fontSize: theme.typography.body.fontSize,
+                      fontWeight: '600',
+                      color: theme.colors.text.primary,
+                      marginBottom: theme.spacing.sm,
+                    }}>
+                      {t('currentPassword')}
+                    </Text>
+                    <TextInput
+                      value={passwordForm.currentPassword}
+                      onChangeText={(text) => setPasswordForm({ ...passwordForm, currentPassword: text })}
+                      secureTextEntry
+                      style={{
+                        backgroundColor: theme.colors.background.DEFAULT,
+                        borderRadius: theme.borderRadius.lg,
+                        padding: theme.spacing.md,
+                        fontSize: theme.typography.body.fontSize,
+                        color: theme.colors.text.primary,
+                        borderWidth: 1,
+                        borderColor: 'rgba(30, 155, 113, 0.2)',
+                      }}
+                      placeholder={t('currentPassword')}
+                      placeholderTextColor={theme.colors.text.secondary}
+                    />
+                  </View>
+
+                  {/* New Password */}
+                  <View>
+                    <Text style={{
+                      fontSize: theme.typography.body.fontSize,
+                      fontWeight: '600',
+                      color: theme.colors.text.primary,
+                      marginBottom: theme.spacing.sm,
+                    }}>
+                      {t('newPassword')}
+                    </Text>
+                    <TextInput
+                      value={passwordForm.newPassword}
+                      onChangeText={(text) => setPasswordForm({ ...passwordForm, newPassword: text })}
+                      secureTextEntry
+                      style={{
+                        backgroundColor: theme.colors.background.DEFAULT,
+                        borderRadius: theme.borderRadius.lg,
+                        padding: theme.spacing.md,
+                        fontSize: theme.typography.body.fontSize,
+                        color: theme.colors.text.primary,
+                        borderWidth: 1,
+                        borderColor: 'rgba(30, 155, 113, 0.2)',
+                      }}
+                      placeholder={t('newPassword')}
+                      placeholderTextColor={theme.colors.text.secondary}
+                    />
+                  </View>
+
+                  {/* Confirm Password */}
+                  <View>
+                    <Text style={{
+                      fontSize: theme.typography.body.fontSize,
+                      fontWeight: '600',
+                      color: theme.colors.text.primary,
+                      marginBottom: theme.spacing.sm,
+                    }}>
+                      {t('confirmPassword')}
+                    </Text>
+                    <TextInput
+                      value={passwordForm.confirmPassword}
+                      onChangeText={(text) => setPasswordForm({ ...passwordForm, confirmPassword: text })}
+                      secureTextEntry
+                      style={{
+                        backgroundColor: theme.colors.background.DEFAULT,
+                        borderRadius: theme.borderRadius.lg,
+                        padding: theme.spacing.md,
+                        fontSize: theme.typography.body.fontSize,
+                        color: theme.colors.text.primary,
+                        borderWidth: 1,
+                        borderColor: 'rgba(30, 155, 113, 0.2)',
+                      }}
+                      placeholder={t('confirmPassword')}
+                      placeholderTextColor={theme.colors.text.secondary}
+                    />
+                  </View>
+                </View>
+
+                {/* Action Buttons */}
+                <View style={{
+                  marginTop: theme.spacing.xl,
+                  gap: theme.spacing.sm,
+                }}>
+                  <PillButton
+                    title={t('updatePassword')}
+                    onPress={handleChangePassword}
+                    variant="primary"
+                    size="large"
+                    fullWidth
+                    icon={Key}
+                  />
+                  <PillButton
+                    title={t('cancel')}
+                    onPress={() => setPasswordModalVisible(false)}
+                    variant="outline"
+                    size="large"
+                    fullWidth
+                  />
+                </View>
+              </View>
+            </View>
+          </Modal>
         )}
 
         {/* Gender Dropdown Modal */}
