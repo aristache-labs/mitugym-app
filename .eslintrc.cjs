@@ -5,6 +5,7 @@ module.exports = {
   root: true,
   rules: {
     'max-params': ['error', 6],
+    'max-lines': ['error', { max: 1500, skipBlankLines: true, skipComments: true }],
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     'react-native/no-inline-styles': 'off',
     'prettier/prettier': 'off',
