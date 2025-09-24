@@ -1,5 +1,13 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal, TextInput } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import { X, Key } from 'lucide-react-native';
 import { theme } from '../lib/theme';
 import { PillButton } from './PillButton';
@@ -28,6 +36,10 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
 }) => {
   const { t } = useLanguage();
 
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
   return (
     <Modal
       transparent={true}
@@ -40,14 +52,24 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: theme.spacing.xl,
       }}>
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
+          <View style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }} />
+        </TouchableWithoutFeedback>
+
         <View style={{
           backgroundColor: theme.colors.background.surface,
           borderRadius: theme.borderRadius.xl,
           padding: theme.spacing.xl,
-          width: '100%',
+          width: '90%',
           maxWidth: 400,
+          marginHorizontal: theme.spacing.xl,
           ...theme.shadows.strong,
         }}>
           {/* Modal Header */}
@@ -91,6 +113,9 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
                 value={passwordForm.currentPassword}
                 onChangeText={(text) => setPasswordForm({ ...passwordForm, currentPassword: text })}
                 secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="next"
                 style={{
                   backgroundColor: theme.colors.background.DEFAULT,
                   borderRadius: theme.borderRadius.lg,
@@ -119,6 +144,9 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
                 value={passwordForm.newPassword}
                 onChangeText={(text) => setPasswordForm({ ...passwordForm, newPassword: text })}
                 secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="next"
                 style={{
                   backgroundColor: theme.colors.background.DEFAULT,
                   borderRadius: theme.borderRadius.lg,
@@ -147,6 +175,10 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
                 value={passwordForm.confirmPassword}
                 onChangeText={(text) => setPasswordForm({ ...passwordForm, confirmPassword: text })}
                 secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={onChangePassword}
                 style={{
                   backgroundColor: theme.colors.background.DEFAULT,
                   borderRadius: theme.borderRadius.lg,
