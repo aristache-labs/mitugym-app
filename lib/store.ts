@@ -302,13 +302,13 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       if (data) {
         // Resolve membership plan ID to plan name
-        let planName = data.membership_plan || '';
+        let planName = '';
 
-        if (data.membership_plan) {
+        if (data.plan_id) {
           const { data: planData } = await supabase
             .from('membership_plans')
             .select('name')
-            .eq('id', data.membership_plan)
+            .eq('id', data.plan_id)
             .single();
 
           if (planData?.name) {
@@ -321,11 +321,11 @@ export const useAppStore = create<AppState>((set, get) => ({
           name: `${data.first_name} ${data.last_name}`,
           email: data.email || '',
           phone: data.phone || '',
-          membershipStatus: data.membership_status || 'expired',
+          membershipStatus: data.status || 'expired',
           membershipPlan: planName,
           joinDate: data.join_date || '',
-          expiryDate: data.expiry_date || '',
-          planStartDate: data.plan_start_date || undefined,
+          expiryDate: data.expires_at || '',
+          planStartDate: data.starts_at || undefined,
           daysLeft: data.days_left || 0,
           lastCheckIn: data.last_check_in || undefined,
         };

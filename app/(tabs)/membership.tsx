@@ -43,6 +43,7 @@ export default function MembershipScreen() {
     membershipPlansLoading,
     fetchMembershipPlans,
     renewMembership,
+    loadMemberProfile,
     // toggleMembershipStatus removed - using live data
     checkins,
     checkinsLoading,
@@ -60,11 +61,12 @@ export default function MembershipScreen() {
 
   // Fetch membership plans, checkins, and services on component mount
   useEffect(() => {
+    loadMemberProfile();
     fetchMembershipPlans();
     fetchCheckins();
     fetchPurchasedServices();
     fetchSessionBookings();
-  }, [fetchMembershipPlans, fetchCheckins, fetchPurchasedServices, fetchSessionBookings]);
+  }, [loadMemberProfile, fetchMembershipPlans, fetchCheckins, fetchPurchasedServices, fetchSessionBookings]);
 
 
 
