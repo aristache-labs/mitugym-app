@@ -1123,6 +1123,10 @@ export default function MembershipScreen() {
                       const isUpcoming = session.status === 'upcoming';
                       const isCompleted = session.status === 'completed';
                       const isCancelled = session.status === 'cancelled';
+                      
+                      // Check if session is today
+                      const today = new Date();
+                      const isToday = sessionDate.toDateString() === today.toDateString();
 
                       // Determine border and badge colors based on status
                       const getBorderColor = () => {
@@ -1170,12 +1174,13 @@ export default function MembershipScreen() {
                                 flexDirection: 'row',
                                 alignItems: 'center',
                                 marginBottom: theme.spacing.sm,
+                                flexWrap: 'wrap',
                               }}>
                                 <Text style={{
                                   fontSize: theme.typography.h3.fontSize,
                                   fontWeight: '700',
                                   color: theme.colors.text.primary,
-                                  marginRight: theme.spacing.md,
+                                  marginRight: theme.spacing.sm,
                                   textTransform: 'capitalize',
                                 }}>
                                 {(() => {
@@ -1196,6 +1201,7 @@ export default function MembershipScreen() {
                                   borderRadius: theme.borderRadius.xs,
                                   paddingHorizontal: theme.spacing.xs,
                                   paddingVertical: theme.spacing.xs,
+                                  marginRight: isUpcoming && isToday ? theme.spacing.sm : 0,
                                 }}>
                                   <Text style={{
                                     fontSize: theme.typography.caption.fontSize,
@@ -1207,6 +1213,26 @@ export default function MembershipScreen() {
                                     {t(session.status)}
                                   </Text>
                                 </View>
+
+                                {/* TODAY Badge for upcoming sessions */}
+                                {isUpcoming && isToday && (
+                                  <View style={{
+                                    backgroundColor: theme.colors.primary.DEFAULT,
+                                    borderRadius: theme.borderRadius.xs,
+                                    paddingHorizontal: theme.spacing.xs,
+                                    paddingVertical: 2,
+                                  }}>
+                                    <Text style={{
+                                      fontSize: theme.typography.caption.fontSize,
+                                      fontWeight: '700',
+                                      color: 'white',
+                                      textTransform: 'uppercase',
+                                      letterSpacing: 0.5,
+                                    }}>
+                                      {t('today')}
+                                    </Text>
+                                  </View>
+                                )}
                               </View>
 
                               {/* Time with Clock Icon */}

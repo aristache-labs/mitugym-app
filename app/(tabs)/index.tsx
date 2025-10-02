@@ -63,17 +63,41 @@ export default function HomeScreen() {
   // Get available services (limit to 2 for preview)
   const availableServices = services.slice(0, 2);
 
-  // Get upcoming sessions separated by status
+  // Get upcoming sessions separated by today and this week
   const getUpcomingSessions = () => {
     const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Calculate this week's date range (Monday to Sunday)
+    const currentDay = now.getDay();
+    const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - daysFromMonday);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+
     const futureBookings = sessionBookings.filter(booking => {
       const bookingDate = new Date(booking.booking_date);
       return bookingDate >= now && (booking.status === 'upcoming' || booking.status === 'pending');
     }).sort((a, b) => new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime());
 
+    // Separate sessions by today and this week
+    const todaySessions = futureBookings.filter(booking => {
+      const bookingDate = new Date(booking.booking_date);
+      return bookingDate.toDateString() === today.toDateString();
+    });
+
+    const thisWeekSessions = futureBookings.filter(booking => {
+      const bookingDate = new Date(booking.booking_date);
+      const bookingDay = new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate());
+      // Exclude today and only include sessions from tomorrow through Sunday
+      return bookingDay > today && bookingDate >= monday && bookingDate <= sunday;
+    });
+
     return {
-      upcoming: futureBookings.filter(booking => booking.status === 'upcoming').slice(0, 3),
-      pending: futureBookings.filter(booking => booking.status === 'pending').slice(0, 3),
+      today: todaySessions.slice(0, 3),
+      thisWeek: thisWeekSessions.slice(0, 3),
     };
   };
 
@@ -629,9 +653,9 @@ export default function HomeScreen() {
                   </Text>
                 </View>
 
-                {/* Upcoming Sessions */}
-                {upcomingSessions.upcoming.length > 0 && (
-                  <View style={{ marginBottom: upcomingSessions.pending.length > 0 ? theme.spacing.md : 0 }}>
+                {/* Today Sessions */}
+                {upcomingSessions.today.length > 0 && (
+                  <View style={{ marginBottom: upcomingSessions.thisWeek.length > 0 ? theme.spacing.md : 0 }}>
                     <View style={{
                       flexDirection: 'row',
                       alignItems: 'center',
@@ -649,14 +673,14 @@ export default function HomeScreen() {
                         textTransform: 'uppercase',
                         letterSpacing: 0.5,
                       }}>
-                        {t('upcomingSessions')}
+                        {t('todayLower')} {t('sessions')}
                       </Text>
                     </View>
 
                     <View style={{ gap: theme.spacing.xs }}>
-                      {upcomingSessions.upcoming.slice(0, 3).map((session) => {
+                      {upcomingSessions.today.map((session) => {
                         const sessionDate = new Date(session.booking_date);
-                        const isToday = sessionDate.toDateString() === new Date().toDateString();
+                        const isToday = true;
 
                         return (
                           <View
@@ -736,8 +760,8 @@ export default function HomeScreen() {
                   </View>
                 )}
 
-                {/* Pending Sessions */}
-                {upcomingSessions.pending.length > 0 && (
+                {/* This Week Sessions */}
+                {upcomingSessions.thisWeek.length > 0 && (
                   <View>
                     <View style={{
                       flexDirection: 'row',
@@ -746,7 +770,7 @@ export default function HomeScreen() {
                     }}>
                       <Calendar
                         size={16}
-                        color={theme.colors.status.warning}
+                        color="#3B82F6"
                         style={{ marginRight: theme.spacing.xs }}
                       />
                       <Text style={{
@@ -756,23 +780,23 @@ export default function HomeScreen() {
                         textTransform: 'uppercase',
                         letterSpacing: 0.5,
                       }}>
-                        {t('pendingSessions')}
+                        {t('thisWeek')} {t('sessions')}
                       </Text>
                     </View>
 
                     <View style={{ gap: theme.spacing.xs }}>
-                      {upcomingSessions.pending.slice(0, 3).map((session) => {
+                      {upcomingSessions.thisWeek.map((session) => {
                         const sessionDate = new Date(session.booking_date);
 
                         return (
                           <View
                             key={session.id}
                             style={{
-                              backgroundColor: 'rgba(255, 193, 7, 0.08)',
+                              backgroundColor: 'rgba(59, 130, 246, 0.08)',
                               borderRadius: theme.borderRadius.md,
                               padding: theme.spacing.sm,
                               borderLeftWidth: 3,
-                              borderLeftColor: theme.colors.status.warning,
+                              borderLeftColor: '#3B82F6',
                             }}
                           >
                             <View style={{
@@ -817,21 +841,23 @@ export default function HomeScreen() {
                                 </View>
                               </View>
 
-                              <View style={{
-                                backgroundColor: theme.colors.status.warning,
-                                paddingHorizontal: theme.spacing.xs,
-                                paddingVertical: 2,
-                                borderRadius: theme.borderRadius.xs,
-                              }}>
-                                <Text style={{
-                                  fontSize: 10,
-                                  fontWeight: '600',
-                                  color: '#000',
-                                  textTransform: 'uppercase',
+                              {session.status === 'pending' && (
+                                <View style={{
+                                  backgroundColor: theme.colors.status.warning,
+                                  paddingHorizontal: theme.spacing.xs,
+                                  paddingVertical: 2,
+                                  borderRadius: theme.borderRadius.xs,
                                 }}>
-                                  {t('pending')}
-                                </Text>
-                              </View>
+                                  <Text style={{
+                                    fontSize: 10,
+                                    fontWeight: '600',
+                                    color: '#000',
+                                    textTransform: 'uppercase',
+                                  }}>
+                                    {t('pending')}
+                                  </Text>
+                                </View>
+                              )}
                             </View>
                           </View>
                         );
@@ -841,7 +867,7 @@ export default function HomeScreen() {
                 )}
 
                 {/* No Sessions Placeholder */}
-                {(upcomingSessions.upcoming.length === 0 && upcomingSessions.pending.length === 0) && (
+                {(upcomingSessions.today.length === 0 && upcomingSessions.thisWeek.length === 0) && (
                   <View style={{
                     alignItems: 'center',
                     paddingVertical: theme.spacing.lg,
