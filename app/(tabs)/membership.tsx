@@ -977,7 +977,26 @@ export default function MembershipScreen() {
                     {getSessionsForService(selectedServiceForHistory.id).map((session) => {
                       const sessionDate = new Date(session.booking_date);
                       const isPending = session.status === 'pending';
-                      const isConfirmed = session.status === 'confirmed';
+                      const isUpcoming = session.status === 'upcoming';
+                      const isCompleted = session.status === 'completed';
+                      const isCancelled = session.status === 'cancelled';
+
+                      // Determine border and badge colors based on status
+                      const getBorderColor = () => {
+                        if (isPending) {return theme.colors.status.warning;}
+                        if (isUpcoming) {return '#3B82F6';} // Blue for upcoming
+                        if (isCompleted) {return theme.colors.status.success;}
+                        if (isCancelled) {return theme.colors.status.error;}
+                        return 'rgba(30, 155, 113, 0.2)';
+                      };
+
+                      const getBadgeColor = () => {
+                        if (isPending) {return theme.colors.status.warning;}
+                        if (isUpcoming) {return '#3B82F6';} // Blue for upcoming
+                        if (isCompleted) {return theme.colors.status.success;}
+                        if (isCancelled) {return theme.colors.status.error;}
+                        return theme.colors.primary.DEFAULT;
+                      };
 
                       return (
                         <View
@@ -987,16 +1006,13 @@ export default function MembershipScreen() {
                             borderRadius: theme.borderRadius.lg,
                             padding: theme.spacing.lg,
                             borderWidth: 1,
-                            borderColor: isPending
-                              ? theme.colors.status.warning
-                              : isConfirmed
-                              ? theme.colors.status.success
-                              : 'rgba(30, 155, 113, 0.2)',
+                            borderColor: getBorderColor(),
                             shadowColor: '#000',
                             shadowOffset: { width: 0, height: 2 },
                             shadowOpacity: isPending ? 0.1 : 0.06,
                             shadowRadius: 8,
                             elevation: isPending ? 3 : 2,
+                            opacity: isCancelled ? 0.6 : 1,
                           }}
                         >
                           <View style={{
@@ -1033,11 +1049,7 @@ export default function MembershipScreen() {
 
                                 {/* Status Badge */}
                                 <View style={{
-                                  backgroundColor: isPending
-                                    ? theme.colors.status.warning
-                                    : isConfirmed
-                                    ? theme.colors.status.success
-                                    : theme.colors.primary.DEFAULT,
+                                  backgroundColor: getBadgeColor(),
                                   borderRadius: theme.borderRadius.xs,
                                   paddingHorizontal: theme.spacing.xs,
                                   paddingVertical: theme.spacing.xs,

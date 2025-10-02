@@ -55,7 +55,7 @@ export interface SessionBooking {
   purchased_service_id: string;
   member_id: string;
   booking_date: string;
-  status: 'pending' | 'confirmed' | 'completed';
+  status: 'pending' | 'upcoming' | 'completed' | 'cancelled';
   notes?: string;
   created_at: string;
   updated_at: string;

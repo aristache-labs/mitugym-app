@@ -68,11 +68,11 @@ export default function HomeScreen() {
     const now = new Date();
     const futureBookings = sessionBookings.filter(booking => {
       const bookingDate = new Date(booking.booking_date);
-      return bookingDate >= now && (booking.status === 'confirmed' || booking.status === 'pending');
+      return bookingDate >= now && (booking.status === 'upcoming' || booking.status === 'pending');
     }).sort((a, b) => new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime());
 
     return {
-      confirmed: futureBookings.filter(booking => booking.status === 'confirmed').slice(0, 3),
+      upcoming: futureBookings.filter(booking => booking.status === 'upcoming').slice(0, 3),
       pending: futureBookings.filter(booking => booking.status === 'pending').slice(0, 3),
     };
   };
@@ -629,8 +629,8 @@ export default function HomeScreen() {
                   </Text>
                 </View>
 
-                {/* Confirmed Sessions */}
-                {upcomingSessions.confirmed.length > 0 && (
+                {/* Upcoming Sessions */}
+                {upcomingSessions.upcoming.length > 0 && (
                   <View style={{ marginBottom: upcomingSessions.pending.length > 0 ? theme.spacing.md : 0 }}>
                     <View style={{
                       flexDirection: 'row',
@@ -639,7 +639,7 @@ export default function HomeScreen() {
                     }}>
                       <CheckCircle
                         size={16}
-                        color={theme.colors.status.success}
+                        color="#3B82F6"
                         style={{ marginRight: theme.spacing.xs }}
                       />
                       <Text style={{
@@ -649,12 +649,12 @@ export default function HomeScreen() {
                         textTransform: 'uppercase',
                         letterSpacing: 0.5,
                       }}>
-                        {t('confirmedSessions')}
+                        {t('upcomingSessions')}
                       </Text>
                     </View>
 
                     <View style={{ gap: theme.spacing.xs }}>
-                      {upcomingSessions.confirmed.slice(0, 3).map((session) => {
+                      {upcomingSessions.upcoming.slice(0, 3).map((session) => {
                         const sessionDate = new Date(session.booking_date);
                         const isToday = sessionDate.toDateString() === new Date().toDateString();
 
@@ -841,7 +841,7 @@ export default function HomeScreen() {
                 )}
 
                 {/* No Sessions Placeholder */}
-                {(upcomingSessions.confirmed.length === 0 && upcomingSessions.pending.length === 0) && (
+                {(upcomingSessions.upcoming.length === 0 && upcomingSessions.pending.length === 0) && (
                   <View style={{
                     alignItems: 'center',
                     paddingVertical: theme.spacing.lg,
