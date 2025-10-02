@@ -17,6 +17,7 @@ import {
   type Announcement,
   type GymSchedule,
 } from './mock';
+import { generateTOTPCode as generateTOTPCodeUtil, getTOTPTimeRemaining, setupTOTP } from '../utils/totp';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -53,8 +54,14 @@ interface QRState {
   token: string;
   expiresAt: number;
   isValid: boolean;
+  totpSecret: string | null;
+  totpCode: string;
+  totpTimeRemaining: number;
   generateNewToken: () => void;
   checkExpiry: () => void;
+  initializeTOTP: () => Promise<void>;
+  generateTOTPCode: () => void;
+  updateTOTPTimeRemaining: () => void;
 }
 
 interface CheckinState {
@@ -168,6 +175,15 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       if (data.session) {
         console.log('Session exists, profile created automatically by trigger');
+
+        // Initialize TOTP for new user
+        try {
+          await get().initializeTOTP();
+        } catch (totpError) {
+          console.error('Failed to initialize TOTP during signup:', totpError);
+          // Don't fail signup if TOTP setup fails
+        }
+
         get().showToast('Account created successfully!', 'success');
       } else if (data.user && !data.session) {
         console.log('User created but no session (email confirmation required)');
@@ -712,6 +728,70 @@ export const useAppStore = create<AppState>((set, get) => ({
   token: generateQRToken(),
   expiresAt: Date.now() + 60000, // 60 seconds from now
   isValid: true,
+  totpSecret: null,
+  totpCode: '',
+  totpTimeRemaining: 30,
+
+  initializeTOTP: async () => {
+    try {
+      const { member } = get();
+      if (!member?.id) {
+        console.log('No member ID available for TOTP initialization');
+        return;
+      }
+
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+      const apiKey = process.env.EXPO_PUBLIC_API_KEY;
+
+      if (!apiUrl || !apiKey) {
+        console.warn('⚠️ TOTP API configuration missing. Set EXPO_PUBLIC_API_URL and EXPO_PUBLIC_API_KEY in .env file');
+        return;
+      }
+
+      // Always fetch fresh secret from API (which gets it from database)
+      // This ensures we always have the latest secret from the database
+      try {
+        const secret = await setupTOTP(member.id, apiKey, apiUrl);
+        set({ totpSecret: secret });
+        get().generateTOTPCode();
+      } catch (error) {
+        console.error('Failed to setup TOTP:', error);
+        // Fall back to legacy token generation
+        return;
+      }
+    } catch (error) {
+      console.error('Error initializing TOTP:', error);
+    }
+  },
+
+  generateTOTPCode: () => {
+    const { totpSecret } = get();
+    if (!totpSecret) {
+      return;
+    }
+
+    try {
+      const code = generateTOTPCodeUtil(totpSecret);
+      const timeRemaining = getTOTPTimeRemaining();
+      set({
+        totpCode: code,
+        totpTimeRemaining: timeRemaining,
+      });
+    } catch (error) {
+      console.error('Error generating TOTP code:', error);
+    }
+  },
+
+  updateTOTPTimeRemaining: () => {
+    const timeRemaining = getTOTPTimeRemaining();
+    set({ totpTimeRemaining: timeRemaining });
+
+    // Auto-regenerate code when it expires
+    if (timeRemaining === 30 || timeRemaining === 29) {
+      get().generateTOTPCode();
+    }
+  },
+
   generateNewToken: () => {
     const now = Date.now();
     set({

@@ -15,11 +15,35 @@ export default function QRScreen() {
     token,
     expiresAt,
     isValid,
+    totpSecret,
+    totpCode,
+    totpTimeRemaining,
+    member,
     generateNewToken,
     checkExpiry,
+    initializeTOTP,
+    generateTOTPCode,
+    updateTOTPTimeRemaining,
   } = useAppStore();
 
-  // Check expiry every second
+  // Initialize TOTP on mount
+  useEffect(() => {
+    initializeTOTP();
+  }, [initializeTOTP]);
+
+  // Update TOTP time remaining every second
+  useEffect(() => {
+    if (totpSecret) {
+      const interval = setInterval(() => {
+        updateTOTPTimeRemaining();
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+    return undefined;
+  }, [totpSecret, updateTOTPTimeRemaining]);
+
+  // Check expiry every second (legacy)
   useEffect(() => {
     const interval = setInterval(() => {
       checkExpiry();
@@ -28,9 +52,9 @@ export default function QRScreen() {
     return () => clearInterval(interval);
   }, [checkExpiry]);
 
-  // Auto-regenerate token when it expires
+  // Auto-regenerate token when it expires (legacy)
   useEffect(() => {
-    if (!isValid) {
+    if (!isValid && !totpSecret) {
       const timer = setTimeout(() => {
         generateNewToken();
       }, 2000); // Wait 2 seconds before auto-generating new token
@@ -38,10 +62,14 @@ export default function QRScreen() {
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [isValid, generateNewToken]);
+  }, [isValid, totpSecret, generateNewToken]);
 
   const handleRefresh = () => {
-    generateNewToken();
+    if (totpSecret) {
+      generateTOTPCode();
+    } else {
+      generateNewToken();
+    }
   };
 
   return (
@@ -64,6 +92,10 @@ export default function QRScreen() {
           expiresAt={expiresAt}
           isValid={isValid}
           onRefresh={handleRefresh}
+          useTOTP={!!totpSecret}
+          totpCode={totpCode}
+          totpTimeRemaining={totpTimeRemaining}
+          memberId={member?.id || ''}
         />
       </ScrollView>
     </View>

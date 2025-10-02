@@ -1,55 +1,97 @@
 import { useEffect, useState } from 'react';
 import { View, Text, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { QrCode, RefreshCw } from 'lucide-react-native';
+import { QrCode, RefreshCw, Shield } from 'lucide-react-native';
+import QRCode from 'react-native-qrcode-svg';
 import { theme } from '../lib/theme';
 import { formatCountdown, getCountdownColor } from '../lib/utils';
 import { PillButton } from './PillButton';
 import { useLanguage } from '../lib/LanguageContext';
+import { generateQRContent, formatTOTPCode } from '../utils/totp';
 
 interface QRCardProps {
   token: string;
   expiresAt: number;
   isValid: boolean;
   onRefresh: () => void;
+  useTOTP?: boolean;
+  totpCode?: string;
+  totpTimeRemaining?: number;
+  memberId?: string;
 }
 
-export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
+export function QRCard({
+  token,
+  expiresAt,
+  isValid,
+  onRefresh,
+  useTOTP = false,
+  totpCode = '',
+  totpTimeRemaining = 30,
+  memberId = '',
+}: QRCardProps) {
   const { t } = useLanguage();
   const [timeLeft, setTimeLeft] = useState(0);
   const [pulseAnim] = useState(new Animated.Value(1));
 
+  // Use TOTP time remaining if TOTP is enabled, otherwise use legacy timer
+  const effectiveTimeLeft = useTOTP ? totpTimeRemaining : timeLeft;
+  const effectiveToken = useTOTP ? totpCode : token;
+  const qrContent = useTOTP && memberId ? generateQRContent(memberId, totpCode) : token;
+  const effectiveIsValid = useTOTP ? (totpCode.length === 6 && totpTimeRemaining > 0) : isValid;
+
   useEffect(() => {
-    const updateTimer = () => {
-      const now = Date.now();
-      const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
-      setTimeLeft(remaining);
+    if (!useTOTP) {
+      const updateTimer = () => {
+        const now = Date.now();
+        const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
+        setTimeLeft(remaining);
 
-      // Start pulsing animation when time is running out
-      if (remaining <= 10 && remaining > 0) {
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.1,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      }
-    };
+        // Start pulsing animation when time is running out
+        if (remaining <= 10 && remaining > 0) {
+          Animated.sequence([
+            Animated.timing(pulseAnim, {
+              toValue: 1.1,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+            Animated.timing(pulseAnim, {
+              toValue: 1,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+          ]).start();
+        }
+      };
 
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
+      updateTimer();
+      const interval = setInterval(updateTimer, 1000);
 
-    return () => clearInterval(interval);
-  }, [expiresAt, pulseAnim]);
+      return () => clearInterval(interval);
+    }
+    return undefined;
+  }, [expiresAt, pulseAnim, useTOTP]);
 
-  const countdownColor = getCountdownColor(timeLeft);
-  const isExpired = timeLeft <= 0;
+  // Pulse animation for TOTP when time is running out
+  useEffect(() => {
+    if (useTOTP && totpTimeRemaining <= 10 && totpTimeRemaining > 0) {
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [totpTimeRemaining, useTOTP, pulseAnim]);
+
+  const countdownColor = getCountdownColor(effectiveTimeLeft);
+  const isExpired = effectiveTimeLeft <= 0;
 
   return (
     <View style={{
@@ -58,24 +100,39 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
     }}>
       {/* Status Banner */}
       <View style={{
-        backgroundColor: isValid && !isExpired
+        backgroundColor: effectiveIsValid && !isExpired
           ? 'rgba(46, 204, 113, 0.2)'
           : 'rgba(231, 76, 60, 0.2)',
         paddingHorizontal: theme.spacing.lg,
         paddingVertical: theme.spacing.sm,
         borderRadius: theme.borderRadius.lg,
         marginBottom: theme.spacing.xl,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}>
+        {useTOTP && (
+          <Shield
+            size={14}
+            color={effectiveIsValid && !isExpired
+              ? theme.colors.status.success
+              : theme.colors.status.error}
+            style={{ marginRight: theme.spacing.xs }}
+          />
+        )}
         <Text style={{
           fontSize: theme.typography.caption.fontSize,
           fontWeight: '600',
-          color: isValid && !isExpired
+          color: effectiveIsValid && !isExpired
             ? theme.colors.status.success
             : theme.colors.status.error,
           textTransform: 'uppercase',
           textAlign: 'center',
         }}>
-          {isValid && !isExpired ? t('validNow') : t('expiredRenew')}
+          {useTOTP
+            ? (effectiveIsValid && !isExpired ? t('validNow') + ' • TOTP' : t('expiredRenew'))
+            : (effectiveIsValid && !isExpired ? t('validNow') : t('expiredRenew'))
+          }
         </Text>
       </View>
 
@@ -91,46 +148,68 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
             'rgba(17, 22, 24, 0.9)',
           ]}
           style={{
-            width: 280,
-            height: 280,
+            width: 320,
+            height: 380,
             borderRadius: theme.borderRadius.xl,
             justifyContent: 'center',
             alignItems: 'center',
             borderWidth: 3,
-            borderColor: isValid && !isExpired
+            borderColor: effectiveIsValid && !isExpired
               ? theme.colors.primary.DEFAULT
               : theme.colors.status.error,
             ...theme.shadows.strong,
+            paddingVertical: theme.spacing.lg,
           }}
         >
-          {/* QR Icon placeholder */}
-          <QrCode
-            size={120}
-            color={isValid && !isExpired
-              ? theme.colors.primary.DEFAULT
-              : theme.colors.text.secondary}
-          />
+          {/* Actual QR Code */}
+          {useTOTP && qrContent ? (
+            <View style={{
+              padding: theme.spacing.sm,
+              backgroundColor: 'white',
+              borderRadius: theme.borderRadius.md,
+              marginBottom: theme.spacing.md,
+            }}>
+              <QRCode
+                value={qrContent}
+                size={200}
+                color="#000000"
+                backgroundColor="white"
+              />
+            </View>
+          ) : (
+            <>
+              {/* QR Icon placeholder for legacy */}
+              <QrCode
+                size={120}
+                color={effectiveIsValid && !isExpired
+                  ? theme.colors.primary.DEFAULT
+                  : theme.colors.text.secondary}
+              />
+            </>
+          )}
 
           {/* Token Display */}
           <Text style={{
-            fontSize: theme.typography.h2.fontSize,
+            fontSize: useTOTP ? 32 : theme.typography.h2.fontSize,
             fontWeight: '700',
             color: theme.colors.text.primary,
-            marginTop: theme.spacing.md,
+            marginTop: useTOTP ? theme.spacing.sm : theme.spacing.md,
             fontFamily: 'monospace',
-            letterSpacing: 2,
+            letterSpacing: useTOTP ? 6 : 2,
           }}>
-            {token}
+            {useTOTP ? formatTOTPCode(effectiveToken) : token}
           </Text>
 
-          {/* Member ID (mock) */}
-          <Text style={{
-            fontSize: theme.typography.caption.fontSize,
-            color: theme.colors.text.secondary,
-            marginTop: theme.spacing.sm,
-          }}>
-            {t('memberId')}: #001234
-          </Text>
+          {/* Member ID */}
+          {memberId && useTOTP && (
+            <Text style={{
+              fontSize: theme.typography.caption.fontSize,
+              color: theme.colors.text.secondary,
+              marginTop: theme.spacing.xs,
+            }}>
+              ID: {memberId.substring(0, 8)}...
+            </Text>
+          )}
         </LinearGradient>
       </Animated.View>
 
@@ -154,7 +233,7 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
           fontFamily: 'monospace',
           marginBottom: theme.spacing.md,
         }}>
-          {isExpired ? '00:00' : formatCountdown(timeLeft)}
+          {isExpired ? '00:00' : formatCountdown(effectiveTimeLeft)}
         </Text>
 
         {/* Progress bar */}
@@ -167,21 +246,23 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
           marginBottom: theme.spacing.lg,
         }}>
           <View style={{
-            width: `${isExpired ? 0 : (timeLeft / 60) * 100}%`,
+            width: `${isExpired ? 0 : (effectiveTimeLeft / (useTOTP ? 30 : 60)) * 100}%`,
             height: '100%',
             backgroundColor: countdownColor,
             borderRadius: 2,
           }} />
         </View>
 
-        {/* Refresh Button */}
-        <PillButton
-          title={isExpired ? t('generateNewQr') : t('refresh')}
-          onPress={onRefresh}
-          icon={RefreshCw}
-          variant={isExpired ? 'primary' : 'outline'}
-          size="medium"
-        />
+        {/* Refresh Button - Only show for legacy token system */}
+        {!useTOTP && (
+          <PillButton
+            title={isExpired ? t('generateNewQr') : t('refresh')}
+            onPress={onRefresh}
+            icon={RefreshCw}
+            variant={isExpired ? 'primary' : 'outline'}
+            size="medium"
+          />
+        )}
       </View>
 
       {/* Instructions */}
@@ -195,7 +276,7 @@ export function QRCard({ token, expiresAt, isValid, onRefresh }: QRCardProps) {
           textAlign: 'center',
           lineHeight: 20,
         }}>
-          {isValid && !isExpired
+          {effectiveIsValid && !isExpired
             ? t('qrInstructions')
             : t('qrExpiredInstructions')
           }

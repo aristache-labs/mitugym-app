@@ -96,46 +96,46 @@ export default function MembershipScreen() {
     // Calculate filter period boundaries (both past and future)
     const getFilterDates = () => {
       if (sessionFilter === 'ALL') {return { startDate: null, endDate: null };}
-      
+
       const startDate = new Date(now);
       const endDate = new Date(now);
-      
+
       if (sessionFilter === '1W') {
         // This Week: Start of current week (Monday) to end of current week (Sunday)
         const currentDay = now.getDay();
         const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1; // 0=Sunday, 1=Monday
-        
+
         // Set to Monday of current week
         const monday = new Date(now);
         monday.setDate(now.getDate() - daysFromMonday);
         monday.setHours(0, 0, 0, 0);
-        
+
         // Set to Sunday of current week
         const sunday = new Date(monday);
         sunday.setDate(monday.getDate() + 6);
         sunday.setHours(23, 59, 59, 999);
-        
+
         return { startDate: monday, endDate: sunday };
       } else if (sessionFilter === '1M') {
         // This Month: Start to end of current month
         const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
         firstDay.setHours(0, 0, 0, 0);
-        
+
         const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         lastDay.setHours(23, 59, 59, 999);
-        
+
         return { startDate: firstDay, endDate: lastDay };
       } else if (sessionFilter === '3M') {
         // Next 3 months from today
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         today.setHours(0, 0, 0, 0);
-        
+
         const threeMonthsAhead = new Date(now.getFullYear(), now.getMonth() + 3, now.getDate());
         threeMonthsAhead.setHours(23, 59, 59, 999);
-        
+
         return { startDate: today, endDate: threeMonthsAhead };
       }
-      
+
       return { startDate, endDate };
     };
 
@@ -155,7 +155,7 @@ export default function MembershipScreen() {
 
     allSessions.forEach(session => {
       const sessionDate = new Date(session.booking_date);
-      
+
       if (session.status === 'upcoming') {
         // Apply filter to upcoming sessions
         if (isWithinFilterPeriod(sessionDate)) {
@@ -1092,7 +1092,7 @@ export default function MembershipScreen() {
                 {/* Sessions List */}
                 {(() => {
                   const sections = getFilteredAndSortedSessions(selectedServiceForHistory.id);
-                  const totalSessions = sections.upcoming.length + sections.pending.length + 
+                  const totalSessions = sections.upcoming.length + sections.pending.length +
                                        sections.completed.length + sections.cancelled.length;
 
                   if (totalSessions === 0) {
@@ -1123,7 +1123,7 @@ export default function MembershipScreen() {
                       const isUpcoming = session.status === 'upcoming';
                       const isCompleted = session.status === 'completed';
                       const isCancelled = session.status === 'cancelled';
-                      
+
                       // Check if session is today
                       const today = new Date();
                       const isToday = sessionDate.toDateString() === today.toDateString();
@@ -1349,7 +1349,7 @@ export default function MembershipScreen() {
                         getSectionTitle(),
                         sections.upcoming.length,
                         <Calendar size={18} color="#3B82F6" />,
-                        '#3B82F6'
+                        '#3B82F6',
                       )}
                       {sections.upcoming.map(renderSession)}
 
@@ -1358,7 +1358,7 @@ export default function MembershipScreen() {
                         t('pendingConfirmation'),
                         sections.pending.length,
                         <Clock size={18} color={theme.colors.status.warning} />,
-                        theme.colors.status.warning
+                        theme.colors.status.warning,
                       )}
                       {sections.pending.map(renderSession)}
 
@@ -1367,7 +1367,7 @@ export default function MembershipScreen() {
                         t('completedSessions'),
                         sections.completed.length,
                         <CheckCircle size={18} color={theme.colors.status.success} />,
-                        theme.colors.status.success
+                        theme.colors.status.success,
                       )}
                       {sections.completed.map(renderSession)}
 
@@ -1376,7 +1376,7 @@ export default function MembershipScreen() {
                         t('cancelledSessions'),
                         sections.cancelled.length,
                         <X size={18} color={theme.colors.status.error} />,
-                        theme.colors.status.error
+                        theme.colors.status.error,
                       )}
                       {sections.cancelled.map(renderSession)}
                     </View>

@@ -126,7 +126,7 @@ export const translations = {
     memberId: 'Member ID',
     validFor: 'Valid for',
     generateNewQr: 'Generate New QR',
-    qrInstructions: 'Show this QR code to gym staff for entry. QR codes expire every 60 seconds for security.',
+    qrInstructions: 'Show this QR code to gym staff for entry. Code refreshes every 30 seconds for security.',
     qrExpiredInstructions: 'QR code has expired. Generate a new one to enter the gym.',
 
     // Gym Status
@@ -473,7 +473,7 @@ export const translations = {
     memberId: 'ID Membru',
     validFor: 'Valid pentru',
     generateNewQr: 'Generează QR Nou',
-    qrInstructions: 'Arată acest cod QR personalului sălii pentru intrare. Codurile QR expiră la fiecare 60 de secunde pentru securitate.',
+    qrInstructions: 'Arată acest cod QR personalului sălii pentru intrare. Codul se reîmprospătează la fiecare 30 de secunde pentru securitate.',
     qrExpiredInstructions: 'Codul QR a expirat. Generează unul nou pentru a intra în sală.',
 
     // Gym Status
