@@ -36,6 +36,7 @@ export default function MembershipScreen() {
   // Session history modal state
   const [sessionHistoryModalVisible, setSessionHistoryModalVisible] = useState(false);
   const [selectedServiceForHistory, setSelectedServiceForHistory] = useState<any>(null);
+  const [sessionFilter, setSessionFilter] = useState('1M'); // 1W, 1M, 3M, ALL
 
   const {
     member,
@@ -87,20 +88,112 @@ export default function MembershipScreen() {
     return sessionBookings.filter(booking => booking.status === 'pending').length;
   };
 
-  // Get sessions for a specific purchased service, sorted with pending first
-  const getSessionsForService = (purchasedServiceId: string) => {
-    return sessionBookings
-      .filter(booking => booking.purchased_service_id === purchasedServiceId)
-      .sort((a, b) => {
-        // Sort by status: pending first, then by booking date descending
-        if (a.status === 'pending' && b.status !== 'pending') {
-          return -1;
+  // Get filtered and sorted sessions with smart grouping
+  const getFilteredAndSortedSessions = (purchasedServiceId: string) => {
+    const now = new Date();
+    const allSessions = sessionBookings.filter(booking => booking.purchased_service_id === purchasedServiceId);
+
+    // Calculate filter period boundaries (both past and future)
+    const getFilterDates = () => {
+      if (sessionFilter === 'ALL') {return { startDate: null, endDate: null };}
+      
+      const startDate = new Date(now);
+      const endDate = new Date(now);
+      
+      if (sessionFilter === '1W') {
+        // This Week: Start of current week (Monday) to end of current week (Sunday)
+        const currentDay = now.getDay();
+        const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1; // 0=Sunday, 1=Monday
+        
+        // Set to Monday of current week
+        const monday = new Date(now);
+        monday.setDate(now.getDate() - daysFromMonday);
+        monday.setHours(0, 0, 0, 0);
+        
+        // Set to Sunday of current week
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+        
+        return { startDate: monday, endDate: sunday };
+      } else if (sessionFilter === '1M') {
+        // This Month: Start to end of current month
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        firstDay.setHours(0, 0, 0, 0);
+        
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        lastDay.setHours(23, 59, 59, 999);
+        
+        return { startDate: firstDay, endDate: lastDay };
+      } else if (sessionFilter === '3M') {
+        // Next 3 months from today
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        today.setHours(0, 0, 0, 0);
+        
+        const threeMonthsAhead = new Date(now.getFullYear(), now.getMonth() + 3, now.getDate());
+        threeMonthsAhead.setHours(23, 59, 59, 999);
+        
+        return { startDate: today, endDate: threeMonthsAhead };
+      }
+      
+      return { startDate, endDate };
+    };
+
+    const { startDate, endDate } = getFilterDates();
+
+    // Helper function to check if session is within filter period
+    const isWithinFilterPeriod = (sessionDate: Date) => {
+      if (!startDate || !endDate) {return true;} // ALL filter
+      return sessionDate >= startDate && sessionDate <= endDate;
+    };
+
+    // Group sessions by category
+    const upcoming: typeof allSessions = [];
+    const pending: typeof allSessions = [];
+    const completed: typeof allSessions = [];
+    const cancelled: typeof allSessions = [];
+
+    allSessions.forEach(session => {
+      const sessionDate = new Date(session.booking_date);
+      
+      if (session.status === 'upcoming') {
+        // Apply filter to upcoming sessions
+        if (isWithinFilterPeriod(sessionDate)) {
+          upcoming.push(session);
         }
-        if (a.status !== 'pending' && b.status === 'pending') {
-          return 1;
+      } else if (session.status === 'pending') {
+        // Apply filter to pending sessions
+        if (isWithinFilterPeriod(sessionDate)) {
+          pending.push(session);
         }
-        return new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime();
-      });
+      } else if (session.status === 'completed') {
+        // Apply filter to completed sessions
+        if (isWithinFilterPeriod(sessionDate)) {
+          completed.push(session);
+        }
+      } else if (session.status === 'cancelled') {
+        // Apply filter to cancelled sessions
+        if (isWithinFilterPeriod(sessionDate)) {
+          cancelled.push(session);
+        }
+      }
+    });
+
+    // Sort each group
+    const sortAscending = (a: any, b: any) => new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime();
+    const sortDescending = (a: any, b: any) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime();
+
+    upcoming.sort(sortAscending);
+    pending.sort(sortAscending);
+    completed.sort(sortDescending);
+    cancelled.sort(sortDescending);
+
+    return {
+      upcoming,
+      pending,
+      completed,
+      cancelled,
+    };
   };
 
   // Handler for showing session history
@@ -953,28 +1046,78 @@ export default function MembershipScreen() {
                   </View>
                 </View>
 
+                {/* Filter Buttons */}
+                <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginBottom: theme.spacing.lg,
+                  gap: theme.spacing.sm,
+                }}>
+                  {[
+                    { value: '1W', label: t('thisWeek') },
+                    { value: '1M', label: t('oneMonth') },
+                    { value: '3M', label: t('threeMonths') },
+                    { value: 'ALL', label: t('all') },
+                  ].map((filter) => (
+                    <TouchableOpacity
+                      key={filter.value}
+                      onPress={() => setSessionFilter(filter.value)}
+                      style={{
+                        paddingHorizontal: theme.spacing.md,
+                        paddingVertical: theme.spacing.sm,
+                        borderRadius: theme.borderRadius.md,
+                        backgroundColor: sessionFilter === filter.value
+                          ? theme.colors.primary.DEFAULT
+                          : 'rgba(30, 155, 113, 0.1)',
+                        borderWidth: 1,
+                        borderColor: sessionFilter === filter.value
+                          ? theme.colors.primary.DEFAULT
+                          : 'rgba(30, 155, 113, 0.3)',
+                      }}
+                    >
+                      <Text style={{
+                        fontSize: theme.typography.caption.fontSize,
+                        fontWeight: '600',
+                        color: sessionFilter === filter.value
+                          ? '#FFFFFF'
+                          : theme.colors.primary.DEFAULT,
+                      }}>
+                        {filter.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
                 {/* Sessions List */}
-                {getSessionsForService(selectedServiceForHistory.id).length === 0 ? (
-                  <View style={{
-                    padding: theme.spacing.xl,
-                    alignItems: 'center',
-                  }}>
-                    <Calendar
-                      size={48}
-                      color={theme.colors.text.secondary}
-                      style={{ marginBottom: theme.spacing.md }}
-                    />
-                    <Text style={{
-                      fontSize: theme.typography.body.fontSize,
-                      color: theme.colors.text.secondary,
-                      textAlign: 'center',
-                    }}>
-                      {t('noSessionsYet')}
-                    </Text>
-                  </View>
-                ) : (
-                  <View style={{ gap: theme.spacing.md }}>
-                    {getSessionsForService(selectedServiceForHistory.id).map((session) => {
+                {(() => {
+                  const sections = getFilteredAndSortedSessions(selectedServiceForHistory.id);
+                  const totalSessions = sections.upcoming.length + sections.pending.length + 
+                                       sections.completed.length + sections.cancelled.length;
+
+                  if (totalSessions === 0) {
+                    return (
+                      <View style={{
+                        padding: theme.spacing.xl,
+                        alignItems: 'center',
+                      }}>
+                        <Calendar
+                          size={48}
+                          color={theme.colors.text.secondary}
+                          style={{ marginBottom: theme.spacing.md }}
+                        />
+                        <Text style={{
+                          fontSize: theme.typography.body.fontSize,
+                          color: theme.colors.text.secondary,
+                          textAlign: 'center',
+                        }}>
+                          {t('noSessionsYet')}
+                        </Text>
+                      </View>
+                    );
+                  }
+
+                  const renderSession = (session: any) => {
                       const sessionDate = new Date(session.booking_date);
                       const isPending = session.status === 'pending';
                       const isUpcoming = session.status === 'upcoming';
@@ -1124,9 +1267,95 @@ export default function MembershipScreen() {
                           </View>
                         </View>
                       );
-                    })}
-                  </View>
-                )}
+                  };
+
+                  const renderSectionHeader = (title: string, count: number, icon: any, color: string) => {
+                    if (count === 0) {return null;}
+                    return (
+                      <View style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        marginTop: theme.spacing.lg,
+                        marginBottom: theme.spacing.md,
+                        paddingBottom: theme.spacing.sm,
+                        borderBottomWidth: 1,
+                        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+                      }}>
+                        {icon}
+                        <Text style={{
+                          fontSize: theme.typography.body.fontSize,
+                          fontWeight: '700',
+                          color: theme.colors.text.primary,
+                          marginLeft: theme.spacing.sm,
+                        }}>
+                          {title}
+                        </Text>
+                        <View style={{
+                          backgroundColor: color,
+                          borderRadius: theme.borderRadius.xs,
+                          paddingHorizontal: theme.spacing.sm,
+                          paddingVertical: 2,
+                          marginLeft: theme.spacing.sm,
+                        }}>
+                          <Text style={{
+                            fontSize: theme.typography.caption.fontSize,
+                            fontWeight: '600',
+                            color: color === theme.colors.status.warning ? '#000' : 'white',
+                          }}>
+                            {count}
+                          </Text>
+                        </View>
+                      </View>
+                    );
+                  };
+
+                  const getSectionTitle = () => {
+                    if (sessionFilter === '1W') {return t('upcomingThisWeek');}
+                    if (sessionFilter === '1M') {return t('upcomingThisMonth');}
+                    if (sessionFilter === '3M') {return t('upcomingSessions');}
+                    return t('upcomingSessions');
+                  };
+
+                  return (
+                    <View style={{ gap: theme.spacing.sm }}>
+                      {/* Upcoming */}
+                      {renderSectionHeader(
+                        getSectionTitle(),
+                        sections.upcoming.length,
+                        <Calendar size={18} color="#3B82F6" />,
+                        '#3B82F6'
+                      )}
+                      {sections.upcoming.map(renderSession)}
+
+                      {/* Pending */}
+                      {renderSectionHeader(
+                        t('pendingConfirmation'),
+                        sections.pending.length,
+                        <Clock size={18} color={theme.colors.status.warning} />,
+                        theme.colors.status.warning
+                      )}
+                      {sections.pending.map(renderSession)}
+
+                      {/* Completed */}
+                      {renderSectionHeader(
+                        t('completedSessions'),
+                        sections.completed.length,
+                        <CheckCircle size={18} color={theme.colors.status.success} />,
+                        theme.colors.status.success
+                      )}
+                      {sections.completed.map(renderSession)}
+
+                      {/* Cancelled */}
+                      {renderSectionHeader(
+                        t('cancelledSessions'),
+                        sections.cancelled.length,
+                        <X size={18} color={theme.colors.status.error} />,
+                        theme.colors.status.error
+                      )}
+                      {sections.cancelled.map(renderSession)}
+                    </View>
+                  );
+                })()}
               </>
             )}
           </ScrollView>
