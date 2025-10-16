@@ -142,15 +142,16 @@ export default function HomeScreen() {
       setPeopleInGym(validatedCount);
     } catch (error) {
       console.error('Error updating people in gym:', error);
-      // Fallback to simple count
-      setPeopleInGym(checkins.filter(checkin => !checkin.check_out_time).length);
+      // If RPC fails, show 0 instead of counting local checkins
+      // (local checkins are user-specific, not gym-wide)
+      setPeopleInGym(0);
     }
-  }, [getValidatedPeopleInGym, checkins]);
+  }, [getValidatedPeopleInGym]);
 
-  // Update people count when checkins change
+  // Update people count when component mounts and periodically
   React.useEffect(() => {
     updatePeopleInGym();
-  }, [checkins, updatePeopleInGym]);
+  }, [updatePeopleInGym]);
 
   // Run cleanup on component mount and periodically
   React.useEffect(() => {

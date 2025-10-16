@@ -249,7 +249,10 @@ export default function MembershipScreen() {
 
   // Filter checkins based on selected period
   const getFilteredCheckins = () => {
-    if (checkinFilter === 'ALL') {return checkins;}
+    // First, filter out denied checkins
+    const successfulCheckins = checkins.filter(checkin => checkin.status !== 'denied');
+
+    if (checkinFilter === 'ALL') {return successfulCheckins;}
 
     const now = new Date();
     const monthsToSubtract = checkinFilter === '1M' ? 1 :
@@ -258,7 +261,7 @@ export default function MembershipScreen() {
 
     const startDate = new Date(now.getFullYear(), now.getMonth() - monthsToSubtract, 1);
 
-    return checkins.filter(checkin => {
+    return successfulCheckins.filter(checkin => {
       const checkinDate = new Date(checkin.check_in_time);
       return checkinDate >= startDate;
     });

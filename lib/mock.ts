@@ -95,6 +95,8 @@ export interface Checkin {
   location?: string; // Keep for backward compatibility
   membership_plan_name?: string;
   notes?: string;
+  status?: 'success' | 'denied';
+  denial_reason?: string;
   created_at: string;
   updated_at: string;
 }

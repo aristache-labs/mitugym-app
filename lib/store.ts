@@ -956,24 +956,36 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   getValidatedPeopleInGym: async () => {
     try {
-      // First run cleanup to remove invalid checkins
-      await supabase.rpc('cleanup_invalid_checkins');
+      // First run cleanup to remove invalid checkins (ignore errors)
+      try {
+        await supabase.rpc('cleanup_invalid_checkins');
+      } catch (cleanupError) {
+        console.warn('Cleanup failed, continuing:', cleanupError);
+      }
 
       // Get validated current occupancy
       const { data, error } = await supabase.rpc('get_current_gym_occupancy');
 
       if (error) {
         console.error('Error getting gym occupancy:', error);
-        // Fallback to simple count from current state
-        return get().checkins.filter(checkin => !checkin.check_out_time).length;
+        // Return 0 if RPC fails - don't use local checkins as they're user-specific
+        return 0;
+      }
+
+      // data is an array of occupants with is_valid_checkin flag
+      if (!data || !Array.isArray(data)) {
+        console.warn('Invalid data format from get_current_gym_occupancy:', data);
+        return 0;
       }
 
       // Count only valid checkins
-      return data?.filter((occupant: any) => occupant.is_valid_checkin).length || 0;
+      const validCount = data.filter((occupant: any) => occupant.is_valid_checkin === true).length;
+      console.log(`People in gym: ${validCount} (${data.length} total records)`);
+      return validCount;
     } catch (error) {
       console.error('Error in getValidatedPeopleInGym:', error);
-      // Fallback to simple count from current state
-      return get().checkins.filter(checkin => !checkin.check_out_time).length;
+      // Return 0 if there's an exception - don't use local checkins as they're user-specific
+      return 0;
     }
   },
 
