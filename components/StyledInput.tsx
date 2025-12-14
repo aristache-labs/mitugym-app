@@ -211,14 +211,14 @@ const styles = StyleSheet.create({
     left: 1,
     right: 1,
     bottom: 1,
-    backgroundColor: '#0f1419',
+    backgroundColor: '#141A1A', // Match Sign In container background
     borderRadius: 6,
   },
   decoratorTop: {
     position: 'absolute',
     top: -2.5,
     height: 3,
-    backgroundColor: '#0f1419',
+    backgroundColor: '#141A1A', // Match Sign In container background
     borderWidth: 1,
     borderColor: '#00d4d4',
     transform: [{ translateX: -2.5 }],
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -2.5,
     height: 3,
-    backgroundColor: '#0f1419',
+    backgroundColor: '#141A1A', // Match Sign In container background
     borderWidth: 1,
     borderColor: '#00d4d4',
     transform: [{ translateX: -2.5 }],
