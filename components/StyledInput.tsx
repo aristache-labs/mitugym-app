@@ -41,7 +41,7 @@ export const StyledInput: React.FC<StyledInputProps> = ({
 
   const borderColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ['#00d4d4', '#00e5e5'],
+    outputRange: ['rgba(0, 212, 212, 0.3)', '#00d4d4'],
   });
 
   const borderWidth = animatedValue.interpolate({

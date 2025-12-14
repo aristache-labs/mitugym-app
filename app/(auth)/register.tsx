@@ -227,15 +227,14 @@ export default function RegisterScreen() {
             />
 
             {/* Date of Birth */}
-            <View style={{ marginBottom: theme.spacing.md }}>
-              <NativeDatePicker
-                value={dateOfBirth}
-                onDateChange={setDateOfBirth}
-                placeholder={t('selectDateOfBirth')}
-                maximumDate={new Date(new Date().getFullYear() - 13, 11, 31)} // Must be at least 13 years old
-                minimumDate={new Date(new Date().getFullYear() - 120, 0, 1)} // Max 120 years old
-              />
-            </View>
+            <NativeDatePicker
+              value={dateOfBirth}
+              onDateChange={setDateOfBirth}
+              placeholder={t('selectDateOfBirth')}
+              label={t('dateOfBirth').toUpperCase()}
+              maximumDate={new Date(new Date().getFullYear() - 13, 11, 31)} // Must be at least 13 years old
+              minimumDate={new Date(new Date().getFullYear() - 120, 0, 1)} // Max 120 years old
+            />
 
             {/* Email Input */}
             <StyledInput
@@ -292,16 +291,14 @@ export default function RegisterScreen() {
             />
 
             {/* Gender Selection */}
-            <View style={{ marginBottom: theme.spacing.lg }}>
-              <DropdownPicker
-                value={gender}
-                onValueChange={setGender}
-                options={genderOptions}
-                placeholder={t('selectGender')}
-                label={t('gender')}
-                doneButtonText={t('done')}
-              />
-            </View>
+            <DropdownPicker
+              value={gender}
+              onValueChange={setGender}
+              options={genderOptions}
+              placeholder={t('selectGender')}
+              label={t('gender').toUpperCase()}
+              doneButtonText={t('done')}
+            />
 
             {/* Password Input */}
             <StyledInput
