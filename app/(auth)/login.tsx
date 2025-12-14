@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, TouchableOpacity, Image, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { router, Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Mail, Lock, Eye, EyeOff, Check } from 'lucide-react-native';
+import { Lock, Check } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { isValidEmail } from '../../lib/utils';
-import { PillButton } from '../../components/PillButton';
 import { SecureStorage } from '../../utils/secureStorage';
 import { useLanguage } from '../../lib/LanguageContext';
 import { StyledInput } from '../../components/StyledInput';
+import { StyledButton } from '../../components/StyledButton';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -200,11 +200,9 @@ export default function LoginScreen() {
              </View>
 
             {/* Login Button */}
-            <PillButton
+            <StyledButton
               title={t('signIn')}
               onPress={handleLogin}
-              variant="primary"
-              size="medium"
               fullWidth
               disabled={!isValidEmail(email) || password.length < 6}
               loading={isLoading}

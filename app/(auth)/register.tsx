@@ -7,7 +7,7 @@ import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { isValidEmail } from '../../lib/utils';
 import { AppHeader } from '../../components/AppHeader';
-import { PillButton } from '../../components/PillButton';
+import { StyledButton } from '../../components/StyledButton';
 import { useLanguage } from '../../lib/LanguageContext';
 import { NativeDatePicker } from '../../components/NativeDatePicker';
 import { DropdownPicker, DropdownOption } from '../../components/DropdownPicker';
@@ -583,11 +583,9 @@ export default function RegisterScreen() {
             </View>
 
             {/* Register Button */}
-            <PillButton
+            <StyledButton
               title={t('createAccount')}
               onPress={handleRegister}
-              variant="primary"
-              size="medium"
               fullWidth
               disabled={!isFormValid()}
               loading={isLoading}

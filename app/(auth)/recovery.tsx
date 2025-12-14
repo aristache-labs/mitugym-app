@@ -7,6 +7,7 @@ import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { isValidEmail } from '../../lib/utils';
 import { AppHeader } from '../../components/AppHeader';
+import { StyledButton } from '../../components/StyledButton';
 import { PillButton } from '../../components/PillButton';
 import { useLanguage } from '../../lib/LanguageContext';
 import { supabase } from '../../utils/supabase';
@@ -178,11 +179,9 @@ export default function RecoveryScreen() {
               </View>
 
               {/* Reset Button */}
-              <PillButton
+              <StyledButton
                 title={t('sendResetLink')}
                 onPress={handlePasswordReset}
-                variant="primary"
-                size="medium"
                 fullWidth
                 disabled={!isValidEmail(email)}
                 loading={isLoading}
