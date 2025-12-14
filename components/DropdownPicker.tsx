@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Modal, ScrollView, Animated, StyleSheet } from 'react-native';
 import { ChevronDown, Check, X } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../lib/theme';
-import { PillButton } from './PillButton';
 
 export interface DropdownOption {
   label: string;
@@ -231,13 +231,41 @@ export function DropdownPicker({
               paddingBottom: theme.spacing.xl,
               paddingTop: theme.spacing.md,
             }}>
-              <PillButton
-                title={doneButtonText}
+              <TouchableOpacity
                 onPress={() => setIsVisible(false)}
-                variant="primary"
-                size="medium"
-                fullWidth
-              />
+                activeOpacity={0.9}
+                style={{
+                  borderRadius: 16,
+                  overflow: 'hidden',
+                  shadowColor: '#164e63',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 8,
+                  elevation: 8,
+                }}
+              >
+                <LinearGradient
+                  colors={['#475569bf', '#164e6373', '#475569bf']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    height: 40,
+                    paddingHorizontal: 24,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={{
+                    fontSize: 14,
+                    fontWeight: '500',
+                    color: '#cbd5e1',
+                    letterSpacing: 0.5,
+                  }}>
+                    {doneButtonText}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
