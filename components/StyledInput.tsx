@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, TextInput, TextInputProps, Animated, StyleSheet, TouchableOpacity } from 'react-native';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, User, Phone, MapPin } from 'lucide-react-native';
 import { theme } from '../lib/theme';
 
 interface StyledInputProps extends Omit<TextInputProps, 'style'> {
-  icon?: 'email' | 'password';
+  icon?: 'email' | 'password' | 'user' | 'phone' | 'location';
   label?: string;
   onChangeText?: (text: string) => void;
   value?: string;
@@ -69,6 +69,12 @@ export const StyledInput: React.FC<StyledInputProps> = ({
       return <Mail size={20} color="#00d4d4" />;
     } else if (icon === 'password') {
       return <Lock size={20} color="#00d4d4" />;
+    } else if (icon === 'user') {
+      return <User size={20} color="#00d4d4" />;
+    } else if (icon === 'phone') {
+      return <Phone size={20} color="#00d4d4" />;
+    } else if (icon === 'location') {
+      return <MapPin size={20} color="#00d4d4" />;
     }
     return null;
   };

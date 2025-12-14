@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Image } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Image } from 'react-native';
 import { router, Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Mail, Lock, User, Eye, EyeOff, Phone, MapPin } from 'lucide-react-native';
+import { User } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { isValidEmail } from '../../lib/utils';
 import { AppHeader } from '../../components/AppHeader';
 import { StyledButton } from '../../components/StyledButton';
+import { StyledInput } from '../../components/StyledInput';
 import { useLanguage } from '../../lib/LanguageContext';
 import { NativeDatePicker } from '../../components/NativeDatePicker';
 import { DropdownPicker, DropdownOption } from '../../components/DropdownPicker';
@@ -24,8 +25,6 @@ export default function RegisterScreen() {
   const [city, setCity] = useState('');
   const [county, setCounty] = useState('');
   const [gender, setGender] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { signUpWithSupabase, isAuthenticated, showToast } = useAppStore();
   const { t } = useLanguage();
@@ -204,76 +203,28 @@ export default function RegisterScreen() {
             </View>
 
             {/* First Name Input */}
-            <View style={{ marginBottom: theme.spacing.md }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: 'rgba(77, 212, 212, 0.05)',
-                borderWidth: 1,
-                borderColor: firstName.trim().length > 0
-                  ? theme.colors.primary.DEFAULT
-                  : 'rgba(179, 217, 217, 0.3)',
-                borderRadius: theme.borderRadius.lg,
-              }}>
-                <User
-                  size={20}
-                  color={theme.colors.text.secondary}
-                  style={{marginLeft: theme.spacing.lg }}
-                />
-                <TextInput
-                  value={firstName}
-                  onChangeText={setFirstName}
-                  placeholder={t('firstName')}
-                  placeholderTextColor={theme.colors.text.secondary}
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                  autoComplete="given-name"
-                  style={{
-                    flex: 1,
-                    paddingHorizontal: theme.spacing.md,
-                    paddingVertical: theme.spacing.md,
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.text.primary,
-                  }}
-                />
-              </View>
-            </View>
+            <StyledInput
+              icon="user"
+              label={t('firstName').toUpperCase()}
+              value={firstName}
+              onChangeText={setFirstName}
+              placeholder={t('firstName')}
+              autoCapitalize="words"
+              autoCorrect={false}
+              autoComplete="given-name"
+            />
 
             {/* Last Name Input */}
-            <View style={{ marginBottom: theme.spacing.md }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: 'rgba(77, 212, 212, 0.05)',
-                borderWidth: 1,
-                borderColor: lastName.trim().length > 0
-                  ? theme.colors.primary.DEFAULT
-                  : 'rgba(179, 217, 217, 0.3)',
-                borderRadius: theme.borderRadius.lg,
-              }}>
-                <User
-                  size={20}
-                  color={theme.colors.text.secondary}
-                  style={{marginLeft: theme.spacing.lg }}
-                />
-                <TextInput
-                  value={lastName}
-                  onChangeText={setLastName}
-                  placeholder={t('lastName')}
-                  placeholderTextColor={theme.colors.text.secondary}
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                  autoComplete="family-name"
-                  style={{
-                    flex: 1,
-                    paddingHorizontal: theme.spacing.md,
-                    paddingVertical: theme.spacing.md,
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.text.primary,
-                  }}
-                />
-              </View>
-            </View>
+            <StyledInput
+              icon="user"
+              label={t('lastName').toUpperCase()}
+              value={lastName}
+              onChangeText={setLastName}
+              placeholder={t('lastName')}
+              autoCapitalize="words"
+              autoCorrect={false}
+              autoComplete="family-name"
+            />
 
             {/* Date of Birth */}
             <View style={{ marginBottom: theme.spacing.md }}>
@@ -287,178 +238,58 @@ export default function RegisterScreen() {
             </View>
 
             {/* Email Input */}
-            <View style={{ marginBottom: theme.spacing.md }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: 'rgba(77, 212, 212, 0.05)',
-                borderWidth: 1,
-                borderColor: isValidEmail(email)
-                  ? theme.colors.primary.DEFAULT
-                  : 'rgba(179, 217, 217, 0.3)',
-                borderRadius: theme.borderRadius.lg,
-              }}>
-                <Mail
-                  size={20}
-                  color={theme.colors.text.secondary}
-                  style={{marginLeft: theme.spacing.lg }}
-                />
-                <TextInput
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder={t('emailAddress')}
-                  placeholderTextColor={theme.colors.text.secondary}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="email"
-                  style={{
-                    flex: 1,
-                    paddingHorizontal: theme.spacing.md,
-                    paddingVertical: theme.spacing.md,
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.text.primary,
-                  }}
-                />
-              </View>
-            </View>
+            <StyledInput
+              icon="email"
+              label={t('emailAddress').toUpperCase()}
+              value={email}
+              onChangeText={setEmail}
+              placeholder={t('emailAddress')}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="email"
+            />
 
             {/* Phone Input */}
-            <View style={{ marginBottom: theme.spacing.md }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: 'rgba(77, 212, 212, 0.05)',
-                borderWidth: 1,
-                borderColor: phone.trim().length > 0
-                  ? theme.colors.primary.DEFAULT
-                  : 'rgba(179, 217, 217, 0.3)',
-                borderRadius: theme.borderRadius.lg,
-              }}>
-                <Phone
-                  size={20}
-                  color={theme.colors.text.secondary}
-                  style={{marginLeft: theme.spacing.lg }}
-                />
-                <TextInput
-                  value={phone}
-                  onChangeText={setPhone}
-                  placeholder={t('phone')}
-                  placeholderTextColor={theme.colors.text.secondary}
-                  keyboardType="phone-pad"
-                  autoComplete="tel"
-                  style={{
-                    flex: 1,
-                    paddingHorizontal: theme.spacing.md,
-                    paddingVertical: theme.spacing.md,
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.text.primary,
-                  }}
-                />
-              </View>
-            </View>
+            <StyledInput
+              icon="phone"
+              label={t('phone').toUpperCase()}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder={t('phone')}
+              keyboardType="phone-pad"
+              autoComplete="tel"
+            />
 
             {/* Address Input */}
-            <View style={{ marginBottom: theme.spacing.md }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: 'rgba(77, 212, 212, 0.05)',
-                borderWidth: 1,
-                borderColor: address.trim().length > 0
-                  ? theme.colors.primary.DEFAULT
-                  : 'rgba(179, 217, 217, 0.3)',
-                borderRadius: theme.borderRadius.lg,
-              }}>
-                <MapPin
-                  size={20}
-                  color={theme.colors.text.secondary}
-                  style={{marginLeft: theme.spacing.lg }}
-                />
-                <TextInput
-                  value={address}
-                  onChangeText={setAddress}
-                  placeholder={t('addressOptional')}
-                  placeholderTextColor={theme.colors.text.secondary}
-                  autoComplete="street-address"
-                  style={{
-                    flex: 1,
-                    paddingHorizontal: theme.spacing.md,
-                    paddingVertical: theme.spacing.md,
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.text.primary,
-                  }}
-                />
-              </View>
-            </View>
+            <StyledInput
+              icon="location"
+              label={t('addressOptional').toUpperCase()}
+              value={address}
+              onChangeText={setAddress}
+              placeholder={t('addressOptional')}
+              autoComplete="street-address"
+            />
 
             {/* City Input */}
-            <View style={{ marginBottom: theme.spacing.md }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: 'rgba(77, 212, 212, 0.05)',
-                borderWidth: 1,
-                borderColor: city.trim().length > 0
-                  ? theme.colors.primary.DEFAULT
-                  : 'rgba(179, 217, 217, 0.3)',
-                borderRadius: theme.borderRadius.lg,
-              }}>
-                <MapPin
-                  size={20}
-                  color={theme.colors.text.secondary}
-                  style={{marginLeft: theme.spacing.lg }}
-                />
-                <TextInput
-                  value={city}
-                  onChangeText={setCity}
-                  placeholder={t('cityOptional')}
-                  placeholderTextColor={theme.colors.text.secondary}
-                  autoComplete="address-line2"
-                  style={{
-                    flex: 1,
-                    paddingHorizontal: theme.spacing.md,
-                    paddingVertical: theme.spacing.md,
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.text.primary,
-                  }}
-                />
-              </View>
-            </View>
+            <StyledInput
+              icon="location"
+              label={t('cityOptional').toUpperCase()}
+              value={city}
+              onChangeText={setCity}
+              placeholder={t('cityOptional')}
+              autoComplete="address-line2"
+            />
 
             {/* County Input */}
-            <View style={{ marginBottom: theme.spacing.md }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: 'rgba(77, 212, 212, 0.05)',
-                borderWidth: 1,
-                borderColor: county.trim().length > 0
-                  ? theme.colors.primary.DEFAULT
-                  : 'rgba(179, 217, 217, 0.3)',
-                borderRadius: theme.borderRadius.lg,
-              }}>
-                <MapPin
-                  size={20}
-                  color={theme.colors.text.secondary}
-                  style={{marginLeft: theme.spacing.lg }}
-                />
-                <TextInput
-                  value={county}
-                  onChangeText={setCounty}
-                  placeholder={t('countyOptional')}
-                  placeholderTextColor={theme.colors.text.secondary}
-                  autoComplete="address-line1"
-                  style={{
-                    flex: 1,
-                    paddingHorizontal: theme.spacing.md,
-                    paddingVertical: theme.spacing.md,
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.text.primary,
-                  }}
-                />
-              </View>
-            </View>
+            <StyledInput
+              icon="location"
+              label={t('countyOptional').toUpperCase()}
+              value={county}
+              onChangeText={setCounty}
+              placeholder={t('countyOptional')}
+              autoComplete="address-line1"
+            />
 
             {/* Gender Selection */}
             <View style={{ marginBottom: theme.spacing.lg }}>
@@ -473,103 +304,31 @@ export default function RegisterScreen() {
             </View>
 
             {/* Password Input */}
-            <View style={{ marginBottom: theme.spacing.md }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: 'rgba(77, 212, 212, 0.05)',
-                borderWidth: 1,
-                borderColor: password.length >= 6
-                  ? theme.colors.primary.DEFAULT
-                  : 'rgba(179, 217, 217, 0.3)',
-                borderRadius: theme.borderRadius.lg,
-              }}>
-                <Lock
-                  size={20}
-                  color={theme.colors.text.secondary}
-                  style={{marginLeft: theme.spacing.lg }}
-                />
-                <TextInput
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder={t('password')}
-                  placeholderTextColor={theme.colors.text.secondary}
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="password-new"
-                  style={{
-                    flex: 1,
-                    paddingHorizontal: theme.spacing.md,
-                    paddingVertical: theme.spacing.md,
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.text.primary,
-                  }}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                  style={{
-                    padding: theme.spacing.sm,
-                    marginRight: theme.spacing.sm,
-                  }}
-                >
-                  {showPassword ? (
-                    <EyeOff size={20} color={theme.colors.text.secondary} />
-                  ) : (
-                    <Eye size={20} color={theme.colors.text.secondary} />
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
+            <StyledInput
+              icon="password"
+              label={t('password').toUpperCase()}
+              value={password}
+              onChangeText={setPassword}
+              placeholder={t('password')}
+              isPassword={true}
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="password-new"
+            />
 
             {/* Confirm Password Input */}
             <View style={{ marginBottom: theme.spacing.lg }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: 'rgba(77, 212, 212, 0.05)',
-                borderWidth: 1,
-                borderColor: (confirmPassword.length >= 6 && password === confirmPassword)
-                  ? theme.colors.primary.DEFAULT
-                  : 'rgba(179, 217, 217, 0.3)',
-                borderRadius: theme.borderRadius.lg,
-              }}>
-                <Lock
-                  size={20}
-                  color={theme.colors.text.secondary}
-                  style={{marginLeft: theme.spacing.lg }}
-                />
-                <TextInput
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  placeholder={t('confirmPassword')}
-                  placeholderTextColor={theme.colors.text.secondary}
-                  secureTextEntry={!showConfirmPassword}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="password-new"
-                  style={{
-                    flex: 1,
-                    paddingHorizontal: theme.spacing.md,
-                    paddingVertical: theme.spacing.md,
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.text.primary,
-                  }}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  style={{
-                    padding: theme.spacing.sm,
-                    marginRight: theme.spacing.sm,
-                  }}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff size={20} color={theme.colors.text.secondary} />
-                  ) : (
-                    <Eye size={20} color={theme.colors.text.secondary} />
-                  )}
-                </TouchableOpacity>
-              </View>
+              <StyledInput
+                icon="password"
+                label={t('confirmPassword').toUpperCase()}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder={t('confirmPassword')}
+                isPassword={true}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="password-new"
+              />
               {confirmPassword.length > 0 && password !== confirmPassword && (
                 <Text style={{
                   fontSize: theme.typography.small.fontSize,

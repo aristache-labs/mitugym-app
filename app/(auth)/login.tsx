@@ -138,7 +138,7 @@ export default function LoginScreen() {
             {/* Email Input */}
             <StyledInput
               icon="email"
-              label="EMAIL"
+              label={t('emailAddress').toUpperCase()}
               value={email}
               onChangeText={setEmail}
               placeholder={t('emailAddress')}
@@ -151,7 +151,7 @@ export default function LoginScreen() {
             {/* Password Input */}
             <StyledInput
               icon="password"
-              label="PASSWORD"
+              label={t('password').toUpperCase()}
               value={password}
               onChangeText={setPassword}
               placeholder={t('password')}

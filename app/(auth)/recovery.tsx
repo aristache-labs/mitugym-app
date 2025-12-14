@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Image } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Image } from 'react-native';
 import { router, Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Mail, Key, ArrowLeft } from 'lucide-react-native';
@@ -8,6 +8,7 @@ import { theme } from '../../lib/theme';
 import { isValidEmail } from '../../lib/utils';
 import { AppHeader } from '../../components/AppHeader';
 import { StyledButton } from '../../components/StyledButton';
+import { StyledInput } from '../../components/StyledInput';
 import { PillButton } from '../../components/PillButton';
 import { useLanguage } from '../../lib/LanguageContext';
 import { supabase } from '../../utils/supabase';
@@ -142,41 +143,17 @@ export default function RecoveryScreen() {
               </Text>
 
               {/* Email Input */}
-              <View style={{ marginBottom: theme.spacing.lg }}>
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: 'rgba(77, 212, 212, 0.05)',
-                  borderWidth: 1,
-                  borderColor: isValidEmail(email)
-                    ? theme.colors.primary.DEFAULT
-                    : 'rgba(179, 217, 217, 0.3)',
-                  borderRadius: theme.borderRadius.lg,
-                }}>
-                  <Mail
-                    size={20}
-                    color={theme.colors.text.secondary}
-                    style={{ marginLeft: theme.spacing.lg }}
-                  />
-                  <TextInput
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder={t('emailAddress')}
-                    placeholderTextColor={theme.colors.text.secondary}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    autoComplete="email"
-                    style={{
-                      flex: 1,
-                      paddingHorizontal: theme.spacing.md,
-                      paddingVertical: theme.spacing.md,
-                      fontSize: theme.typography.body.fontSize,
-                      color: theme.colors.text.primary,
-                    }}
-                  />
-                </View>
-              </View>
+              <StyledInput
+                icon="email"
+                label={t('emailAddress').toUpperCase()}
+                value={email}
+                onChangeText={setEmail}
+                placeholder={t('emailAddress')}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="email"
+              />
 
               {/* Reset Button */}
               <StyledButton
