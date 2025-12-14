@@ -9,11 +9,11 @@ import { isValidEmail } from '../../lib/utils';
 import { PillButton } from '../../components/PillButton';
 import { SecureStorage } from '../../utils/secureStorage';
 import { useLanguage } from '../../lib/LanguageContext';
+import { StyledInput } from '../../components/StyledInput';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { loginWithSupabase, isAuthenticated, showToast } = useAppStore();
@@ -136,91 +136,30 @@ export default function LoginScreen() {
             </View>
 
             {/* Email Input */}
-            <View style={{ marginBottom: theme.spacing.md }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: 'rgba(77, 212, 212, 0.05)',
-                borderWidth: 1,
-                borderColor: isValidEmail(email)
-                  ? theme.colors.primary.DEFAULT
-                  : 'rgba(179, 217, 217, 0.3)',
-                borderRadius: theme.borderRadius.lg,
-              }}>
-                <Mail
-                  size={20}
-                  color={theme.colors.text.secondary}
-                  style={{ marginLeft: theme.spacing.lg }}
-                />
-                <TextInput
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder={t('emailAddress')}
-                  placeholderTextColor={theme.colors.text.secondary}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="email"
-                  style={{
-                    flex: 1,
-                    paddingHorizontal: theme.spacing.md,
-                    paddingVertical: theme.spacing.md,
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.text.primary,
-                  }}
-                />
-              </View>
-            </View>
+            <StyledInput
+              icon="email"
+              label="EMAIL"
+              value={email}
+              onChangeText={setEmail}
+              placeholder={t('emailAddress')}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="email"
+            />
 
             {/* Password Input */}
-            <View style={{ marginBottom: theme.spacing.lg }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: 'rgba(77, 212, 212, 0.05)',
-                borderWidth: 1,
-                borderColor: password.length >= 6
-                  ? theme.colors.primary.DEFAULT
-                  : 'rgba(179, 217, 217, 0.3)',
-                borderRadius: theme.borderRadius.lg,
-              }}>
-                <Lock
-                  size={20}
-                  color={theme.colors.text.secondary}
-                  style={{ marginLeft: theme.spacing.lg }}
-                />
-                <TextInput
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder={t('password')}
-                  placeholderTextColor={theme.colors.text.secondary}
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="password"
-                  style={{
-                    flex: 1,
-                    paddingHorizontal: theme.spacing.md,
-                    paddingVertical: theme.spacing.md,
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.text.primary,
-                  }}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                  style={{
-                    padding: theme.spacing.sm,
-                    marginRight: theme.spacing.sm,
-                  }}
-                >
-                  {showPassword ? (
-                    <EyeOff size={20} color={theme.colors.text.secondary} />
-                  ) : (
-                    <Eye size={20} color={theme.colors.text.secondary} />
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
+            <StyledInput
+              icon="password"
+              label="PASSWORD"
+              value={password}
+              onChangeText={setPassword}
+              placeholder={t('password')}
+              isPassword={true}
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="password"
+            />
 
             {/* Remember Me Checkbox */}
              <View style={{
