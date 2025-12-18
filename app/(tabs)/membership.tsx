@@ -13,7 +13,6 @@ import {
   Calendar,
   X,
   PlayCircle,
-  Trash2,
   History,
 } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
@@ -22,6 +21,7 @@ import { formatPrice, formatCheckinDateTime } from '../../lib/utils';
 import { AppHeader } from '../../components/AppHeader';
 import { StatusCard } from '../../components/StatusCard';
 import { StyledButton } from '../../components/StyledButton';
+import { AnimatedDeleteButton } from '../../components/AnimatedDeleteButton';
 import { useLanguage } from '../../lib/LanguageContext';
 
 export default function MembershipScreen() {
@@ -373,16 +373,20 @@ export default function MembershipScreen() {
               </Text>
               {getPendingSessionsCount() > 0 && (
                 <View style={{
-                  backgroundColor: theme.colors.status.warning,
-                  borderRadius: theme.borderRadius.xs,
-                  paddingHorizontal: theme.spacing.xs,
-                  paddingVertical: 2,
+                  backgroundColor: 'rgba(77, 212, 212, 0.2)',
+                  borderRadius: 12,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
                   marginLeft: theme.spacing.sm,
+                  borderWidth: 1,
+                  borderColor: 'rgba(77, 212, 212, 0.3)',
                 }}>
                   <Text style={{
-                    fontSize: theme.typography.caption.fontSize,
+                    fontSize: 10,
                     fontWeight: '600',
-                    color: '#000',
+                    color: '#4DD4D4',
+                    textTransform: 'uppercase',
+                    letterSpacing: 1,
                   }}>
                     {getPendingSessionsCount()} {t('pending')}
                   </Text>
@@ -1212,19 +1216,47 @@ export default function MembershipScreen() {
 
                       // Determine border and badge colors based on status
                       const getBorderColor = () => {
-                        if (isPending) {return theme.colors.status.warning;}
+                        if (isPending) {return '#4DD4D4';} // Primary cyan/teal color
                         if (isUpcoming) {return '#3B82F6';} // Blue for upcoming
                         if (isCompleted) {return theme.colors.status.success;}
                         if (isCancelled) {return theme.colors.status.error;}
                         return 'rgba(30, 155, 113, 0.2)';
                       };
 
-                      const getBadgeColor = () => {
-                        if (isPending) {return theme.colors.status.warning;}
-                        if (isUpcoming) {return '#3B82F6';} // Blue for upcoming
-                        if (isCompleted) {return theme.colors.status.success;}
-                        if (isCancelled) {return theme.colors.status.error;}
-                        return theme.colors.primary.DEFAULT;
+                      const getBadgeStyles = () => {
+                        if (isPending) {
+                          return {
+                            backgroundColor: 'rgba(77, 212, 212, 0.2)', // Primary color (cyan/teal) with 20% opacity
+                            borderColor: 'rgba(77, 212, 212, 0.3)',
+                            textColor: '#4DD4D4',
+                          };
+                        }
+                        if (isUpcoming) {
+                          return {
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)', // Blue with opacity
+                            borderColor: 'rgba(59, 130, 246, 0.3)',
+                            textColor: '#3b82f6',
+                          };
+                        }
+                        if (isCompleted) {
+                          return {
+                            backgroundColor: 'rgba(34, 197, 94, 0.2)', // Green with opacity
+                            borderColor: 'rgba(34, 197, 94, 0.3)',
+                            textColor: '#22c55e',
+                          };
+                        }
+                        if (isCancelled) {
+                          return {
+                            backgroundColor: 'rgba(239, 68, 68, 0.2)', // Red with opacity
+                            borderColor: 'rgba(239, 68, 68, 0.3)',
+                            textColor: '#ef4444',
+                          };
+                        }
+                        return {
+                          backgroundColor: 'rgba(30, 155, 113, 0.2)',
+                          borderColor: 'rgba(30, 155, 113, 0.3)',
+                          textColor: theme.colors.primary.DEFAULT,
+                        };
                       };
 
                       return (
@@ -1279,18 +1311,20 @@ export default function MembershipScreen() {
 
                                 {/* Status Badge */}
                                 <View style={{
-                                  backgroundColor: getBadgeColor(),
-                                  borderRadius: theme.borderRadius.xs,
-                                  paddingHorizontal: theme.spacing.xs,
-                                  paddingVertical: theme.spacing.xs,
+                                  backgroundColor: getBadgeStyles().backgroundColor,
+                                  borderRadius: 12,
+                                  paddingHorizontal: 12,
+                                  paddingVertical: 6,
                                   marginRight: isUpcoming && isToday ? theme.spacing.sm : 0,
+                                  borderWidth: 1,
+                                  borderColor: getBadgeStyles().borderColor,
                                 }}>
                                   <Text style={{
-                                    fontSize: theme.typography.caption.fontSize,
-                                    fontWeight: '700',
-                                    color: isPending ? '#000' : 'white',
+                                    fontSize: 10,
+                                    fontWeight: '600',
+                                    color: getBadgeStyles().textColor,
                                     textTransform: 'uppercase',
-                                    letterSpacing: 0.3,
+                                    letterSpacing: 1,
                                   }}>
                                     {t(session.status)}
                                   </Text>
@@ -1299,17 +1333,19 @@ export default function MembershipScreen() {
                                 {/* TODAY Badge for upcoming sessions */}
                                 {isUpcoming && isToday && (
                                   <View style={{
-                                    backgroundColor: theme.colors.primary.DEFAULT,
-                                    borderRadius: theme.borderRadius.xs,
-                                    paddingHorizontal: theme.spacing.xs,
-                                    paddingVertical: 2,
+                                    backgroundColor: 'rgba(30, 155, 113, 0.2)',
+                                    borderRadius: 12,
+                                    paddingHorizontal: 12,
+                                    paddingVertical: 6,
+                                    borderWidth: 1,
+                                    borderColor: 'rgba(30, 155, 113, 0.3)',
                                   }}>
                                     <Text style={{
-                                      fontSize: theme.typography.caption.fontSize,
-                                      fontWeight: '700',
-                                      color: 'white',
+                                      fontSize: 10,
+                                      fontWeight: '600',
+                                      color: theme.colors.primary.DEFAULT,
                                       textTransform: 'uppercase',
-                                      letterSpacing: 0.5,
+                                      letterSpacing: 1,
                                     }}>
                                       {t('today')}
                                     </Text>
@@ -1352,25 +1388,12 @@ export default function MembershipScreen() {
 
                             {/* Cancel Button for Pending Sessions */}
                             {isPending && (
-                              <TouchableOpacity
-                                onPress={() => handleCancelSession(session.id)}
-                                style={{
-                                  width: 40,
-                                  height: 40,
-                                  backgroundColor: theme.colors.status.error,
-                                  borderRadius: 20,
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  marginLeft: theme.spacing.md,
-                                  shadowColor: theme.colors.status.error,
-                                  shadowOffset: { width: 0, height: 2 },
-                                  shadowOpacity: 0.3,
-                                  shadowRadius: 4,
-                                  elevation: 3,
-                                }}
-                              >
-                                <Trash2 size={18} color="white" />
-                              </TouchableOpacity>
+                              <View style={{ marginLeft: theme.spacing.md }}>
+                                <AnimatedDeleteButton
+                                  onPress={() => handleCancelSession(session.id)}
+                                  size={32}
+                                />
+                              </View>
                             )}
                           </View>
                         </View>
@@ -1379,6 +1402,20 @@ export default function MembershipScreen() {
 
                   const renderSectionHeader = (title: string, count: number, icon: any, color: string) => {
                     if (count === 0) {return null;}
+
+                    // Convert solid color to rgba with opacity for background
+                    const getHeaderBadgeStyles = (solidColor: string) => {
+                      const colorMap: { [key: string]: { bg: string; border: string; text: string } } = {
+                        '#3B82F6': { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 0.3)', text: '#3b82f6' },
+                        [theme.colors.status.warning]: { bg: 'rgba(77, 212, 212, 0.2)', border: 'rgba(77, 212, 212, 0.3)', text: '#4DD4D4' },
+                        [theme.colors.status.success]: { bg: 'rgba(34, 197, 94, 0.2)', border: 'rgba(34, 197, 94, 0.3)', text: '#22c55e' },
+                        [theme.colors.status.error]: { bg: 'rgba(239, 68, 68, 0.2)', border: 'rgba(239, 68, 68, 0.3)', text: '#ef4444' },
+                      };
+                      return colorMap[solidColor] || { bg: 'rgba(30, 155, 113, 0.2)', border: 'rgba(30, 155, 113, 0.3)', text: theme.colors.primary.DEFAULT };
+                    };
+
+                    const badgeStyles = getHeaderBadgeStyles(color);
+
                     return (
                       <View style={{
                         flexDirection: 'row',
@@ -1399,16 +1436,18 @@ export default function MembershipScreen() {
                           {title}
                         </Text>
                         <View style={{
-                          backgroundColor: color,
-                          borderRadius: theme.borderRadius.xs,
-                          paddingHorizontal: theme.spacing.sm,
-                          paddingVertical: 2,
+                          backgroundColor: badgeStyles.bg,
+                          borderRadius: 12,
+                          paddingHorizontal: 10,
+                          paddingVertical: 4,
                           marginLeft: theme.spacing.sm,
+                          borderWidth: 1,
+                          borderColor: badgeStyles.border,
                         }}>
                           <Text style={{
-                            fontSize: theme.typography.caption.fontSize,
+                            fontSize: 10,
                             fontWeight: '600',
-                            color: color === theme.colors.status.warning ? '#000' : 'white',
+                            color: badgeStyles.text,
                           }}>
                             {count}
                           </Text>
@@ -1439,7 +1478,7 @@ export default function MembershipScreen() {
                       {renderSectionHeader(
                         t('pendingConfirmation'),
                         sections.pending.length,
-                        <Clock size={18} color={theme.colors.status.warning} />,
+                        <Clock size={18} color="#4DD4D4" />,
                         theme.colors.status.warning,
                       )}
                       {sections.pending.map(renderSession)}
