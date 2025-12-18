@@ -529,7 +529,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       const { data, error } = await supabase
         .from('purchased_services')
         .insert([purchaseData])
-        .select()
+        .select(`
+          *,
+          services(name, service_type, duration_minutes, price)
+        `)
         .single();
 
       if (error) {
@@ -539,7 +542,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
 
       if (data) {
-        // Add to local state
+        // Add to local state with service relationship
         set({
           purchasedServices: [...get().purchasedServices, data],
         });

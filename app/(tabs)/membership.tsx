@@ -14,6 +14,7 @@ import {
   X,
   PlayCircle,
   History,
+  XCircle,
 } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
@@ -40,6 +41,10 @@ export default function MembershipScreen() {
   const [sessionHistoryModalVisible, setSessionHistoryModalVisible] = useState(false);
   const [selectedServiceForHistory, setSelectedServiceForHistory] = useState<any>(null);
   const [sessionFilter, setSessionFilter] = useState('1M'); // 1W, 1M, 3M, ALL
+
+  // Cancellation details modal state
+  const [cancellationModalVisible, setCancellationModalVisible] = useState(false);
+  const [selectedCancelledService, setSelectedCancelledService] = useState<any>(null);
 
   const {
     member,
@@ -227,6 +232,21 @@ export default function MembershipScreen() {
   const handleShowSessionHistory = (purchasedService: any) => {
     setSelectedServiceForHistory(purchasedService);
     setSessionHistoryModalVisible(true);
+  };
+
+  // Handler for showing cancellation details
+  const handleShowCancellationDetails = (purchasedService: any) => {
+    setSelectedCancelledService(purchasedService);
+    setCancellationModalVisible(true);
+  };
+
+  // Handler for service card press
+  const handleServicePress = (purchasedService: any) => {
+    if (purchasedService.status === 'cancelled') {
+      handleShowCancellationDetails(purchasedService);
+    } else {
+      handleShowSessionHistory(purchasedService);
+    }
   };
 
   // Handler for canceling a pending session
@@ -466,7 +486,7 @@ export default function MembershipScreen() {
                     }}
                   >
                     <TouchableOpacity
-                      onPress={() => handleShowSessionHistory(purchasedService)}
+                      onPress={() => handleServicePress(purchasedService)}
                       style={{
                         padding: theme.spacing.md,
                       }}
@@ -475,44 +495,69 @@ export default function MembershipScreen() {
                     <View style={{
                       marginBottom: theme.spacing.sm,
                     }}>
+                      <Text style={{
+                        fontSize: theme.typography.body.fontSize,
+                        fontWeight: '600',
+                        color: theme.colors.text.primary,
+                        marginBottom: theme.spacing.xs,
+                      }}>
+                        {purchasedService.services?.name || 'Service'}
+                      </Text>
                       <View style={{
                         flexDirection: 'row',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        marginBottom: theme.spacing.xs,
+                        marginBottom: theme.spacing.sm,
                       }}>
                         <Text style={{
-                          fontSize: theme.typography.body.fontSize,
-                          fontWeight: '600',
-                          color: theme.colors.text.primary,
-                          flex: 1,
+                          fontSize: theme.typography.caption.fontSize,
+                          color: theme.colors.text.secondary,
                         }}>
-                          {purchasedService.services?.name || 'Service'}
+                          {t('sessionsRemaining')}: {purchasedService.sessions_remaining} / {purchasedService.sessions_total}
                         </Text>
                         {purchasedService.status === 'pending' && (
                           <View style={{
-                            backgroundColor: 'rgba(255, 193, 7, 0.15)',
-                            paddingHorizontal: theme.spacing.sm,
-                            paddingVertical: theme.spacing.xs,
-                            borderRadius: theme.borderRadius.md,
+                            backgroundColor: 'rgba(77, 212, 212, 0.2)',
+                            borderRadius: 12,
+                            paddingHorizontal: 12,
+                            paddingVertical: 6,
+                            borderWidth: 1,
+                            borderColor: 'rgba(77, 212, 212, 0.3)',
+                            marginLeft: theme.spacing.sm,
                           }}>
                             <Text style={{
-                              fontSize: theme.typography.caption.fontSize,
-                              color: '#f59e0b',
+                              fontSize: 10,
                               fontWeight: '600',
+                              color: '#4DD4D4',
+                              textTransform: 'uppercase',
+                              letterSpacing: 1,
                             }}>
                               {t('pending')}
                             </Text>
                           </View>
                         )}
+                        {purchasedService.status === 'cancelled' && (
+                          <View style={{
+                            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                            borderRadius: 12,
+                            paddingHorizontal: 12,
+                            paddingVertical: 6,
+                            borderWidth: 1,
+                            borderColor: 'rgba(239, 68, 68, 0.3)',
+                            marginLeft: theme.spacing.sm,
+                          }}>
+                            <Text style={{
+                              fontSize: 10,
+                              fontWeight: '600',
+                              color: '#ef4444',
+                              textTransform: 'uppercase',
+                              letterSpacing: 1,
+                            }}>
+                              {t('cancelled')}
+                            </Text>
+                          </View>
+                        )}
                       </View>
-                      <Text style={{
-                        fontSize: theme.typography.caption.fontSize,
-                        color: theme.colors.text.secondary,
-                        marginBottom: theme.spacing.sm,
-                      }}>
-                        {t('sessionsRemaining')}: {purchasedService.sessions_remaining} / {purchasedService.sessions_total}
-                      </Text>
                     </View>
 
                     {/* Progress bar */}
@@ -1509,6 +1554,207 @@ export default function MembershipScreen() {
         </View>
       </Modal>
 
+      {/* Cancellation Details Modal */}
+      <Modal
+        visible={cancellationModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setCancellationModalVisible(false)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: theme.colors.background.DEFAULT,
+          paddingTop: theme.spacing.md,
+        }}>
+          {/* Modal Header */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: theme.spacing.lg,
+            paddingTop: theme.spacing.xs,
+            paddingBottom: theme.spacing.sm,
+            borderBottomWidth: 1,
+            borderBottomColor: 'rgba(239, 68, 68, 0.2)',
+          }}>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
+              <XCircle size={24} color={theme.colors.status.error} style={{ marginRight: theme.spacing.sm }} />
+              <Text style={{
+                fontSize: theme.typography.h3.fontSize,
+                fontWeight: theme.typography.h3.fontWeight,
+                color: theme.colors.text.primary,
+              }}>
+                {t('serviceCancelled' as any)}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => setCancellationModalVisible(false)}>
+              <X size={24} color={theme.colors.text.secondary} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: theme.spacing.lg }}>
+            {selectedCancelledService && (
+              <>
+                {/* Service Info */}
+                <View style={{
+                  backgroundColor: theme.colors.background.surface,
+                  borderRadius: theme.borderRadius.lg,
+                  padding: theme.spacing.lg,
+                  marginBottom: theme.spacing.lg,
+                  borderWidth: 1,
+                  borderColor: 'rgba(239, 68, 68, 0.2)',
+                }}>
+                  <Text style={{
+                    fontSize: theme.typography.h3.fontSize,
+                    fontWeight: theme.typography.h3.fontWeight,
+                    color: theme.colors.text.primary,
+                    marginBottom: theme.spacing.sm,
+                  }}>
+                    {selectedCancelledService.services?.name || 'Service'}
+                  </Text>
+
+                  <View style={{
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    borderRadius: 12,
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderWidth: 1,
+                    borderColor: 'rgba(239, 68, 68, 0.3)',
+                    alignSelf: 'flex-start',
+                    marginBottom: theme.spacing.md,
+                  }}>
+                    <Text style={{
+                      fontSize: 10,
+                      fontWeight: '600',
+                      color: '#ef4444',
+                      textTransform: 'uppercase',
+                      letterSpacing: 1,
+                    }}>
+                      {t('cancelled')}
+                    </Text>
+                  </View>
+
+                  <View style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingTop: theme.spacing.sm,
+                    borderTopWidth: 1,
+                    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+                  }}>
+                    <View>
+                      <Text style={{
+                        fontSize: theme.typography.caption.fontSize,
+                        color: theme.colors.text.secondary,
+                        marginBottom: theme.spacing.xs,
+                      }}>
+                        {t('purchasedOn')}
+                      </Text>
+                      <Text style={{
+                        fontSize: theme.typography.body.fontSize,
+                        fontWeight: '600',
+                        color: theme.colors.text.primary,
+                      }}>
+                        {new Date(selectedCancelledService.purchase_date).toLocaleDateString()}
+                      </Text>
+                    </View>
+                    <View>
+                      <Text style={{
+                        fontSize: theme.typography.caption.fontSize,
+                        color: theme.colors.text.secondary,
+                        marginBottom: theme.spacing.xs,
+                      }}>
+                        {t('sessionsTotal' as any)}
+                      </Text>
+                      <Text style={{
+                        fontSize: theme.typography.body.fontSize,
+                        fontWeight: '600',
+                        color: theme.colors.text.primary,
+                      }}>
+                        {selectedCancelledService.sessions_total}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Cancellation Reason (from Notes) */}
+                {selectedCancelledService.notes && (
+                  <View style={{
+                    backgroundColor: theme.colors.background.surface,
+                    borderRadius: theme.borderRadius.lg,
+                    padding: theme.spacing.lg,
+                    marginBottom: theme.spacing.lg,
+                    borderWidth: 1,
+                    borderColor: 'rgba(239, 68, 68, 0.2)',
+                  }}>
+                    <Text style={{
+                      fontSize: theme.typography.body.fontSize,
+                      fontWeight: '600',
+                      color: theme.colors.text.primary,
+                      marginBottom: theme.spacing.sm,
+                    }}>
+                      {t('cancellationReason' as any)}
+                    </Text>
+                    <Text style={{
+                      fontSize: theme.typography.body.fontSize,
+                      color: theme.colors.text.secondary,
+                      lineHeight: 22,
+                    }}>
+                      {selectedCancelledService.notes}
+                    </Text>
+                  </View>
+                )}
+
+                {/* No Reason Message */}
+                {!selectedCancelledService.notes && (
+                  <View style={{
+                    backgroundColor: theme.colors.background.surface,
+                    borderRadius: theme.borderRadius.lg,
+                    padding: theme.spacing.lg,
+                    marginBottom: theme.spacing.lg,
+                    borderWidth: 1,
+                    borderColor: 'rgba(239, 68, 68, 0.2)',
+                  }}>
+                    <Text style={{
+                      fontSize: theme.typography.body.fontSize,
+                      color: theme.colors.text.secondary,
+                      textAlign: 'center',
+                      fontStyle: 'italic',
+                    }}>
+                      {t('noReason' as any)}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Close Button */}
+                <TouchableOpacity
+                  onPress={() => setCancellationModalVisible(false)}
+                  style={{
+                    backgroundColor: theme.colors.background.surface,
+                    borderRadius: theme.borderRadius.lg,
+                    padding: theme.spacing.md,
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    marginBottom: insets.bottom,
+                  }}
+                >
+                  <Text style={{
+                    fontSize: theme.typography.body.fontSize,
+                    fontWeight: '600',
+                    color: theme.colors.text.primary,
+                  }}>
+                    {t('close')}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </ScrollView>
+        </View>
+      </Modal>
 
     </View>
   );
