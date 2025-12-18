@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, TextInputProps, Animated, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, TextInput, TextInputProps, Animated, StyleSheet, TouchableOpacity, TextStyle } from 'react-native';
 import { Mail, Lock, Eye, EyeOff, User, Phone, MapPin } from 'lucide-react-native';
 import { theme } from '../lib/theme';
 
@@ -9,6 +9,7 @@ interface StyledInputProps extends Omit<TextInputProps, 'style'> {
   onChangeText?: (text: string) => void;
   value?: string;
   isPassword?: boolean;
+  style?: TextStyle | TextStyle[];
 }
 
 export const StyledInput: React.FC<StyledInputProps> = ({
@@ -18,6 +19,7 @@ export const StyledInput: React.FC<StyledInputProps> = ({
   value,
   isPassword = false,
   placeholder,
+  style: customStyle,
   ...props
 }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -150,9 +152,11 @@ export const StyledInput: React.FC<StyledInputProps> = ({
         />
 
         {/* Icon */}
-        <Animated.View style={[styles.iconContainer, { opacity: iconOpacity }]}>
-          {renderIcon()}
-        </Animated.View>
+        {!props.multiline && (
+          <Animated.View style={[styles.iconContainer, { opacity: iconOpacity }]}>
+            {renderIcon()}
+          </Animated.View>
+        )}
 
         {/* Input */}
         <TextInput
@@ -163,8 +167,14 @@ export const StyledInput: React.FC<StyledInputProps> = ({
           secureTextEntry={isPassword && !showPassword}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          style={styles.input}
-          {...props}
+          style={[
+            styles.input,
+            props.multiline && styles.multilineInput, // Specific styles for multiline
+            customStyle, // Allow custom styles
+            { color: '#ffffff' }, // Force text color to white
+          ]}
+          multiline={props.multiline}
+          numberOfLines={props.numberOfLines}
         />
 
         {/* Eye icon for password */}
@@ -254,6 +264,11 @@ const styles = StyleSheet.create({
     zIndex: 1,
     backgroundColor: 'transparent',
     letterSpacing: 0.5,
+  },
+  multilineInput: {
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 16,
   },
   eyeButton: {
     position: 'absolute',

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Platform, Modal, TouchableWithoutFeedback, Animated, StyleSheet } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Calendar, ChevronDown } from 'lucide-react-native';
+import { Calendar, ChevronDown, Clock } from 'lucide-react-native';
 import { theme } from '../lib/theme';
 
 interface NativeDatePickerProps {
@@ -11,6 +11,7 @@ interface NativeDatePickerProps {
   minimumDate?: Date;
   maximumDate?: Date;
   label?: string;
+  mode?: 'date' | 'time';
 }
 
 export function NativeDatePicker({
@@ -20,6 +21,7 @@ export function NativeDatePicker({
   minimumDate,
   maximumDate,
   label,
+  mode = 'date',
 }: NativeDatePickerProps) {
   const [show, setShow] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -63,6 +65,9 @@ export function NativeDatePicker({
   };
 
   const formatDate = (date: Date) => {
+    if (mode === 'time') {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -171,11 +176,19 @@ export function NativeDatePicker({
           style={styles.touchable}
         >
           <Animated.View style={{ opacity: iconOpacity }}>
-        <Calendar
-          size={20}
-              color="#00d4d4"
-              style={styles.icon}
-        />
+        {mode === 'time' ? (
+          <Clock
+            size={20}
+            color="#00d4d4"
+            style={styles.icon}
+          />
+        ) : (
+          <Calendar
+            size={20}
+            color="#00d4d4"
+            style={styles.icon}
+          />
+        )}
           </Animated.View>
           <Text style={[
             styles.text,
@@ -233,7 +246,7 @@ export function NativeDatePicker({
                       fontWeight: theme.typography.h3.fontWeight,
                       color: theme.colors.text.primary,
                     }}>
-                      Select Date
+                      {mode === 'time' ? 'Select Time' : 'Select Date'}
                     </Text>
                     <TouchableOpacity onPress={handleIOSConfirm}>
                       <Text style={{
@@ -250,7 +263,7 @@ export function NativeDatePicker({
                   <DateTimePicker
                     testID="dateTimePicker"
                     value={value || new Date()}
-                    mode="date"
+                    mode={mode}
                     is24Hour={true}
                     display="spinner"
                     onChange={onChange}
@@ -271,7 +284,7 @@ export function NativeDatePicker({
         <DateTimePicker
           testID="dateTimePicker"
           value={value || new Date()}
-          mode="date"
+          mode={mode}
           is24Hour={true}
           display="default"
           onChange={onChange}

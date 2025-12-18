@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, Platform, Modal } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Animated } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  Calendar,
   Clock,
-  Check,
-  X,
 } from 'lucide-react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAppStore } from '../lib/store';
 import { theme } from '../lib/theme';
 import { AppHeader } from '../components/AppHeader';
+import { StyledInput } from '../components/StyledInput';
+import { NativeDatePicker } from '../components/NativeDatePicker';
+import { StyledButton } from '../components/StyledButton';
 import { useLanguage } from '../lib/LanguageContext';
 
 export default function BookSessionScreen() {
@@ -23,11 +23,13 @@ export default function BookSessionScreen() {
   // Parse the purchased service from params
   const purchasedService = params.service ? JSON.parse(params.service as string) : null;
   // Session booking state
-  const [bookingDate, setBookingDate] = useState(new Date());
-  const [bookingTime, setBookingTime] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [bookingDate, setBookingDate] = useState<Date | undefined>(undefined);
+  const [bookingTime, setBookingTime] = useState<Date | undefined>(undefined);
   const [sessionNotes, setSessionNotes] = useState('');
+
+  // Cancel button animation
+  const [cancelScale] = useState(new Animated.Value(1));
+  const shineAnim = useRef(new Animated.Value(-1)).current;
 
   const { bookSession, sessionBookings } = useAppStore();
 
@@ -43,44 +45,28 @@ export default function BookSessionScreen() {
     setBookingTime(defaultTime);
   }, []);
 
-  // Temporary state for picker values (only committed on Done)
-  const [tempDate, setTempDate] = useState(new Date());
-  const [tempTime, setTempTime] = useState(new Date());
+  const handleCancelPressIn = () => {
+    Animated.spring(cancelScale, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
 
-  // DateTimePicker handlers - only update temp values, not final ones
-  const onDateChange = (_event: any, selectedDate?: Date) => {
-    if (selectedDate) {
-      setTempDate(selectedDate);
-    }
+    // Trigger shine animation
+    shineAnim.setValue(-1);
+    Animated.timing(shineAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
   };
 
-  const onTimeChange = (_event: any, selectedTime?: Date) => {
-    if (selectedTime) {
-      setTempTime(selectedTime);
-    }
-  };
-
-  // Handle Done button for date picker
-  const handleDateDone = () => {
-    setBookingDate(tempDate);
-    setShowDatePicker(false);
-  };
-
-  // Handle Done button for time picker
-  const handleTimeDone = () => {
-    setBookingTime(tempTime);
-    setShowTimePicker(false);
-  };
-
-  // Handle backdrop press or cancel
-  const handleDateCancel = () => {
-    setTempDate(bookingDate); // Reset to original value
-    setShowDatePicker(false);
-  };
-
-  const handleTimeCancel = () => {
-    setTempTime(bookingTime); // Reset to original value
-    setShowTimePicker(false);
+  const handleCancelPressOut = () => {
+    Animated.spring(cancelScale, {
+      toValue: 1,
+      friction: 3,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handleSubmit = async () => {
@@ -214,331 +200,123 @@ export default function BookSessionScreen() {
         </View>
 
         {/* Date Input */}
-        <View style={{ marginBottom: theme.spacing.lg }}>
-          <Text style={{
-            fontSize: theme.typography.body.fontSize,
-            fontWeight: '600',
-            color: theme.colors.text.primary,
-            marginBottom: theme.spacing.sm,
-          }}>
-            {t('selectDate')}
-          </Text>
-          <TouchableOpacity
-            style={{
-              backgroundColor: theme.colors.background.surface,
-              borderRadius: theme.borderRadius.md,
-              padding: theme.spacing.md,
-              borderWidth: 1,
-              borderColor: 'rgba(30, 155, 113, 0.2)',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-            onPress={() => {
-              setTempDate(bookingDate); // Initialize temp value
-              setShowDatePicker(true);
-            }}
-          >
-            <Text style={{
-              fontSize: theme.typography.body.fontSize,
-              color: theme.colors.text.primary,
-            }}>
-              {bookingDate.toLocaleDateString()}
-            </Text>
-            <Calendar size={20} color={theme.colors.text.secondary} />
-          </TouchableOpacity>
-        </View>
+        <NativeDatePicker
+          value={bookingDate}
+          onDateChange={setBookingDate}
+          placeholder={t('selectDate')}
+          label={t('selectDate').toUpperCase()}
+          minimumDate={new Date()}
+        />
 
         {/* Time Input */}
-        <View style={{ marginBottom: theme.spacing.lg }}>
-          <Text style={{
-            fontSize: theme.typography.body.fontSize,
-            fontWeight: '600',
-            color: theme.colors.text.primary,
-            marginBottom: theme.spacing.sm,
-          }}>
-            {t('selectTime')}
-          </Text>
-          <TouchableOpacity
-            style={{
-              backgroundColor: theme.colors.background.surface,
-              borderRadius: theme.borderRadius.md,
-              padding: theme.spacing.md,
-              borderWidth: 1,
-              borderColor: 'rgba(30, 155, 113, 0.2)',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-            onPress={() => {
-              setTempTime(bookingTime); // Initialize temp value
-              setShowTimePicker(true);
-            }}
-          >
-            <Text style={{
-              fontSize: theme.typography.body.fontSize,
-              color: theme.colors.text.primary,
-            }}>
-              {bookingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
-            <Clock size={20} color={theme.colors.text.secondary} />
-          </TouchableOpacity>
-        </View>
+        <NativeDatePicker
+          value={bookingTime}
+          onDateChange={setBookingTime}
+          placeholder={t('selectTime')}
+          label={t('selectTime').toUpperCase()}
+          mode="time"
+        />
 
         {/* Notes Input */}
-        <View style={{ marginBottom: theme.spacing.xl }}>
-          <Text style={{
-            fontSize: theme.typography.body.fontSize,
-            fontWeight: '600',
-            color: theme.colors.text.primary,
-            marginBottom: theme.spacing.sm,
-          }}>
-            {t('notes')} ({t('optional')})
-          </Text>
-          <TextInput
-            style={{
-              backgroundColor: theme.colors.background.surface,
-              borderRadius: theme.borderRadius.md,
-              padding: theme.spacing.md,
-              borderWidth: 1,
-              borderColor: 'rgba(30, 155, 113, 0.2)',
-              fontSize: theme.typography.body.fontSize,
-              color: theme.colors.text.primary,
-              minHeight: 80,
-              textAlignVertical: 'top',
-            }}
-            placeholder={t('addNotesPlaceholder')}
-            placeholderTextColor={theme.colors.text.secondary}
-            value={sessionNotes}
-            onChangeText={setSessionNotes}
-            multiline
-            numberOfLines={4}
-          />
-        </View>
+        <StyledInput
+          label={`${t('notes').toUpperCase()} (${t('optional').toUpperCase()})`}
+          value={sessionNotes}
+          onChangeText={setSessionNotes}
+          placeholder={t('addNotesPlaceholder')}
+          multiline
+          numberOfLines={4}
+          style={{
+            minHeight: 100,
+            textAlignVertical: 'top',
+          }}
+        />
 
         {/* Action Buttons */}
-        <View style={{ gap: theme.spacing.md }}>
-          <TouchableOpacity
-            style={{
-              backgroundColor: theme.colors.primary.DEFAULT,
-              borderRadius: theme.borderRadius.md,
-              padding: theme.spacing.md,
-              flexDirection: 'row',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
+        <View style={{ 
+          gap: theme.spacing.md,
+          marginTop: theme.spacing.xl,
+          alignItems: 'center',
+        }}>
+          <StyledButton
+            title={t('submitBooking')}
             onPress={handleSubmit}
-          >
-            <Check size={20} color="white" style={{ marginRight: theme.spacing.sm }} />
-            <Text style={{
-              fontSize: theme.typography.body.fontSize,
-              fontWeight: '600',
-              color: 'white',
-            }}>
-              {t('submitBooking')}
-            </Text>
-          </TouchableOpacity>
+            fullWidth
+          />
 
           <TouchableOpacity
-            style={{
-              backgroundColor: 'transparent',
-              borderRadius: theme.borderRadius.md,
-              padding: theme.spacing.md,
-              borderWidth: 1,
-              borderColor: theme.colors.text.secondary,
-              flexDirection: 'row',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
             onPress={handleCancel}
+            onPressIn={handleCancelPressIn}
+            onPressOut={handleCancelPressOut}
+            activeOpacity={1}
+            style={{
+              width: '50%',
+            }}
           >
-            <X size={20} color={theme.colors.text.secondary} style={{ marginRight: theme.spacing.sm }} />
-            <Text style={{
-              fontSize: theme.typography.body.fontSize,
-              fontWeight: '600',
-              color: theme.colors.text.secondary,
-            }}>
-              {t('cancel')}
-            </Text>
+            <Animated.View
+              style={{
+                transform: [{ scale: cancelScale }],
+                overflow: 'hidden',
+                borderRadius: theme.borderRadius.lg,
+              }}
+            >
+              <LinearGradient
+                colors={['rgba(51, 65, 85, 0.75)', 'rgba(30, 41, 59, 0.45)', 'rgba(51, 65, 85, 0.75)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  paddingVertical: theme.spacing.sm,
+                  paddingHorizontal: theme.spacing.md,
+                  alignItems: 'center',
+                  borderRadius: theme.borderRadius.lg,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 4,
+                  elevation: 4,
+                }}
+              >
+                <Animated.View
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    transform: [
+                      {
+                        translateX: shineAnim.interpolate({
+                          inputRange: [-1, 1],
+                          outputRange: ['-100%', '100%'],
+                        }),
+                      },
+                    ],
+                  }}
+                >
+                  <LinearGradient
+                    colors={['transparent', 'rgba(255, 255, 255, 0.1)', 'transparent']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{
+                      flex: 1,
+                      width: '100%',
+                    }}
+                  />
+                </Animated.View>
+                <Text
+                  style={{
+                    fontSize: theme.typography.body.fontSize,
+                    color: '#ffffff',
+                    fontWeight: '500',
+                    zIndex: 10,
+                  }}
+                >
+                  {t('cancel')}
+                </Text>
+              </LinearGradient>
+            </Animated.View>
           </TouchableOpacity>
         </View>
       </ScrollView>
-
-      {/* Date Picker for iOS */}
-      {Platform.OS === 'ios' && showDatePicker && (
-        <Modal
-          transparent={true}
-          animationType="slide"
-          visible={showDatePicker}
-          onRequestClose={() => setShowDatePicker(false)}
-        >
-          <TouchableOpacity
-            style={{
-              flex: 1,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              justifyContent: 'flex-end',
-            }}
-            activeOpacity={1}
-            onPress={handleDateCancel}
-          >
-            <View style={{
-              backgroundColor: theme.colors.background.surface,
-              borderTopLeftRadius: theme.borderRadius.xl,
-              borderTopRightRadius: theme.borderRadius.xl,
-              paddingBottom: insets.bottom,
-            }}>
-              {/* Picker Header */}
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                paddingHorizontal: theme.spacing.lg,
-                paddingVertical: theme.spacing.md,
-                borderBottomWidth: 1,
-                borderBottomColor: 'rgba(30, 155, 113, 0.2)',
-              }}>
-                <TouchableOpacity onPress={handleDateCancel}>
-                  <Text style={{
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.text.secondary,
-                  }}>
-                    {t('cancel')}
-                  </Text>
-                </TouchableOpacity>
-                <Text style={{
-                  fontSize: theme.typography.body.fontSize,
-                  fontWeight: '600',
-                  color: theme.colors.text.primary,
-                }}>
-                  {t('selectDate')}
-                </Text>
-                <TouchableOpacity onPress={handleDateDone}>
-                  <Text style={{
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.primary.DEFAULT,
-                    fontWeight: '600',
-                  }}>
-                    {t('done')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Date Picker */}
-              <View style={{
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingVertical: theme.spacing.lg,
-              }}>
-                <DateTimePicker
-                  value={tempDate}
-                  mode="date"
-                  display="spinner"
-                  onChange={onDateChange}
-                  minimumDate={new Date()}
-                  textColor={theme.colors.text.primary}
-                />
-              </View>
-            </View>
-          </TouchableOpacity>
-        </Modal>
-      )}
-
-      {/* Time Picker for iOS */}
-      {Platform.OS === 'ios' && showTimePicker && (
-        <Modal
-          transparent={true}
-          animationType="slide"
-          visible={showTimePicker}
-          onRequestClose={() => setShowTimePicker(false)}
-        >
-          <TouchableOpacity
-            style={{
-              flex: 1,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              justifyContent: 'flex-end',
-            }}
-            activeOpacity={1}
-            onPress={handleTimeCancel}
-          >
-            <View style={{
-              backgroundColor: theme.colors.background.surface,
-              borderTopLeftRadius: theme.borderRadius.xl,
-              borderTopRightRadius: theme.borderRadius.xl,
-              paddingBottom: insets.bottom,
-            }}>
-              {/* Picker Header */}
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                paddingHorizontal: theme.spacing.lg,
-                paddingVertical: theme.spacing.md,
-                borderBottomWidth: 1,
-                borderBottomColor: 'rgba(30, 155, 113, 0.2)',
-              }}>
-                <TouchableOpacity onPress={handleTimeCancel}>
-                  <Text style={{
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.text.secondary,
-                  }}>
-                    {t('cancel')}
-                  </Text>
-                </TouchableOpacity>
-                <Text style={{
-                  fontSize: theme.typography.body.fontSize,
-                  fontWeight: '600',
-                  color: theme.colors.text.primary,
-                }}>
-                  {t('selectTime')}
-                </Text>
-                <TouchableOpacity onPress={handleTimeDone}>
-                  <Text style={{
-                    fontSize: theme.typography.body.fontSize,
-                    color: theme.colors.primary.DEFAULT,
-                    fontWeight: '600',
-                  }}>
-                    {t('done')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Time Picker */}
-              <View style={{
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingVertical: theme.spacing.lg,
-              }}>
-                <DateTimePicker
-                  value={tempTime}
-                  mode="time"
-                  display="spinner"
-                  onChange={onTimeChange}
-                  textColor={theme.colors.text.primary}
-                />
-              </View>
-            </View>
-          </TouchableOpacity>
-        </Modal>
-      )}
-
-      {/* Date Picker for Android */}
-      {Platform.OS === 'android' && showDatePicker && (
-        <DateTimePicker
-          value={tempDate}
-          mode="date"
-          onChange={onDateChange}
-          minimumDate={new Date()}
-        />
-      )}
-
-      {/* Time Picker for Android */}
-      {Platform.OS === 'android' && showTimePicker && (
-        <DateTimePicker
-          value={tempTime}
-          mode="time"
-          onChange={onTimeChange}
-        />
-      )}
     </View>
   );
 }
