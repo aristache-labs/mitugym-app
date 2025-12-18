@@ -582,15 +582,15 @@ export default function MembershipScreen() {
                             borderColor: 'rgba(239, 68, 68, 0.3)',
                             marginLeft: theme.spacing.sm,
                           }}>
-                            <Text style={{
+                      <Text style={{
                               fontSize: 10,
                               fontWeight: '600',
                               color: '#ef4444',
                               textTransform: 'uppercase',
                               letterSpacing: 1,
-                            }}>
+                      }}>
                               {t('cancelled')}
-                            </Text>
+                      </Text>
                           </View>
                         )}
                       </View>
@@ -622,8 +622,8 @@ export default function MembershipScreen() {
                     {/* Book Session Button - Only for approved services */}
                     {purchasedService.sessions_remaining > 0 && purchasedService.status === 'approved' && (
                       <View style={{
-                        margin: theme.spacing.md,
-                        marginTop: theme.spacing.sm,
+                          margin: theme.spacing.md,
+                          marginTop: theme.spacing.sm,
                       }}>
                         <StyledButton
                           title={t('bookSession')}
@@ -1479,14 +1479,14 @@ export default function MembershipScreen() {
                                   size={32}
                                 />
                                 <AnimatedDeleteButton
-                                  onPress={() => handleCancelSession(session.id)}
+                                onPress={() => handleCancelSession(session.id)}
                                   size={32}
                                 />
                               </View>
                             )}
                             {isUpcoming && (
                               <View style={{
-                                marginLeft: theme.spacing.md,
+                                  marginLeft: theme.spacing.md,
                               }}>
                                 <AnimatedCancelButton
                                   onPress={() => handleCancelSession(session.id)}

@@ -934,22 +934,22 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       // If pending, delete it. If upcoming, update status to cancelled
       if (sessionData.status === 'pending') {
-        const { error } = await supabase
-          .from('session_bookings')
-          .delete()
-          .eq('id', sessionId)
+      const { error } = await supabase
+        .from('session_bookings')
+        .delete()
+        .eq('id', sessionId)
           .eq('member_id', session.user.id);
 
-        if (error) {
+      if (error) {
           console.error('Error deleting session:', error);
-          get().showToast('Failed to cancel session', 'error');
-          return;
-        }
+        get().showToast('Failed to cancel session', 'error');
+        return;
+      }
 
-        // Remove from local state
-        set({
-          sessionBookings: get().sessionBookings.filter(booking => booking.id !== sessionId),
-        });
+      // Remove from local state
+      set({
+        sessionBookings: get().sessionBookings.filter(booking => booking.id !== sessionId),
+      });
       } else if (sessionData.status === 'upcoming') {
         const { error } = await supabase
           .from('session_bookings')

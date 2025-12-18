@@ -44,21 +44,8 @@ export default function OnboardingScreen() {
   const { isAuthenticated } = useAppStore();
 
   // Handle authentication state changes
-  React.useEffect(() => {
-    // Give auth manager time to initialize
-    const checkAuthTimeout = setTimeout(() => {
-      setIsCheckingAuth(false);
-
-      if (isAuthenticated) {
-        console.log('Onboarding: User is authenticated, redirecting to tabs');
-        router.replace('/(tabs)');
-      } else {
-        console.log('Onboarding: User is not authenticated, showing onboarding');
-      }
-    }, 1000); // Wait 1 second for auth state to stabilize
-
-    return () => clearTimeout(checkAuthTimeout);
-  }, [isAuthenticated]);
+  // Note: We don't set a timeout here anymore because the SplashScreen
+  // component controls the timing with its onFinish callback
 
   // Handle subsequent auth changes
   React.useEffect(() => {

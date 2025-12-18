@@ -29,6 +29,23 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
   const loaderRotate = useRef(new Animated.Value(0)).current;
   const centerDotScale = useRef(new Animated.Value(1)).current;
 
+  // Generate random stars data
+  const [starsData] = useState(() => {
+    return Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      size: Math.random() * 2 + 1, // 1-3px
+      left: Math.random() * 100, // 0-100%
+      top: Math.random() * 100, // 0-100%
+      initialOpacity: Math.random(),
+      delay: Math.random() * 2000, // 0-2s delay
+    }));
+  });
+
+  // Create animated values for stars
+  const starAnimations = useRef(
+    starsData.map(() => new Animated.Value(Math.random())),
+  ).current;
+
   useEffect(() => {
     // Start animations sequence
     Animated.sequence([
@@ -114,7 +131,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(logoPulse, {
-          toValue: 1.05,
+          toValue: 1.08,
           duration: 1500,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
@@ -128,11 +145,36 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
       ]),
     ).start();
 
+    // Animate stars twinkling
+    starsData.forEach((star, index) => {
+      const starAnim = starAnimations[index];
+      if (!starAnim) {return;}
+
+      setTimeout(() => {
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(starAnim, {
+              toValue: 1,
+              duration: 1000 + Math.random() * 1000, // 1-2s
+              easing: Easing.inOut(Easing.ease),
+              useNativeDriver: true,
+            }),
+            Animated.timing(starAnim, {
+              toValue: 0.2,
+              duration: 1000 + Math.random() * 1000, // 1-2s
+              easing: Easing.inOut(Easing.ease),
+              useNativeDriver: true,
+            }),
+          ]),
+        ).start();
+      }, star.delay);
+    });
+
     // Continuous loader rotation
     Animated.loop(
       Animated.timing(loaderRotate, {
         toValue: 1,
-        duration: 1500,
+        duration: 1000,
         easing: Easing.linear,
         useNativeDriver: true,
       }),
@@ -141,16 +183,22 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
     // Continuous center dot pulse
     Animated.loop(
       Animated.sequence([
-        Animated.timing(centerDotScale, {
-          toValue: 1.5,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(centerDotScale, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
+        Animated.parallel([
+          Animated.timing(centerDotScale, {
+            toValue: 1.5,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.timing(centerDotScale, {
+            toValue: 1,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]),
       ]),
     ).start();
 
@@ -170,22 +218,25 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
       ]),
     ).start();
 
-    // Simulate loading stages
+    // Simulate loading stages - extended timing
     const loadingStages = [
       { text: 'Initializing...', delay: 0 },
-      { text: 'Loading configuration...', delay: 800 },
-      { text: 'Preparing services...', delay: 1600 },
-      { text: 'Checking authentication...', delay: 2400 },
+      { text: 'Loading configuration...', delay: 3000 },
+      { text: 'Preparing services...', delay: 6000 },
+      { text: 'Connecting to database...', delay: 9000 },
+      { text: 'Checking authentication...', delay: 12000 },
+      { text: 'Loading user data...', delay: 15000 },
+      { text: 'Finalizing...', delay: 18000 },
     ];
 
     loadingStages.forEach(({ text, delay }) => {
       setTimeout(() => setLoadingText(text), delay);
     });
 
-    // Finish after minimum splash time
+    // Finish after minimum splash time - 20 seconds to properly see all animations
     setTimeout(() => {
       onFinish();
-    }, 3000);
+    }, 20000);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -201,14 +252,15 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
 
   return (
     <View style={styles.container}>
-      {/* Radial gradient background */}
+      {/* Radial gradient background - matching Flutter design */}
       <LinearGradient
         colors={[
-          'rgba(77, 212, 212, 0.12)',
-          theme.colors.background.DEFAULT,
+          '#1a4444', // Darker teal from center
+          '#0d2828', // Even darker teal
+          theme.colors.background.DEFAULT, // Fade to dark background
         ]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1}}
+        start={{ x: 0.3, y: 0.1 }}
+        end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFillObject}
       />
 
@@ -227,48 +279,66 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
 
       {/* Main content */}
       <View style={styles.content}>
-        {/* Logo with glow */}
-        <Animated.View
-          style={[
-            styles.logoContainer,
-            {
-              opacity: logoOpacity,
-              transform: [
-                { scale: Animated.multiply(logoScale, logoPulse) },
-              ],
-            },
-          ]}
-        >
-          <View style={styles.logoGlow} />
-          <View style={styles.logo}>
+        {/* Logo with circular background */}
+        <View style={styles.logoWrapper}>
+          {/* Outer fade rings for smooth color transition */}
+          <View style={styles.fadeRingOuter} />
+          <View style={styles.fadeRingMiddle} />
+
+          {/* Static circular background with fade effect */}
+          <View style={styles.logoCircleOuter}>
+            <View style={styles.logoCircle}>
+              {/* Animated stars */}
+              {starsData.map((star, index) => (
+                <Animated.View
+                  key={star.id}
+                  style={[
+                    styles.star,
+                    {
+                      width: star.size,
+                      height: star.size,
+                      left: `${star.left}%`,
+                      top: `${star.top}%`,
+                      opacity: starAnimations[index],
+                    },
+                  ]}
+                />
+              ))}
+            </View>
+          </View>
+
+          {/* Animated logo image */}
+          <Animated.View
+            style={[
+              styles.logoContainer,
+              {
+                opacity: logoOpacity,
+                transform: [
+                  { scale: Animated.multiply(logoScale, logoPulse) },
+                ],
+              },
+            ]}
+          >
             <Image
               source={require('../assets/logo.png')}
               style={styles.logoImage}
               resizeMode="contain"
             />
-          </View>
-        </Animated.View>
+          </Animated.View>
+        </View>
 
-        {/* App title with gradient */}
-        <Animated.View
-          style={{
-            opacity: titleOpacity,
-            transform: [{ translateY: titleSlide }],
-          }}
+        {/* App title */}
+        <Animated.Text
+          style={[
+            styles.title,
+            {
+              opacity: titleOpacity,
+              transform: [{ translateY: titleSlide }],
+            },
+          ]}
         >
-          <LinearGradient
-            colors={[
-              theme.colors.primary.DEFAULT,
-              theme.colors.accent.DEFAULT,
-              theme.colors.primary.DEFAULT,
-            ]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.titleGradient}
-          >
-            <Text style={styles.title}>MITUGYM</Text>
-          </LinearGradient>
-        </Animated.View>
+          MITUGYM
+        </Animated.Text>
 
         {/* Subtitle */}
         <Animated.Text
@@ -283,7 +353,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
           FITNESS TRACKER
         </Animated.Text>
 
-        {/* Loading indicator */}
+        {/* Loading indicator - matching Flutter design */}
         <Animated.View
           style={[
             styles.loaderContainer,
@@ -293,7 +363,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
             },
           ]}
         >
-          {/* Rotating ring */}
+          {/* Circular progress ring */}
           <Animated.View
             style={[
               styles.loaderRing,
@@ -301,9 +371,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
                 transform: [{ rotate: rotation }],
               },
             ]}
-          >
-            <View style={styles.loaderSegment} />
-          </Animated.View>
+          />
 
           {/* Pulsing center dot */}
           <Animated.View
@@ -402,55 +470,105 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logoContainer: {
+  logoWrapper: {
     position: 'relative',
     marginBottom: 50,
+    width: 420,
+    height: 420,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  logoGlow: {
+  // Outermost fade ring - blends with page background
+  fadeRingOuter: {
     position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
+    width: 420,
+    height: 420,
+    borderRadius: 210,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 80,
+    elevation: 5,
+  },
+  // Middle fade ring - transition layer
+  fadeRingMiddle: {
+    position: 'absolute',
+    width: 380,
+    height: 380,
+    borderRadius: 190,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.7,
+    shadowRadius: 60,
+    elevation: 10,
+  },
+  logoCircleOuter: {
+    position: 'absolute',
+    width: 340,
+    height: 340,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 170,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    // Outer fade/blur effect
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 50,
+    elevation: 15,
+  },
+  logoCircle: {
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    // Inner soft glow for smooth fade
+    shadowColor: theme.colors.primary.DEFAULT,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 25,
+    elevation: 20,
+    overflow: 'hidden',
+  },
+  star: {
+    position: 'absolute',
+    borderRadius: 10,
     backgroundColor: theme.colors.primary.DEFAULT,
-    opacity: 0.4,
     shadowColor: theme.colors.primary.DEFAULT,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
-    shadowRadius: 60,
-    elevation: 20,
+    shadowRadius: 3,
+    elevation: 5,
   },
-  logo: {
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: theme.colors.background.DEFAULT,
+  logoContainer: {
+    position: 'absolute',
+    width: 280,
+    height: 280,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    zIndex: 10,
   },
   logoImage: {
-    width: '100%',
-    height: '100%',
-  },
-  titleGradient: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 12,
+    width: 280,
+    height: 280,
   },
   title: {
     fontSize: 48,
     fontWeight: '900',
-    color: '#FFFFFF',
+    color: theme.colors.primary.DEFAULT,
     letterSpacing: 6,
     textAlign: 'center',
+    marginTop: 20,
   },
   subtitle: {
     fontSize: 14,
     fontWeight: '600',
     color: theme.colors.primary.DEFAULT,
     letterSpacing: 8,
-    marginTop: 12,
-    opacity: 0.8,
+    marginTop: 8,
+    opacity: 0.7,
   },
   loaderContainer: {
     marginTop: 80,
@@ -458,18 +576,16 @@ const styles = StyleSheet.create({
     height: 60,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
   },
   loaderRing: {
+    position: 'absolute',
     width: 60,
     height: 60,
     borderRadius: 30,
     borderWidth: 3,
     borderColor: theme.colors.background.surface,
     borderTopColor: theme.colors.primary.DEFAULT,
-  },
-  loaderSegment: {
-    width: '100%',
-    height: '100%',
   },
   centerDot: {
     position: 'absolute',
@@ -481,7 +597,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 30,
     fontSize: 13,
-    color: theme.colors.text.secondary,
+    color: 'rgba(77, 212, 212, 0.6)',
     letterSpacing: 1,
   },
   versionContainer: {
@@ -493,15 +609,13 @@ const styles = StyleSheet.create({
   },
   version: {
     fontSize: 12,
-    color: theme.colors.text.secondary,
-    opacity: 0.5,
+    color: 'rgba(77, 212, 212, 0.4)',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   copyright: {
     fontSize: 11,
-    color: theme.colors.text.secondary,
-    opacity: 0.4,
+    color: 'rgba(77, 212, 212, 0.3)',
     letterSpacing: 0.3,
   },
 });

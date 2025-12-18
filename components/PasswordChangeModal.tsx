@@ -126,44 +126,44 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
           </View>
 
           {/* Password Form */}
-          {/* Current Password */}
+            {/* Current Password */}
           <StyledInput
             icon="password"
             label={t('currentPassword').toUpperCase()}
-            value={passwordForm.currentPassword}
-            onChangeText={(text) => setPasswordForm({ ...passwordForm, currentPassword: text })}
+                value={passwordForm.currentPassword}
+                onChangeText={(text) => setPasswordForm({ ...passwordForm, currentPassword: text })}
             placeholder={t('currentPassword')}
             isPassword
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="next"
-          />
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="next"
+              />
 
-          {/* New Password */}
+            {/* New Password */}
           <StyledInput
             icon="password"
             label={t('newPassword').toUpperCase()}
-            value={passwordForm.newPassword}
-            onChangeText={(text) => setPasswordForm({ ...passwordForm, newPassword: text })}
+                value={passwordForm.newPassword}
+                onChangeText={(text) => setPasswordForm({ ...passwordForm, newPassword: text })}
             placeholder={t('newPassword')}
             isPassword
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="next"
-          />
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="next"
+              />
 
-          {/* Confirm Password */}
+            {/* Confirm Password */}
           <StyledInput
             icon="password"
             label={t('confirmPassword').toUpperCase()}
-            value={passwordForm.confirmPassword}
-            onChangeText={(text) => setPasswordForm({ ...passwordForm, confirmPassword: text })}
+                value={passwordForm.confirmPassword}
+                onChangeText={(text) => setPasswordForm({ ...passwordForm, confirmPassword: text })}
             placeholder={t('confirmPassword')}
             isPassword
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="done"
-            onSubmitEditing={onChangePassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={onChangePassword}
           />
 
           {/* Action Buttons */}

@@ -97,8 +97,8 @@ export function AppHeader({
         <NotificationBell
           unreadCount={unreadCount}
           onPress={onNotificationPress}
-          size={24}
-        />
+            size={24}
+          />
       )}
     </View>
   );

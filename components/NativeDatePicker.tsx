@@ -183,11 +183,11 @@ export function NativeDatePicker({
             style={styles.icon}
           />
         ) : (
-          <Calendar
-            size={20}
+        <Calendar
+          size={20}
             color="#00d4d4"
             style={styles.icon}
-          />
+        />
         )}
           </Animated.View>
           <Text style={[

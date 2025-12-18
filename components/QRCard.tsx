@@ -257,10 +257,10 @@ export function QRCard({
         {!useTOTP && (
           <View style={{ width: '100%', maxWidth: 300 }}>
             <StyledButton
-              title={isExpired ? t('generateNewQr') : t('refresh')}
-              onPress={onRefresh}
+            title={isExpired ? t('generateNewQr') : t('refresh')}
+            onPress={onRefresh}
               fullWidth
-            />
+          />
           </View>
         )}
       </View>

@@ -47,15 +47,15 @@ export default function BookSessionScreen() {
       setBookingTime(sessionDateTime);
       setSessionNotes(editSession.notes || '');
     } else {
-      // Set default date to tomorrow
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      setBookingDate(tomorrow);
+    // Set default date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setBookingDate(tomorrow);
 
-      // Set default time to 10:00 AM
-      const defaultTime = new Date();
-      defaultTime.setHours(10, 0, 0, 0);
-      setBookingTime(defaultTime);
+    // Set default time to 10:00 AM
+    const defaultTime = new Date();
+    defaultTime.setHours(10, 0, 0, 0);
+    setBookingTime(defaultTime);
     }
     
     setInitialized(true);
@@ -134,7 +134,7 @@ export default function BookSessionScreen() {
       
       // Only navigate back if booking/update was successful
       if (success) {
-        router.back();
+      router.back();
       }
       // If not successful, stay on page so user can select different date/time
     } catch (error) {
@@ -248,22 +248,22 @@ export default function BookSessionScreen() {
         {/* Notes Input */}
         <StyledInput
           label={`${t('notes').toUpperCase()} (${t('optional').toUpperCase()})`}
-          value={sessionNotes}
-          onChangeText={setSessionNotes}
+            value={sessionNotes}
+            onChangeText={setSessionNotes}
           placeholder={t('addNotesPlaceholder')}
-          multiline
-          numberOfLines={4}
+            multiline
+            numberOfLines={4}
           style={{
             minHeight: 100,
             textAlignVertical: 'top',
           }}
-        />
+          />
 
         {/* Action Buttons */}
         <View style={{ 
           gap: theme.spacing.md,
           marginTop: theme.spacing.xl,
-          alignItems: 'center',
+              alignItems: 'center',
         }}>
           <StyledButton
             title={isEditMode ? t('updateSession') : t('submitBooking')}
@@ -291,10 +291,10 @@ export default function BookSessionScreen() {
                 colors={['rgba(51, 65, 85, 0.75)', 'rgba(30, 41, 59, 0.45)', 'rgba(51, 65, 85, 0.75)']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={{
+            style={{
                   paddingVertical: theme.spacing.sm,
                   paddingHorizontal: theme.spacing.md,
-                  alignItems: 'center',
+              alignItems: 'center',
                   borderRadius: theme.borderRadius.lg,
                   shadowColor: '#000',
                   shadowOffset: { width: 0, height: 2 },
@@ -324,26 +324,26 @@ export default function BookSessionScreen() {
                     colors={['transparent', 'rgba(255, 255, 255, 0.1)', 'transparent']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    style={{
-                      flex: 1,
+            style={{
+              flex: 1,
                       width: '100%',
                     }}
                   />
                 </Animated.View>
                 <Text
-                  style={{
+            style={{
                     fontSize: theme.typography.body.fontSize,
                     color: '#ffffff',
                     fontWeight: '500',
                     zIndex: 10,
                   }}
                 >
-                  {t('cancel')}
-                </Text>
+                    {t('cancel')}
+                  </Text>
               </LinearGradient>
             </Animated.View>
-          </TouchableOpacity>
-        </View>
+                </TouchableOpacity>
+              </View>
       </ScrollView>
     </View>
   );

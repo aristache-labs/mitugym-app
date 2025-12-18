@@ -120,66 +120,66 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
           }}
         >
           {/* Form Fields */}
-          {/* First Name */}
+            {/* First Name */}
           <StyledInput
             icon="user"
             label={t('firstName').toUpperCase()}
-            value={editForm.first_name}
-            onChangeText={(text) => setEditForm({ ...editForm, first_name: text })}
-            placeholder={t('firstName')}
+                value={editForm.first_name}
+                onChangeText={(text) => setEditForm({ ...editForm, first_name: text })}
+                placeholder={t('firstName')}
             autoCapitalize="words"
             autoCorrect={false}
-          />
+              />
 
-          {/* Last Name */}
+            {/* Last Name */}
           <StyledInput
             icon="user"
             label={t('lastName').toUpperCase()}
-            value={editForm.last_name}
-            onChangeText={(text) => setEditForm({ ...editForm, last_name: text })}
-            placeholder={t('lastName')}
+                value={editForm.last_name}
+                onChangeText={(text) => setEditForm({ ...editForm, last_name: text })}
+                placeholder={t('lastName')}
             autoCapitalize="words"
             autoCorrect={false}
-          />
+              />
 
-          {/* Phone */}
+            {/* Phone */}
           <StyledInput
             icon="phone"
             label={t('phone').toUpperCase()}
-            value={editForm.phone}
-            onChangeText={(text) => setEditForm({ ...editForm, phone: text })}
-            placeholder={t('phone')}
-            keyboardType="phone-pad"
-          />
+                value={editForm.phone}
+                onChangeText={(text) => setEditForm({ ...editForm, phone: text })}
+                placeholder={t('phone')}
+                keyboardType="phone-pad"
+              />
 
-          {/* Address */}
+            {/* Address */}
           <StyledInput
             icon="location"
             label={t('address').toUpperCase()}
-            value={editForm.address}
-            onChangeText={(text) => setEditForm({ ...editForm, address: text })}
-            placeholder={t('address')}
-          />
+                value={editForm.address}
+                onChangeText={(text) => setEditForm({ ...editForm, address: text })}
+                placeholder={t('address')}
+              />
 
-          {/* City */}
+            {/* City */}
           <StyledInput
             icon="location"
             label={t('city').toUpperCase()}
-            value={editForm.city}
-            onChangeText={(text) => setEditForm({ ...editForm, city: text })}
-            placeholder={t('city')}
-          />
+                value={editForm.city}
+                onChangeText={(text) => setEditForm({ ...editForm, city: text })}
+                placeholder={t('city')}
+              />
 
-          {/* County */}
+            {/* County */}
           <StyledInput
             icon="location"
             label={t('county').toUpperCase()}
-            value={editForm.county}
-            onChangeText={(text) => setEditForm({ ...editForm, county: text })}
-            placeholder={t('county')}
-          />
+                value={editForm.county}
+                onChangeText={(text) => setEditForm({ ...editForm, county: text })}
+                placeholder={t('county')}
+              />
 
-          {/* Date of Birth */}
+            {/* Date of Birth */}
           <NativeDatePicker
             value={editForm.date_of_birth ? new Date(editForm.date_of_birth) : undefined}
             onDateChange={(date) => {
@@ -191,7 +191,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             maximumDate={new Date()}
           />
 
-          {/* Gender */}
+            {/* Gender */}
           <DropdownPicker
             value={editForm.gender || ''}
             onValueChange={(value) => setEditForm({ ...editForm, gender: value })}
@@ -216,14 +216,14 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               onPress={onSave}
               fullWidth
             />
-            <TouchableOpacity
+          <TouchableOpacity
               onPress={onClose}
               onPressIn={handleCancelPressIn}
               onPressOut={handleCancelPressOut}
               activeOpacity={1}
-              style={{
+            style={{
                 width: '50%',
-              }}
+            }}
             >
               <Animated.View
                 style={{
@@ -236,10 +236,10 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   colors={['rgba(51, 65, 85, 0.75)', 'rgba(30, 41, 59, 0.45)', 'rgba(51, 65, 85, 0.75)']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
-                  style={{
+            style={{
                     paddingVertical: theme.spacing.sm,
                     paddingHorizontal: theme.spacing.md,
-                    alignItems: 'center',
+              alignItems: 'center',
                     borderRadius: theme.borderRadius.lg,
                     shadowColor: '#000',
                     shadowOffset: { width: 0, height: 2 },
@@ -272,7 +272,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       style={{
                         flex: 1,
                         width: '100%',
-                      }}
+                    }}
                     />
                   </Animated.View>
                   <Text
@@ -281,14 +281,14 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       color: '#ffffff',
                       fontWeight: '500',
                       zIndex: 10,
-                    }}
-                  >
-                    {t('cancel')}
-                  </Text>
+                }}
+              >
+                  {t('cancel')}
+                </Text>
                 </LinearGradient>
               </Animated.View>
-            </TouchableOpacity>
-          </View>
+              </TouchableOpacity>
+            </View>
         </ScrollView>
       </View>
     </Modal>

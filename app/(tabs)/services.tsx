@@ -317,22 +317,22 @@ export default function ServicesScreen() {
                 {/* Notes Input */}
                 <StyledInput
                   label={`${t('notes').toUpperCase()} (${t('optional').toUpperCase()})`}
-                  value={notes}
-                  onChangeText={setNotes}
-                  placeholder={t('addNotesPlaceholder')}
-                  multiline
+                    value={notes}
+                    onChangeText={setNotes}
+                    placeholder={t('addNotesPlaceholder')}
+                    multiline
                   numberOfLines={4}
                   style={{
                     minHeight: 100,
                     textAlignVertical: 'top',
                   }}
-                />
+                  />
 
                 {/* Submit Button */}
                 <View style={{ marginTop: theme.spacing.xl, marginBottom: insets.bottom }}>
                   <StyledButton
                     title={t('purchaseService')}
-                    onPress={handlePurchaseSubmit}
+                  onPress={handlePurchaseSubmit}
                     fullWidth
                   />
                 </View>
