@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useAppStore } from '../lib/store';
 import { theme } from '../lib/theme';
 import { PillButton } from '../components/PillButton';
+import { SplashScreen } from '../components/SplashScreen';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -84,29 +85,17 @@ export default function OnboardingScreen() {
   };
 
 
-  // Show loading while checking auth state
+  // Show animated splash screen while checking auth state
   if (isCheckingAuth) {
     return (
-      <LinearGradient
-        colors={[theme.colors.background.DEFAULT, theme.colors.background.surface]}
-        style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-      >
-        <Image
-          source={require('../assets/logo.png')}
-          style={{
-            width: 120,
-            height: 120,
-            marginBottom: theme.spacing.lg,
-          }}
-          resizeMode="contain"
-        />
-        <Text style={{
-          fontSize: theme.typography.body.fontSize,
-          color: theme.colors.text.secondary,
-        }}>
-          Loading...
-        </Text>
-      </LinearGradient>
+      <SplashScreen
+        onFinish={() => {
+          setIsCheckingAuth(false);
+          if (isAuthenticated) {
+            router.replace('/(tabs)');
+          }
+        }}
+      />
     );
   }
 
