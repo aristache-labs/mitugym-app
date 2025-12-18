@@ -2,8 +2,10 @@
 import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, Bell } from 'lucide-react-native';
+import { ChevronLeft } from 'lucide-react-native';
 import { theme } from '../lib/theme';
+import { NotificationBell } from './NotificationBell';
+import { useAppStore } from '../lib/store';
 
 interface AppHeaderProps {
   title: string;
@@ -25,6 +27,7 @@ export function AppHeader({
   transparent = false,
 }: AppHeaderProps) {
   const insets = useSafeAreaInsets();
+  const unreadCount = useAppStore((state) => state.unreadCount);
 
   const headerHeight = Platform.OS === 'ios' ? 44 : 56;
   const totalHeight = headerHeight + insets.top;
@@ -90,21 +93,12 @@ export function AppHeader({
       </View>
 
       {/* Right side */}
-      {showNotifications && (
-        <TouchableOpacity
+      {showNotifications && onNotificationPress && (
+        <NotificationBell
+          unreadCount={unreadCount}
           onPress={onNotificationPress}
-          style={{
-            padding: theme.spacing.sm,
-            borderRadius: theme.borderRadius.sm,
-            backgroundColor: 'rgba(30, 155, 113, 0.1)',
-          }}
-          activeOpacity={0.7}
-        >
-          <Bell
-            size={24}
-            color={theme.colors.primary.DEFAULT}
-          />
-        </TouchableOpacity>
+          size={24}
+        />
       )}
     </View>
   );

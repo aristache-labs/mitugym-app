@@ -20,6 +20,7 @@ import { formatRelativeDateI18n, formatPrice } from '../../lib/utils';
 import { AppHeader } from '../../components/AppHeader';
 import { StatusCard } from '../../components/StatusCard';
 import { PillButton } from '../../components/PillButton';
+import { NotificationModal } from '../../components/NotificationModal';
 import { useLanguage } from '../../lib/LanguageContext';
 import { getDayTranslationKey } from '../../lib/translationHelpers';
 
@@ -29,6 +30,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = React.useState(false);
   const [announcementsModalVisible, setAnnouncementsModalVisible] = React.useState(false);
   const [gymScheduleModalVisible, setGymScheduleModalVisible] = React.useState(false);
+  const [notificationsModalVisible, setNotificationsModalVisible] = React.useState(false);
 
   const {
     member,
@@ -243,7 +245,7 @@ export default function HomeScreen() {
         title={`${t('hello')}, ${member.name.split(' ')[0]}! 👋`}
         subtitle={t('readyForWorkout')}
         showNotifications
-        onNotificationPress={() => console.log('Notifications pressed')}
+        onNotificationPress={() => setNotificationsModalVisible(true)}
       />
 
       <ScrollView
@@ -1413,6 +1415,12 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
       </Modal>
+
+      {/* Notifications Modal */}
+      <NotificationModal
+        visible={notificationsModalVisible}
+        onClose={() => setNotificationsModalVisible(false)}
+      />
     </View>
   );
 }

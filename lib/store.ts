@@ -19,6 +19,19 @@ import {
   type Announcement,
   type GymSchedule,
 } from './mock';
+
+export interface Notification {
+  id: string;
+  member_id: string | null;
+  type: string;
+  title: string;
+  message: string;
+  reference_id?: string;
+  reference_type?: string;
+  is_read: boolean;
+  is_global: boolean;
+  created_at: string;
+}
 import { generateTOTPCode as generateTOTPCodeUtil, getTOTPTimeRemaining, setupTOTP } from '../utils/totp';
 
 interface AuthState {
@@ -103,6 +116,19 @@ interface MembershipState {
   toggleMembershipStatus: () => void;
 }
 
+interface NotificationState {
+  notifications: Notification[];
+  unreadCount: number;
+  notificationsLoading: boolean;
+  notificationSubscription: any;
+  fetchNotifications: () => Promise<void>;
+  markAsRead: (notificationId: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
+  clearAllNotifications: () => Promise<void>;
+  subscribeToNotifications: () => void;
+  unsubscribeFromNotifications: () => void;
+}
+
 interface ToastState {
   message: string;
   type: 'success' | 'error' | 'info';
@@ -117,7 +143,7 @@ interface LanguageState {
   setLanguage: (lang: 'en' | 'ro') => void;
 }
 
-type AppState = AuthState & ServiceState & QRState & CheckinState & AnnouncementState & GymScheduleState & MembershipState & ToastState & LanguageState;
+type AppState = AuthState & ServiceState & QRState & CheckinState & AnnouncementState & GymScheduleState & MembershipState & NotificationState & ToastState & LanguageState;
 
 export const useAppStore = create<AppState>((set, get) => ({
   // Auth state
@@ -217,6 +243,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       console.log('Remember me data cleared successfully');
 
       console.log('Signing out from Supabase...');
+
+      // Unsubscribe from notifications before logout
+      get().unsubscribeFromNotifications();
+
       const { error } = await supabase.auth.signOut();
 
       if (error) {
@@ -356,6 +386,10 @@ export const useAppStore = create<AppState>((set, get) => ({
 
         console.log('Loaded member profile:', member);
         set({ member });
+
+        // Fetch notifications and subscribe to real-time updates
+        await get().fetchNotifications();
+        get().subscribeToNotifications();
       }
     } catch (error) {
       console.error('Error loading member profile:', error);
@@ -1572,6 +1606,301 @@ export const useAppStore = create<AppState>((set, get) => ({
         daysLeft: member.membershipStatus === 'active' ? 0 : 30,
       };
       set({ member: updatedMember });
+    }
+  },
+
+  // Notification state
+  notifications: [],
+  unreadCount: 0,
+  notificationsLoading: false,
+  notificationSubscription: null,
+
+  fetchNotifications: async () => {
+    try {
+      const { session } = get();
+      console.log('Fetching notifications for user:', session?.user?.id);
+      if (!session?.user?.id) {
+        console.log('No session found, skipping fetch');
+        return;
+      }
+
+      set({ notificationsLoading: true });
+
+      // Fetch both personal notifications AND global notifications
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .or(`member_id.eq.${session.user.id},is_global.eq.true`)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) {
+        console.error('Error fetching notifications:', error);
+        set({ notificationsLoading: false });
+        return;
+      }
+
+      // Fetch which global notifications this user has read or dismissed
+      const { data: readData } = await supabase
+        .from('notification_reads')
+        .select('notification_id, dismissed')
+        .eq('member_id', session.user.id);
+
+      const readGlobalIds = new Set(
+        readData?.filter(r => !r.dismissed).map(r => r.notification_id) || [],
+      );
+      const dismissedGlobalIds = new Set(
+        readData?.filter(r => r.dismissed).map(r => r.notification_id) || [],
+      );
+
+      // Filter out dismissed global notifications and mark read ones as read
+      const notificationsWithReadStatus = data
+        ?.filter(n => {
+          // Exclude dismissed global notifications
+          if (n.is_global && dismissedGlobalIds.has(n.id)) {
+            return false;
+          }
+          return true;
+        })
+        .map(n => {
+          // Mark global notifications as read if user has read them
+          if (n.is_global && readGlobalIds.has(n.id)) {
+            return { ...n, is_read: true };
+          }
+          return n;
+        }) || [];
+
+      console.log('Fetched notifications:', notificationsWithReadStatus.length);
+      const unreadCount = notificationsWithReadStatus.filter(n => !n.is_read).length;
+      console.log('Unread count:', unreadCount);
+      set({ notifications: notificationsWithReadStatus, unreadCount, notificationsLoading: false });
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      set({ notificationsLoading: false });
+    }
+  },
+
+  markAsRead: async (notificationId: string) => {
+    try {
+      const { session } = get();
+      if (!session?.user?.id) {return;}
+
+      const notification = get().notifications.find(n => n.id === notificationId);
+      if (!notification) {return;}
+
+      if (notification.is_global) {
+        // For global notifications, insert into notification_reads table
+        const { error } = await supabase
+          .from('notification_reads')
+          .insert({
+            notification_id: notificationId,
+            member_id: session.user.id,
+          });
+
+        if (error && error.code !== '23505') { // Ignore duplicate key errors
+          console.error('Error marking global notification as read:', error);
+          return;
+        }
+      } else {
+        // For personal notifications, update the is_read field
+        const { error } = await supabase
+          .from('notifications')
+          .update({ is_read: true })
+          .eq('id', notificationId);
+
+        if (error) {
+          console.error('Error marking notification as read:', error);
+          return;
+        }
+      }
+
+      // Update local state
+      set({
+        notifications: get().notifications.map(n =>
+          n.id === notificationId ? { ...n, is_read: true } : n,
+        ),
+        unreadCount: Math.max(0, get().unreadCount - 1),
+      });
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  },
+
+  markAllAsRead: async () => {
+    try {
+      const { session } = get();
+      if (!session?.user?.id) {return;}
+
+      const unreadNotifications = get().notifications.filter(n => !n.is_read);
+
+      // Separate personal and global notifications
+      const personalNotifications = unreadNotifications.filter(n => !n.is_global);
+      const globalNotifications = unreadNotifications.filter(n => n.is_global);
+
+      // Update personal notifications
+      if (personalNotifications.length > 0) {
+        const { error } = await supabase
+          .from('notifications')
+          .update({ is_read: true })
+          .eq('member_id', session.user.id)
+          .eq('is_read', false);
+
+        if (error) {
+          console.error('Error marking personal notifications as read:', error);
+        }
+      }
+
+      // Insert records for global notifications
+      if (globalNotifications.length > 0) {
+        const readsToInsert = globalNotifications.map(n => ({
+          notification_id: n.id,
+          member_id: session.user.id,
+        }));
+
+        const { error } = await supabase
+          .from('notification_reads')
+          .upsert(readsToInsert, { onConflict: 'notification_id,member_id' });
+
+        if (error) {
+          console.error('Error marking global notifications as read:', error);
+        }
+      }
+
+      // Update local state
+      set({
+        notifications: get().notifications.map(n => ({ ...n, is_read: true })),
+        unreadCount: 0,
+      });
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  },
+
+  subscribeToNotifications: () => {
+    const { session } = get();
+    if (!session?.user?.id) {return;}
+
+    // Unsubscribe from existing subscription if any
+    get().unsubscribeFromNotifications();
+
+    const subscription = supabase
+      .channel('notifications_channel')
+      // Listen for personal notifications
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `member_id=eq.${session.user.id}`,
+        },
+        (payload) => {
+          console.log('New personal notification received:', payload);
+          const newNotification = payload.new as Notification;
+
+          // Add to local state
+          set({
+            notifications: [newNotification, ...get().notifications],
+            unreadCount: get().unreadCount + 1,
+          });
+
+          // Show toast notification
+          get().showToast(newNotification.title, 'info');
+        },
+      )
+      // Listen for global notifications
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: 'is_global=eq.true',
+        },
+        (payload) => {
+          console.log('New global notification received:', payload);
+          const newNotification = payload.new as Notification;
+
+          // Add to local state
+          set({
+            notifications: [newNotification, ...get().notifications],
+            unreadCount: get().unreadCount + 1,
+          });
+
+          // Show toast notification
+          get().showToast(newNotification.title, 'info');
+        },
+      )
+      .subscribe();
+
+    set({ notificationSubscription: subscription });
+  },
+
+  unsubscribeFromNotifications: () => {
+    const { notificationSubscription } = get();
+    if (notificationSubscription) {
+      supabase.removeChannel(notificationSubscription);
+      set({ notificationSubscription: null });
+    }
+  },
+
+  clearAllNotifications: async () => {
+    try {
+      const { session } = get();
+      if (!session?.user?.id) {return;}
+
+      const notifications = get().notifications;
+
+      // Separate personal and global notifications
+      const personalNotifications = notifications.filter(n => !n.is_global);
+      const globalNotifications = notifications.filter(n => n.is_global);
+
+      // Delete personal notifications
+      if (personalNotifications.length > 0) {
+        const personalIds = personalNotifications.map(n => n.id);
+        const { error } = await supabase
+          .from('notifications')
+          .delete()
+          .in('id', personalIds)
+          .eq('member_id', session.user.id);
+
+        if (error) {
+          console.error('Error deleting personal notifications:', error);
+          get().showToast('Failed to clear notifications', 'error');
+          return;
+        }
+      }
+
+      // Mark global notifications as dismissed (don't delete the notification itself)
+      if (globalNotifications.length > 0) {
+        const globalIds = globalNotifications.map(n => n.id);
+
+        // Insert or update records to mark them as dismissed
+        const dismissRecords = globalIds.map(id => ({
+          notification_id: id,
+          member_id: session.user.id,
+          dismissed: true,
+        }));
+
+        const { error } = await supabase
+          .from('notification_reads')
+          .upsert(dismissRecords, { onConflict: 'notification_id,member_id' });
+
+        if (error) {
+          console.error('Error dismissing global notifications:', error);
+        }
+      }
+
+      // Clear local state
+      set({
+        notifications: [],
+        unreadCount: 0,
+      });
+
+      get().showToast('All notifications cleared', 'success');
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+      get().showToast('Failed to clear notifications', 'error');
     }
   },
 
