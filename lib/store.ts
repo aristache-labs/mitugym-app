@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { supabase } from '../utils/supabase';
 import { SecureStorage } from '../utils/secureStorage';
 import type { TranslationKey } from './translations';
+import { translations } from './translations';
 import {
   mockMember,
   mockBookingHistory,
@@ -109,7 +110,12 @@ interface ToastState {
   hideToast: () => void;
 }
 
-type AppState = AuthState & ServiceState & QRState & CheckinState & AnnouncementState & GymScheduleState & MembershipState & ToastState;
+interface LanguageState {
+  language: 'en' | 'ro';
+  setLanguage: (lang: 'en' | 'ro') => void;
+}
+
+type AppState = AuthState & ServiceState & QRState & CheckinState & AnnouncementState & GymScheduleState & MembershipState & ToastState & LanguageState;
 
 export const useAppStore = create<AppState>((set, get) => ({
   // Auth state
@@ -634,8 +640,31 @@ export const useAppStore = create<AppState>((set, get) => ({
         return;
       }
 
-      // Check for time conflicts (1 hour minimum gap between sessions)
+      // Check for time conflicts
       const requestedTime = new Date(bookingDate);
+
+      // First, check for exact same time bookings
+      const { data: exactTimeBookings, error: exactTimeError } = await supabase
+        .from('session_bookings')
+        .select('booking_date, status')
+        .eq('member_id', session.user.id)
+        .eq('booking_date', bookingDate)
+        .in('status', ['pending', 'confirmed', 'upcoming']);
+
+      if (exactTimeError) {
+        console.error('Error checking exact time conflicts:', exactTimeError);
+        get().showToast('Failed to validate booking time', 'error');
+        return;
+      }
+
+      if (exactTimeBookings && exactTimeBookings.length > 0) {
+        const lang = get().language;
+        const message = translations[lang].exactTimeConflict;
+        get().showToast(message, 'error');
+        return;
+      }
+
+      // Then check for 1 hour minimum gap between sessions
       const oneHourBefore = new Date(requestedTime.getTime() - (60 * 60 * 1000));
       const oneHourAfter = new Date(requestedTime.getTime() + (60 * 60 * 1000));
 
@@ -643,7 +672,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         .from('session_bookings')
         .select('booking_date, status')
         .eq('member_id', session.user.id)
-        .in('status', ['pending', 'confirmed'])
+        .in('status', ['pending', 'confirmed', 'upcoming'])
         .gt('booking_date', oneHourBefore.toISOString())
         .lt('booking_date', oneHourAfter.toISOString());
 
@@ -654,7 +683,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
 
       if (conflictingBookings && conflictingBookings.length > 0) {
-        get().showToast('You already have a session within 1 hour of this time', 'error');
+        const lang = get().language;
+        const message = translations[lang].bookingTimeConflict;
+        get().showToast(message, 'error');
         return;
       }
 
@@ -1380,5 +1411,11 @@ export const useAppStore = create<AppState>((set, get) => ({
       clearTimeout(state.toastTimeoutId);
     }
     set({ visible: false, toastTimeoutId: null });
+  },
+
+  // Language state
+  language: 'en',
+  setLanguage: (lang: 'en' | 'ro') => {
+    set({ language: lang });
   },
 }));

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { translations, Language, TranslationKey } from './translations';
+import { useAppStore } from './store';
 
 // Re-export types for convenience
 export type { Language, TranslationKey };
@@ -23,6 +24,7 @@ interface LanguageProviderProps {
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>('en');
   const [isLoading, setIsLoading] = useState(true);
+  const setStoreLanguage = useAppStore((state) => state.setLanguage);
 
   // Load saved language on app start
   useEffect(() => {
@@ -34,13 +36,16 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
       const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
       if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'ro')) {
         setLanguageState(savedLanguage as Language);
+        setStoreLanguage(savedLanguage as Language);
       } else {
         // Default to English if no saved language
         setLanguageState('en');
+        setStoreLanguage('en');
       }
     } catch (error) {
       console.error('Error loading saved language:', error);
       setLanguageState('en');
+      setStoreLanguage('en');
     } finally {
       setIsLoading(false);
     }
@@ -50,6 +55,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     try {
       await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
       setLanguageState(lang);
+      setStoreLanguage(lang);
     } catch (error) {
       console.error('Error saving language:', error);
     }
