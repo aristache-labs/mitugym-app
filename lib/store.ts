@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { Alert } from 'react-native';
 import { supabase } from '../utils/supabase';
 import { SecureStorage } from '../utils/secureStorage';
 import type { TranslationKey } from './translations';
@@ -42,7 +43,7 @@ interface ServiceState {
   fetchServices: () => Promise<void>;
   purchaseService: (serviceId: string, notes?: string) => Promise<void>;
   fetchPurchasedServices: () => Promise<void>;
-  bookSession: (purchasedServiceId: string, bookingDate: string, notes?: string) => Promise<void>;
+  bookSession: (purchasedServiceId: string, bookingDate: string, notes?: string) => Promise<boolean>;
   fetchSessionBookings: () => Promise<void>;
   cancelSession: (sessionId: string) => Promise<void>;
   // Legacy functions for backwards compatibility
@@ -602,12 +603,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  bookSession: async (purchasedServiceId: string, bookingDate: string, notes?: string) => {
+  bookSession: async (purchasedServiceId: string, bookingDate: string, notes?: string): Promise<boolean> => {
     try {
       const { session, member } = get();
       if (!session?.user?.id) {
         get().showToast('Please log in to book sessions', 'error');
-        return;
+        return false;
       }
 
       // Check membership status
@@ -621,23 +622,23 @@ export const useAppStore = create<AppState>((set, get) => ({
           ? statusMessages[member.membershipStatus] || 'You need an active membership to book sessions.'
           : 'You need an active membership to book sessions. Please purchase a plan first.';
         get().showToast(message, 'error');
-        return;
+        return false;
       }
 
       const purchasedService = get().purchasedServices.find(ps => ps.id === purchasedServiceId);
       if (!purchasedService) {
         get().showToast('Purchased service not found', 'error');
-        return;
+        return false;
       }
 
       if (purchasedService.status !== 'approved') {
         get().showToast('Service must be approved before booking sessions', 'error');
-        return;
+        return false;
       }
 
       if (purchasedService.sessions_remaining <= 0) {
         get().showToast('No sessions remaining for this service', 'error');
-        return;
+        return false;
       }
 
       // Check for time conflicts
@@ -654,39 +655,46 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (exactTimeError) {
         console.error('Error checking exact time conflicts:', exactTimeError);
         get().showToast('Failed to validate booking time', 'error');
-        return;
+        return false;
       }
 
       if (exactTimeBookings && exactTimeBookings.length > 0) {
         const lang = get().language;
         const message = translations[lang].exactTimeConflict;
-        get().showToast(message, 'error');
-        return;
+        Alert.alert(translations[lang].error, message);
+        return false;
       }
 
       // Then check for 1 hour minimum gap between sessions
       const oneHourBefore = new Date(requestedTime.getTime() - (60 * 60 * 1000));
       const oneHourAfter = new Date(requestedTime.getTime() + (60 * 60 * 1000));
 
-      const { data: conflictingBookings, error: conflictError } = await supabase
+      // Get all active bookings for the user
+      const { data: allBookings, error: allBookingsError } = await supabase
         .from('session_bookings')
         .select('booking_date, status')
         .eq('member_id', session.user.id)
-        .in('status', ['pending', 'confirmed', 'upcoming'])
-        .gt('booking_date', oneHourBefore.toISOString())
-        .lt('booking_date', oneHourAfter.toISOString());
+        .in('status', ['pending', 'confirmed', 'upcoming']);
 
-      if (conflictError) {
-        console.error('Error checking booking conflicts:', conflictError);
+      if (allBookingsError) {
+        console.error('Error checking booking conflicts:', allBookingsError);
         get().showToast('Failed to validate booking time', 'error');
-        return;
+        return false;
       }
 
-      if (conflictingBookings && conflictingBookings.length > 0) {
-        const lang = get().language;
-        const message = translations[lang].bookingTimeConflict;
-        get().showToast(message, 'error');
-        return;
+      // Check for conflicts manually to ensure proper time comparison
+      if (allBookings && allBookings.length > 0) {
+        const conflictingBookings = allBookings.filter(booking => {
+          const bookingTime = new Date(booking.booking_date);
+          return bookingTime > oneHourBefore && bookingTime < oneHourAfter;
+        });
+
+        if (conflictingBookings.length > 0) {
+          const lang = get().language;
+          const message = translations[lang].bookingTimeConflict;
+          Alert.alert(translations[lang].error, message);
+          return false;
+        }
       }
 
       const bookingData = {
@@ -705,8 +713,18 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       if (error) {
         console.error('Error booking session:', error);
-        get().showToast('Failed to book session', 'error');
-        return;
+
+        // Check if it's a unique constraint violation (duplicate booking)
+        if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
+          const lang = get().language;
+          const message = translations[lang].exactTimeConflict;
+          Alert.alert(translations[lang].error, message);
+        } else {
+          const lang = get().language;
+          const message = translations[lang].bookingFailed;
+          Alert.alert(translations[lang].error, message);
+        }
+        return false;
       }
 
       if (data) {
@@ -716,10 +734,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         });
 
         get().showToast('Session booking submitted! Awaiting confirmation.', 'success');
+        return true;
       }
+
+      return false;
     } catch (error) {
       console.error('Error booking session:', error);
       get().showToast('Failed to book session', 'error');
+      return false;
     }
   },
 

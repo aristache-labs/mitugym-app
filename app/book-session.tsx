@@ -107,12 +107,16 @@ export default function BookSessionScreen() {
     const bookingDateTime = combinedDateTime.toISOString();
 
     try {
-      await bookSession(purchasedService.id, bookingDateTime, sessionNotes);
-      // The store will show a success toast notification
-      router.back();
+      const success = await bookSession(purchasedService.id, bookingDateTime, sessionNotes);
+      // Only navigate back if booking was successful
+      if (success) {
+        router.back();
+      }
+      // If not successful, stay on page so user can select different date/time
     } catch (error) {
       console.error('Session booking failed:', error);
       // The store will show an error toast notification
+      // Stay on page so user can try again
     }
   };
 
