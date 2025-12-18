@@ -44,6 +44,7 @@ interface ServiceState {
   purchaseService: (serviceId: string, notes?: string) => Promise<void>;
   fetchPurchasedServices: () => Promise<void>;
   bookSession: (purchasedServiceId: string, bookingDate: string, notes?: string) => Promise<boolean>;
+  updateSession: (sessionId: string, bookingDate: string, notes?: string) => Promise<boolean>;
   fetchSessionBookings: () => Promise<void>;
   cancelSession: (sessionId: string) => Promise<void>;
   // Legacy functions for backwards compatibility
@@ -745,6 +746,135 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  updateSession: async (sessionId: string, bookingDate: string, notes?: string): Promise<boolean> => {
+    try {
+      const { session, member } = get();
+      if (!session?.user?.id) {
+        get().showToast('Please log in to update sessions', 'error');
+        return false;
+      }
+
+      // Check membership status
+      if (!member || member.membershipStatus !== 'active') {
+        const statusMessages: { [key: string]: string } = {
+          'expired': 'Your membership has expired. Please renew to update sessions.',
+          'pending': 'Your membership is pending approval. Please wait for activation.',
+          'cancelled': 'Your membership has been cancelled. Please contact support.',
+        };
+        const message = member?.membershipStatus
+          ? statusMessages[member.membershipStatus] || 'You need an active membership to update sessions.'
+          : 'You need an active membership to update sessions. Please purchase a plan first.';
+        get().showToast(message, 'error');
+        return false;
+      }
+
+      // Check for time conflicts with OTHER sessions (exclude the current session being edited)
+      const requestedTime = new Date(bookingDate);
+
+      // First, check for exact same time bookings (excluding current session)
+      const { data: exactTimeBookings, error: exactTimeError } = await supabase
+        .from('session_bookings')
+        .select('booking_date, status')
+        .eq('member_id', session.user.id)
+        .eq('booking_date', bookingDate)
+        .in('status', ['pending', 'confirmed', 'upcoming'])
+        .neq('id', sessionId);
+
+      if (exactTimeError) {
+        console.error('Error checking exact time conflicts:', exactTimeError);
+        get().showToast('Failed to validate booking time', 'error');
+        return false;
+      }
+
+      if (exactTimeBookings && exactTimeBookings.length > 0) {
+        const lang = get().language;
+        const message = translations[lang].exactTimeConflict;
+        Alert.alert(translations[lang].error, message);
+        return false;
+      }
+
+      // Then check for 1 hour minimum gap between sessions (excluding current session)
+      const oneHourBefore = new Date(requestedTime.getTime() - (60 * 60 * 1000));
+      const oneHourAfter = new Date(requestedTime.getTime() + (60 * 60 * 1000));
+
+      // Get all active bookings for the user (excluding current session)
+      const { data: allBookings, error: allBookingsError } = await supabase
+        .from('session_bookings')
+        .select('booking_date, status')
+        .eq('member_id', session.user.id)
+        .in('status', ['pending', 'confirmed', 'upcoming'])
+        .neq('id', sessionId);
+
+      if (allBookingsError) {
+        console.error('Error checking booking conflicts:', allBookingsError);
+        get().showToast('Failed to validate booking time', 'error');
+        return false;
+      }
+
+      // Check for conflicts manually to ensure proper time comparison
+      if (allBookings && allBookings.length > 0) {
+        const conflictingBookings = allBookings.filter(booking => {
+          const bookingTime = new Date(booking.booking_date);
+          return bookingTime > oneHourBefore && bookingTime < oneHourAfter;
+        });
+
+        if (conflictingBookings.length > 0) {
+          const lang = get().language;
+          const message = translations[lang].bookingTimeConflict;
+          Alert.alert(translations[lang].error, message);
+          return false;
+        }
+      }
+
+      const updateData = {
+        booking_date: bookingDate,
+        notes: notes || null,
+      };
+
+      const { data, error } = await supabase
+        .from('session_bookings')
+        .update(updateData)
+        .eq('id', sessionId)
+        .eq('member_id', session.user.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating session:', error);
+        const lang = get().language;
+
+        // Check if it's a permission error (RLS policy blocked it)
+        if (error.code === 'PGRST116' || error.message?.includes('0 rows')) {
+          Alert.alert(
+            translations[lang].error,
+            'Cannot edit this session. Only pending sessions can be edited.',
+          );
+        } else {
+          Alert.alert(translations[lang].error, translations[lang].bookingFailed);
+        }
+        return false;
+      }
+
+      if (data) {
+        // Update in local state
+        set({
+          sessionBookings: get().sessionBookings.map(booking =>
+            booking.id === sessionId ? data : booking,
+          ),
+        });
+
+        get().showToast('Session updated successfully!', 'success');
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Error updating session:', error);
+      get().showToast('Failed to update session', 'error');
+      return false;
+    }
+  },
+
   cancelSession: async (sessionId: string) => {
     try {
       const { session } = get();
@@ -753,24 +883,61 @@ export const useAppStore = create<AppState>((set, get) => ({
         return;
       }
 
-      // Delete the session instead of updating status
-      const { error } = await supabase
+      // First check the session status
+      const { data: sessionData, error: fetchError } = await supabase
         .from('session_bookings')
-        .delete()
+        .select('status')
         .eq('id', sessionId)
         .eq('member_id', session.user.id)
-        .eq('status', 'pending'); // Only allow canceling pending sessions
+        .single();
 
-      if (error) {
-        console.error('Error canceling session:', error);
-        get().showToast('Failed to cancel session', 'error');
+      if (fetchError || !sessionData) {
+        console.error('Error fetching session:', fetchError);
+        get().showToast('Failed to find session', 'error');
         return;
       }
 
-      // Remove from local state
-      set({
-        sessionBookings: get().sessionBookings.filter(booking => booking.id !== sessionId),
-      });
+      // If pending, delete it. If upcoming, update status to cancelled
+      if (sessionData.status === 'pending') {
+        const { error } = await supabase
+          .from('session_bookings')
+          .delete()
+          .eq('id', sessionId)
+          .eq('member_id', session.user.id);
+
+        if (error) {
+          console.error('Error deleting session:', error);
+          get().showToast('Failed to cancel session', 'error');
+          return;
+        }
+
+        // Remove from local state
+        set({
+          sessionBookings: get().sessionBookings.filter(booking => booking.id !== sessionId),
+        });
+      } else if (sessionData.status === 'upcoming') {
+        const { error } = await supabase
+          .from('session_bookings')
+          .update({ status: 'cancelled' })
+          .eq('id', sessionId)
+          .eq('member_id', session.user.id);
+
+        if (error) {
+          console.error('Error cancelling session:', error);
+          get().showToast('Failed to cancel session', 'error');
+          return;
+        }
+
+        // Update local state
+        set({
+          sessionBookings: get().sessionBookings.map(booking =>
+            booking.id === sessionId ? { ...booking, status: 'cancelled' } : booking,
+          ),
+        });
+      } else {
+        get().showToast('Cannot cancel this session', 'error');
+        return;
+      }
 
       get().showToast('Session cancelled successfully', 'success');
     } catch (error) {

@@ -22,6 +22,8 @@ import { AppHeader } from '../../components/AppHeader';
 import { StatusCard } from '../../components/StatusCard';
 import { StyledButton } from '../../components/StyledButton';
 import { AnimatedDeleteButton } from '../../components/AnimatedDeleteButton';
+import { AnimatedEditButton } from '../../components/AnimatedEditButton';
+import { AnimatedCancelButton } from '../../components/AnimatedCancelButton';
 import { CancellationDetailsModal } from '../../components/CancellationDetailsModal';
 import { useLanguage } from '../../lib/LanguageContext';
 
@@ -280,6 +282,30 @@ export default function MembershipScreen() {
         },
       ],
     );
+  };
+
+  // Handler for editing a pending session
+  const handleEditSession = (session: any) => {
+    // Close the modal first
+    setSessionHistoryModalVisible(false);
+
+    // Find the purchased service for this session
+    const purchasedService = purchasedServices.find(
+      ps => ps.id === session.purchased_service_id,
+    );
+
+    if (purchasedService) {
+      // Small delay to allow modal to close
+      setTimeout(() => {
+        router.push({
+          pathname: '/book-session',
+          params: {
+            service: JSON.stringify(purchasedService),
+            editSession: JSON.stringify(session),
+          },
+        });
+      }, 100);
+    }
   };
 
   const handlePlanSelect = (planId: string) => {
@@ -1441,10 +1467,28 @@ export default function MembershipScreen() {
                               )}
                             </View>
 
-                            {/* Cancel Button for Pending Sessions */}
+                            {/* Action Buttons */}
                             {isPending && (
-                              <View style={{ marginLeft: theme.spacing.md }}>
+                              <View style={{
+                                flexDirection: 'row',
+                                marginLeft: theme.spacing.md,
+                                gap: theme.spacing.xs,
+                              }}>
+                                <AnimatedEditButton
+                                  onPress={() => handleEditSession(session)}
+                                  size={32}
+                                />
                                 <AnimatedDeleteButton
+                                  onPress={() => handleCancelSession(session.id)}
+                                  size={32}
+                                />
+                              </View>
+                            )}
+                            {isUpcoming && (
+                              <View style={{
+                                marginLeft: theme.spacing.md,
+                              }}>
+                                <AnimatedCancelButton
                                   onPress={() => handleCancelSession(session.id)}
                                   size={32}
                                 />

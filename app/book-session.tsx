@@ -22,28 +22,44 @@ export default function BookSessionScreen() {
 
   // Parse the purchased service from params
   const purchasedService = params.service ? JSON.parse(params.service as string) : null;
+  const editSession = params.editSession ? JSON.parse(params.editSession as string) : null;
+  const isEditMode = !!editSession;
+
   // Session booking state
   const [bookingDate, setBookingDate] = useState<Date | undefined>(undefined);
   const [bookingTime, setBookingTime] = useState<Date | undefined>(undefined);
   const [sessionNotes, setSessionNotes] = useState('');
+  const [initialized, setInitialized] = useState(false);
 
   // Cancel button animation
   const [cancelScale] = useState(new Animated.Value(1));
   const shineAnim = useRef(new Animated.Value(-1)).current;
 
-  const { bookSession, sessionBookings } = useAppStore();
+  const { bookSession, updateSession, sessionBookings } = useAppStore();
 
   useEffect(() => {
-    // Set default date to tomorrow
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    setBookingDate(tomorrow);
+    if (initialized) return; // Prevent infinite loop
 
-    // Set default time to 10:00 AM
-    const defaultTime = new Date();
-    defaultTime.setHours(10, 0, 0, 0);
-    setBookingTime(defaultTime);
-  }, []);
+    if (isEditMode && editSession) {
+      // Pre-fill with existing session data
+      const sessionDateTime = new Date(editSession.booking_date);
+      setBookingDate(sessionDateTime);
+      setBookingTime(sessionDateTime);
+      setSessionNotes(editSession.notes || '');
+    } else {
+      // Set default date to tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      setBookingDate(tomorrow);
+
+      // Set default time to 10:00 AM
+      const defaultTime = new Date();
+      defaultTime.setHours(10, 0, 0, 0);
+      setBookingTime(defaultTime);
+    }
+    
+    setInitialized(true);
+  }, [initialized, isEditMode, editSession]);
 
   const handleCancelPressIn = () => {
     Animated.spring(cancelScale, {
@@ -107,14 +123,22 @@ export default function BookSessionScreen() {
     const bookingDateTime = combinedDateTime.toISOString();
 
     try {
-      const success = await bookSession(purchasedService.id, bookingDateTime, sessionNotes);
-      // Only navigate back if booking was successful
+      let success;
+      if (isEditMode && editSession) {
+        // Update existing session
+        success = await updateSession(editSession.id, bookingDateTime, sessionNotes);
+      } else {
+        // Create new session
+        success = await bookSession(purchasedService.id, bookingDateTime, sessionNotes);
+      }
+      
+      // Only navigate back if booking/update was successful
       if (success) {
         router.back();
       }
       // If not successful, stay on page so user can select different date/time
     } catch (error) {
-      console.error('Session booking failed:', error);
+      console.error('Session booking/update failed:', error);
       // The store will show an error toast notification
       // Stay on page so user can try again
     }
@@ -153,7 +177,7 @@ export default function BookSessionScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background.DEFAULT }}>
       <AppHeader
-        title={t('bookSession')}
+        title={isEditMode ? t('editSession') : t('bookSession')}
         showBack
         onBack={handleCancel}
       />
@@ -242,7 +266,7 @@ export default function BookSessionScreen() {
           alignItems: 'center',
         }}>
           <StyledButton
-            title={t('submitBooking')}
+            title={isEditMode ? t('updateSession') : t('submitBooking')}
             onPress={handleSubmit}
             fullWidth
           />
