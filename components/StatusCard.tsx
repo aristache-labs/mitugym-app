@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { CheckCircle, XCircle, Calendar } from 'lucide-react-native';
 import { theme } from '../lib/theme';
 import { getMembershipStatusColor, getDaysLeftText } from '../lib/utils';
+import { StyledButton } from './StyledButton';
 import { useLanguage } from '../lib/LanguageContext';
 
 interface StatusCardProps {
@@ -205,29 +206,11 @@ export function StatusCard({
         {/* Renew Button */}
         {showDetails && onRenew && (
           <View style={{ marginTop: theme.spacing.lg }}>
-            <TouchableOpacity
+            <StyledButton
+              title={status === 'expired' ? t('renewMembership') : t('renewEarly')}
               onPress={onRenew}
-              style={{
-                backgroundColor: status === 'expired'
-                  ? theme.colors.primary.DEFAULT
-                  : 'rgba(30, 155, 113, 0.15)',
-                paddingVertical: theme.spacing.md,
-                paddingHorizontal: theme.spacing.lg,
-                borderRadius: theme.borderRadius.lg,
-                alignItems: 'center',
-                borderWidth: status === 'active' ? 1 : 0,
-                borderColor: theme.colors.primary.DEFAULT,
-              }}
-              activeOpacity={0.8}
-            >
-              <Text style={{
-                fontSize: theme.typography.body.fontSize,
-                fontWeight: '600',
-                color: status === 'expired' ? '#ffffff' : theme.colors.primary.DEFAULT,
-              }}>
-                {status === 'expired' ? t('renewMembership') : t('renewEarly')}
-              </Text>
-            </TouchableOpacity>
+              fullWidth
+            />
           </View>
         )}
 

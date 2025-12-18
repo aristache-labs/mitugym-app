@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Modal, Alert } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Modal, Alert, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,7 +21,7 @@ import { theme } from '../../lib/theme';
 import { formatPrice, formatCheckinDateTime } from '../../lib/utils';
 import { AppHeader } from '../../components/AppHeader';
 import { StatusCard } from '../../components/StatusCard';
-import { PillButton } from '../../components/PillButton';
+import { StyledButton } from '../../components/StyledButton';
 import { useLanguage } from '../../lib/LanguageContext';
 
 export default function MembershipScreen() {
@@ -32,6 +32,9 @@ export default function MembershipScreen() {
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [checkinFilter, setCheckinFilter] = useState('1M'); // 1M, 3M, 6M, 1Y, ALL
 
+  // Cancel button animation
+  const [cancelScale] = useState(new Animated.Value(1));
+  const shineAnim = useRef(new Animated.Value(-1)).current;
 
   // Session history modal state
   const [sessionHistoryModalVisible, setSessionHistoryModalVisible] = useState(false);
@@ -58,6 +61,30 @@ export default function MembershipScreen() {
 
   const handleRenewPress = () => {
     setShowRenewModal(true);
+  };
+
+  const handleCancelPressIn = () => {
+    Animated.spring(cancelScale, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+
+    // Trigger shine animation
+    shineAnim.setValue(-1);
+    Animated.timing(shineAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleCancelPressOut = () => {
+    Animated.spring(cancelScale, {
+      toValue: 1,
+      friction: 3,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
   };
 
   // Fetch membership plans, checkins, and services on component mount
@@ -509,28 +536,16 @@ export default function MembershipScreen() {
 
                     {/* Book Session Button - Only for approved services */}
                     {purchasedService.sessions_remaining > 0 && purchasedService.status === 'approved' && (
-                      <TouchableOpacity
-                        onPress={() => handleBookSessionPress(purchasedService)}
-                        style={{
-                          backgroundColor: theme.colors.primary.DEFAULT,
-                          borderRadius: theme.borderRadius.md,
-                          margin: theme.spacing.md,
-                          marginTop: theme.spacing.sm,
-                          padding: theme.spacing.md,
-                          flexDirection: 'row',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Calendar size={18} color="white" style={{ marginRight: theme.spacing.sm }} />
-                        <Text style={{
-                          fontSize: theme.typography.body.fontSize,
-                          fontWeight: '600',
-                          color: 'white',
-                        }}>
-                          {t('bookSession')}
-                        </Text>
-                      </TouchableOpacity>
+                      <View style={{
+                        margin: theme.spacing.md,
+                        marginTop: theme.spacing.sm,
+                      }}>
+                        <StyledButton
+                          title={t('bookSession')}
+                          onPress={() => handleBookSessionPress(purchasedService)}
+                          fullWidth
+                        />
+                      </View>
                     )}
                   </View>
                 ))}
@@ -907,23 +922,87 @@ export default function MembershipScreen() {
             <View style={{
               marginTop: theme.spacing.lg,
               gap: theme.spacing.md,
+              alignItems: 'center',
             }}>
-              <PillButton
+              <StyledButton
                 title={t('confirmRenewal')}
                 onPress={handleConfirmRenewal}
-                variant="primary"
-                size="large"
                 fullWidth
                 disabled={!selectedPlanId}
               />
 
-              <PillButton
-                title={t('cancel')}
+              <TouchableOpacity
                 onPress={handleCancelRenewal}
-                variant="outline"
-                size="large"
-                fullWidth
-              />
+                onPressIn={handleCancelPressIn}
+                onPressOut={handleCancelPressOut}
+                activeOpacity={1}
+                style={{
+                  width: '50%',
+                }}
+              >
+                <Animated.View
+                  style={{
+                    transform: [{ scale: cancelScale }],
+                    overflow: 'hidden',
+                    borderRadius: theme.borderRadius.lg,
+                  }}
+                >
+                  <LinearGradient
+                    colors={['rgba(51, 65, 85, 0.75)', 'rgba(30, 41, 59, 0.45)', 'rgba(51, 65, 85, 0.75)']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{
+                      paddingVertical: theme.spacing.sm,
+                      paddingHorizontal: theme.spacing.md,
+                      alignItems: 'center',
+                      borderRadius: theme.borderRadius.lg,
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.2,
+                      shadowRadius: 4,
+                      elevation: 4,
+                    }}
+                  >
+                    <Animated.View
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        transform: [
+                          {
+                            translateX: shineAnim.interpolate({
+                              inputRange: [-1, 1],
+                              outputRange: ['-100%', '100%'],
+                            }),
+                          },
+                        ],
+                      }}
+                    >
+                      <LinearGradient
+                        colors={['transparent', 'rgba(255, 255, 255, 0.1)', 'transparent']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{
+                          flex: 1,
+                          width: '100%',
+                        }}
+                      />
+                    </Animated.View>
+                    <Text
+                      style={{
+                        fontSize: theme.typography.body.fontSize,
+                        color: '#ffffff',
+                        fontWeight: '500',
+                        zIndex: 10,
+                      }}
+                    >
+                      {t('cancel')}
+                    </Text>
+                  </LinearGradient>
+                </Animated.View>
+              </TouchableOpacity>
             </View>
           </ScrollView>
         </View>
