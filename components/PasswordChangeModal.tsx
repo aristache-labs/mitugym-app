@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Modal,
-  TextInput,
   Keyboard,
   TouchableWithoutFeedback,
+  Animated,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { X, Key } from 'lucide-react-native';
 import { theme } from '../lib/theme';
-import { PillButton } from './PillButton';
+import { StyledInput } from './StyledInput';
+import { StyledButton } from './StyledButton';
 import { useLanguage } from '../lib/LanguageContext';
 
 interface PasswordForm {
@@ -35,9 +37,35 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
   onChangePassword,
 }) => {
   const { t } = useLanguage();
+  const [cancelScale] = useState(new Animated.Value(1));
+  const shineAnim = useRef(new Animated.Value(-1)).current;
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
+  };
+
+  const handleCancelPressIn = () => {
+    Animated.spring(cancelScale, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+
+    // Trigger shine animation
+    shineAnim.setValue(-1);
+    Animated.timing(shineAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleCancelPressOut = () => {
+    Animated.spring(cancelScale, {
+      toValue: 1,
+      friction: 3,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
   };
 
   return (
@@ -98,122 +126,129 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
           </View>
 
           {/* Password Form */}
-          <View style={{ gap: theme.spacing.md }}>
-            {/* Current Password */}
-            <View>
-              <Text style={{
-                fontSize: theme.typography.body.fontSize,
-                fontWeight: '600',
-                color: theme.colors.text.primary,
-                marginBottom: theme.spacing.sm,
-              }}>
-                {t('currentPassword')}
-              </Text>
-              <TextInput
-                value={passwordForm.currentPassword}
-                onChangeText={(text) => setPasswordForm({ ...passwordForm, currentPassword: text })}
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="next"
-                style={{
-                  backgroundColor: theme.colors.background.DEFAULT,
-                  borderRadius: theme.borderRadius.lg,
-                  padding: theme.spacing.md,
-                  fontSize: theme.typography.body.fontSize,
-                  color: theme.colors.text.primary,
-                  borderWidth: 1,
-                  borderColor: 'rgba(30, 155, 113, 0.2)',
-                }}
-                placeholder={t('currentPassword')}
-                placeholderTextColor={theme.colors.text.secondary}
-              />
-            </View>
+          {/* Current Password */}
+          <StyledInput
+            icon="password"
+            label={t('currentPassword').toUpperCase()}
+            value={passwordForm.currentPassword}
+            onChangeText={(text) => setPasswordForm({ ...passwordForm, currentPassword: text })}
+            placeholder={t('currentPassword')}
+            isPassword
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="next"
+          />
 
-            {/* New Password */}
-            <View>
-              <Text style={{
-                fontSize: theme.typography.body.fontSize,
-                fontWeight: '600',
-                color: theme.colors.text.primary,
-                marginBottom: theme.spacing.sm,
-              }}>
-                {t('newPassword')}
-              </Text>
-              <TextInput
-                value={passwordForm.newPassword}
-                onChangeText={(text) => setPasswordForm({ ...passwordForm, newPassword: text })}
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="next"
-                style={{
-                  backgroundColor: theme.colors.background.DEFAULT,
-                  borderRadius: theme.borderRadius.lg,
-                  padding: theme.spacing.md,
-                  fontSize: theme.typography.body.fontSize,
-                  color: theme.colors.text.primary,
-                  borderWidth: 1,
-                  borderColor: 'rgba(30, 155, 113, 0.2)',
-                }}
-                placeholder={t('newPassword')}
-                placeholderTextColor={theme.colors.text.secondary}
-              />
-            </View>
+          {/* New Password */}
+          <StyledInput
+            icon="password"
+            label={t('newPassword').toUpperCase()}
+            value={passwordForm.newPassword}
+            onChangeText={(text) => setPasswordForm({ ...passwordForm, newPassword: text })}
+            placeholder={t('newPassword')}
+            isPassword
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="next"
+          />
 
-            {/* Confirm Password */}
-            <View>
-              <Text style={{
-                fontSize: theme.typography.body.fontSize,
-                fontWeight: '600',
-                color: theme.colors.text.primary,
-                marginBottom: theme.spacing.sm,
-              }}>
-                {t('confirmPassword')}
-              </Text>
-              <TextInput
-                value={passwordForm.confirmPassword}
-                onChangeText={(text) => setPasswordForm({ ...passwordForm, confirmPassword: text })}
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="done"
-                onSubmitEditing={onChangePassword}
-                style={{
-                  backgroundColor: theme.colors.background.DEFAULT,
-                  borderRadius: theme.borderRadius.lg,
-                  padding: theme.spacing.md,
-                  fontSize: theme.typography.body.fontSize,
-                  color: theme.colors.text.primary,
-                  borderWidth: 1,
-                  borderColor: 'rgba(30, 155, 113, 0.2)',
-                }}
-                placeholder={t('confirmPassword')}
-                placeholderTextColor={theme.colors.text.secondary}
-              />
-            </View>
-          </View>
+          {/* Confirm Password */}
+          <StyledInput
+            icon="password"
+            label={t('confirmPassword').toUpperCase()}
+            value={passwordForm.confirmPassword}
+            onChangeText={(text) => setPasswordForm({ ...passwordForm, confirmPassword: text })}
+            placeholder={t('confirmPassword')}
+            isPassword
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="done"
+            onSubmitEditing={onChangePassword}
+          />
 
           {/* Action Buttons */}
           <View style={{
             marginTop: theme.spacing.xl,
-            gap: theme.spacing.sm,
+            gap: theme.spacing.md,
+            alignItems: 'center',
           }}>
-            <PillButton
+            <StyledButton
               title={t('updatePassword')}
               onPress={onChangePassword}
-              variant="primary"
-              size="large"
               fullWidth
-              icon={Key}
             />
-            <PillButton
-              title={t('cancel')}
+            <TouchableOpacity
               onPress={onClose}
-              variant="outline"
-              size="large"
-              fullWidth
-            />
+              onPressIn={handleCancelPressIn}
+              onPressOut={handleCancelPressOut}
+              activeOpacity={1}
+              style={{
+                width: '50%',
+              }}
+            >
+              <Animated.View
+                style={{
+                  transform: [{ scale: cancelScale }],
+                  overflow: 'hidden',
+                  borderRadius: theme.borderRadius.lg,
+                }}
+              >
+                <LinearGradient
+                  colors={['rgba(51, 65, 85, 0.75)', 'rgba(30, 41, 59, 0.45)', 'rgba(51, 65, 85, 0.75)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    paddingVertical: theme.spacing.sm,
+                    paddingHorizontal: theme.spacing.md,
+                    alignItems: 'center',
+                    borderRadius: theme.borderRadius.lg,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 4,
+                    elevation: 4,
+                  }}
+                >
+                  <Animated.View
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      transform: [
+                        {
+                          translateX: shineAnim.interpolate({
+                            inputRange: [-1, 1],
+                            outputRange: ['-100%', '100%'],
+                          }),
+                        },
+                      ],
+                    }}
+                  >
+                    <LinearGradient
+                      colors={['transparent', 'rgba(255, 255, 255, 0.1)', 'transparent']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={{
+                        flex: 1,
+                        width: '100%',
+                      }}
+                    />
+                  </Animated.View>
+                  <Text
+                    style={{
+                      fontSize: theme.typography.body.fontSize,
+                      color: '#ffffff',
+                      fontWeight: '500',
+                      zIndex: 10,
+                    }}
+                  >
+                    {t('cancel')}
+                  </Text>
+                </LinearGradient>
+              </Animated.View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>

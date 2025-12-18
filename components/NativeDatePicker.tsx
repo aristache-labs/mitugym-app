@@ -166,28 +166,28 @@ export function NativeDatePicker({
           ]}
         />
 
-        <TouchableOpacity
-          onPress={showDatepicker}
+      <TouchableOpacity
+        onPress={showDatepicker}
           style={styles.touchable}
         >
           <Animated.View style={{ opacity: iconOpacity }}>
-            <Calendar
-              size={20}
+        <Calendar
+          size={20}
               color="#00d4d4"
               style={styles.icon}
-            />
+        />
           </Animated.View>
           <Text style={[
             styles.text,
             { color: value ? '#ffffff' : 'rgba(255, 255, 255, 0.3)' },
           ]}>
-            {value ? formatDate(value) : placeholder}
-          </Text>
-          <ChevronDown
-            size={20}
+          {value ? formatDate(value) : placeholder}
+        </Text>
+        <ChevronDown
+          size={20}
             color="rgba(255, 255, 255, 0.7)"
-          />
-        </TouchableOpacity>
+        />
+      </TouchableOpacity>
       </Animated.View>
 
       {show && Platform.OS === 'ios' && (

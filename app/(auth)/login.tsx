@@ -139,26 +139,26 @@ export default function LoginScreen() {
             <StyledInput
               icon="email"
               label={t('emailAddress').toUpperCase()}
-              value={email}
-              onChangeText={setEmail}
-              placeholder={t('emailAddress')}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="email"
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder={t('emailAddress')}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="email"
             />
 
             {/* Password Input */}
             <StyledInput
               icon="password"
               label={t('password').toUpperCase()}
-              value={password}
-              onChangeText={setPassword}
-              placeholder={t('password')}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder={t('password')}
               isPassword={true}
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="password"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="password"
             />
 
             {/* Remember Me Checkbox */}

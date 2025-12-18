@@ -135,21 +135,21 @@ export function DropdownPicker({
           ]}
         />
 
-        <TouchableOpacity
-          onPress={() => setIsVisible(true)}
+      <TouchableOpacity
+        onPress={() => setIsVisible(true)}
           style={styles.touchable}
-        >
+      >
           <Text style={[
             styles.text,
             { color: selectedOption ? '#ffffff' : 'rgba(255, 255, 255, 0.3)' },
           ]}>
-            {selectedOption ? selectedOption.label : placeholder}
-          </Text>
-          <ChevronDown
-            size={20}
+          {selectedOption ? selectedOption.label : placeholder}
+        </Text>
+        <ChevronDown
+          size={20}
             color="rgba(255, 255, 255, 0.7)"
-          />
-        </TouchableOpacity>
+        />
+      </TouchableOpacity>
       </Animated.View>
 
       <Modal

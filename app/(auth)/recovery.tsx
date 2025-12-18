@@ -146,13 +146,13 @@ export default function RecoveryScreen() {
               <StyledInput
                 icon="email"
                 label={t('emailAddress').toUpperCase()}
-                value={email}
-                onChangeText={setEmail}
-                placeholder={t('emailAddress')}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="email"
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder={t('emailAddress')}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    autoComplete="email"
               />
 
               {/* Reset Button */}

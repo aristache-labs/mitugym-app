@@ -206,111 +206,111 @@ export default function RegisterScreen() {
             <StyledInput
               icon="user"
               label={t('firstName').toUpperCase()}
-              value={firstName}
-              onChangeText={setFirstName}
-              placeholder={t('firstName')}
-              autoCapitalize="words"
-              autoCorrect={false}
-              autoComplete="given-name"
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  placeholder={t('firstName')}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  autoComplete="given-name"
             />
 
             {/* Last Name Input */}
             <StyledInput
               icon="user"
               label={t('lastName').toUpperCase()}
-              value={lastName}
-              onChangeText={setLastName}
-              placeholder={t('lastName')}
-              autoCapitalize="words"
-              autoCorrect={false}
-              autoComplete="family-name"
+                  value={lastName}
+                  onChangeText={setLastName}
+                  placeholder={t('lastName')}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  autoComplete="family-name"
             />
 
             {/* Date of Birth */}
-            <NativeDatePicker
-              value={dateOfBirth}
-              onDateChange={setDateOfBirth}
-              placeholder={t('selectDateOfBirth')}
+              <NativeDatePicker
+                value={dateOfBirth}
+                onDateChange={setDateOfBirth}
+                placeholder={t('selectDateOfBirth')}
               label={t('dateOfBirth').toUpperCase()}
-              maximumDate={new Date(new Date().getFullYear() - 13, 11, 31)} // Must be at least 13 years old
-              minimumDate={new Date(new Date().getFullYear() - 120, 0, 1)} // Max 120 years old
-            />
+                maximumDate={new Date(new Date().getFullYear() - 13, 11, 31)} // Must be at least 13 years old
+                minimumDate={new Date(new Date().getFullYear() - 120, 0, 1)} // Max 120 years old
+              />
 
             {/* Email Input */}
             <StyledInput
               icon="email"
               label={t('emailAddress').toUpperCase()}
-              value={email}
-              onChangeText={setEmail}
-              placeholder={t('emailAddress')}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="email"
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder={t('emailAddress')}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="email"
             />
 
             {/* Phone Input */}
             <StyledInput
               icon="phone"
               label={t('phone').toUpperCase()}
-              value={phone}
-              onChangeText={setPhone}
-              placeholder={t('phone')}
-              keyboardType="phone-pad"
-              autoComplete="tel"
+                  value={phone}
+                  onChangeText={setPhone}
+                  placeholder={t('phone')}
+                  keyboardType="phone-pad"
+                  autoComplete="tel"
             />
 
             {/* Address Input */}
             <StyledInput
               icon="location"
               label={t('addressOptional').toUpperCase()}
-              value={address}
-              onChangeText={setAddress}
-              placeholder={t('addressOptional')}
-              autoComplete="street-address"
+                  value={address}
+                  onChangeText={setAddress}
+                  placeholder={t('addressOptional')}
+                  autoComplete="street-address"
             />
 
             {/* City Input */}
             <StyledInput
               icon="location"
               label={t('cityOptional').toUpperCase()}
-              value={city}
-              onChangeText={setCity}
-              placeholder={t('cityOptional')}
-              autoComplete="address-line2"
+                  value={city}
+                  onChangeText={setCity}
+                  placeholder={t('cityOptional')}
+                  autoComplete="address-line2"
             />
 
             {/* County Input */}
             <StyledInput
               icon="location"
               label={t('countyOptional').toUpperCase()}
-              value={county}
-              onChangeText={setCounty}
-              placeholder={t('countyOptional')}
-              autoComplete="address-line1"
+                  value={county}
+                  onChangeText={setCounty}
+                  placeholder={t('countyOptional')}
+                  autoComplete="address-line1"
             />
 
             {/* Gender Selection */}
-            <DropdownPicker
-              value={gender}
-              onValueChange={setGender}
-              options={genderOptions}
-              placeholder={t('selectGender')}
+              <DropdownPicker
+                value={gender}
+                onValueChange={setGender}
+                options={genderOptions}
+                placeholder={t('selectGender')}
               label={t('gender').toUpperCase()}
-              doneButtonText={t('done')}
-            />
+                doneButtonText={t('done')}
+              />
 
             {/* Password Input */}
             <StyledInput
               icon="password"
               label={t('password').toUpperCase()}
-              value={password}
-              onChangeText={setPassword}
-              placeholder={t('password')}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder={t('password')}
               isPassword={true}
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="password-new"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="password-new"
             />
 
             {/* Confirm Password Input */}
@@ -318,13 +318,13 @@ export default function RegisterScreen() {
               <StyledInput
                 icon="password"
                 label={t('confirmPassword').toUpperCase()}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder={t('confirmPassword')}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  placeholder={t('confirmPassword')}
                 isPassword={true}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="password-new"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="password-new"
               />
               {confirmPassword.length > 0 && password !== confirmPassword && (
                 <Text style={{
