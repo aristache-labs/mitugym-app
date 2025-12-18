@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { create } from 'zustand';
 import { Alert } from 'react-native';
 import { supabase } from '../utils/supabase';
