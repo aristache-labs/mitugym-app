@@ -105,6 +105,16 @@ export default function MembershipScreen() {
 
   // Session booking handlers
   const handleBookSessionPress = (purchasedService: any) => {
+    // Check membership status before allowing booking
+    if (!member || member.membershipStatus !== 'active') {
+      Alert.alert(
+        t('membershipRequired' as any),
+        t('activeMembershipNeeded' as any),
+        [{ text: t('ok'), style: 'default' }],
+      );
+      return;
+    }
+
     router.push({
       pathname: '/book-session',
       params: {

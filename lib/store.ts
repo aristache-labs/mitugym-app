@@ -505,9 +505,23 @@ export const useAppStore = create<AppState>((set, get) => ({
   // New service purchase functions
   purchaseService: async (serviceId: string, notes?: string) => {
     try {
-      const { session } = get();
+      const { session, member } = get();
       if (!session?.user?.id) {
         get().showToast('Please log in to purchase services', 'error');
+        return;
+      }
+
+      // Check membership status
+      if (!member || member.membershipStatus !== 'active') {
+        const statusMessages: { [key: string]: string } = {
+          'expired': 'Your membership has expired. Please renew to purchase services.',
+          'pending': 'Your membership is pending approval. Please wait for activation.',
+          'cancelled': 'Your membership has been cancelled. Please contact support.',
+        };
+        const message = member?.membershipStatus
+          ? statusMessages[member.membershipStatus] || 'You need an active membership to purchase services.'
+          : 'You need an active membership to purchase services. Please purchase a plan first.';
+        get().showToast(message, 'error');
         return;
       }
 
@@ -584,9 +598,23 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   bookSession: async (purchasedServiceId: string, bookingDate: string, notes?: string) => {
     try {
-      const { session } = get();
+      const { session, member } = get();
       if (!session?.user?.id) {
         get().showToast('Please log in to book sessions', 'error');
+        return;
+      }
+
+      // Check membership status
+      if (!member || member.membershipStatus !== 'active') {
+        const statusMessages: { [key: string]: string } = {
+          'expired': 'Your membership has expired. Please renew to book sessions.',
+          'pending': 'Your membership is pending approval. Please wait for activation.',
+          'cancelled': 'Your membership has been cancelled. Please contact support.',
+        };
+        const message = member?.membershipStatus
+          ? statusMessages[member.membershipStatus] || 'You need an active membership to book sessions.'
+          : 'You need an active membership to book sessions. Please purchase a plan first.';
+        get().showToast(message, 'error');
         return;
       }
 

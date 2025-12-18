@@ -24,7 +24,10 @@ export default function ServicesScreen() {
     servicesLoading,
     fetchServices,
     purchaseService,
+    member,
   } = useAppStore();
+
+  const canPurchaseServices = member?.membershipStatus === 'active';
 
   // Load services on component mount
   useEffect(() => {
@@ -38,6 +41,15 @@ export default function ServicesScreen() {
   };
 
   const handleServicePress = (serviceId: string) => {
+    if (!canPurchaseServices) {
+      Alert.alert(
+        t('membershipRequired' as any),
+        t('activeMembershipNeeded' as any),
+        [{ text: t('ok'), style: 'default' }],
+      );
+      return;
+    }
+
     const service = services.find(s => s.id === serviceId);
     if (service) {
       setSelectedService(service);

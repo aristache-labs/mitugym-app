@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { View, Text, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { QrCode, RefreshCw, Shield } from 'lucide-react-native';
+import { QrCode, Shield } from 'lucide-react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { theme } from '../lib/theme';
 import { formatCountdown, getCountdownColor } from '../lib/utils';
-import { PillButton } from './PillButton';
+import { StyledButton } from './StyledButton';
 import { useLanguage } from '../lib/LanguageContext';
 import { generateQRContent, formatTOTPCode } from '../utils/totp';
 
@@ -255,13 +255,13 @@ export function QRCard({
 
         {/* Refresh Button - Only show for legacy token system */}
         {!useTOTP && (
-          <PillButton
-            title={isExpired ? t('generateNewQr') : t('refresh')}
-            onPress={onRefresh}
-            icon={RefreshCw}
-            variant={isExpired ? 'primary' : 'outline'}
-            size="medium"
-          />
+          <View style={{ width: '100%', maxWidth: 300 }}>
+            <StyledButton
+              title={isExpired ? t('generateNewQr') : t('refresh')}
+              onPress={onRefresh}
+              fullWidth
+            />
+          </View>
         )}
       </View>
 
