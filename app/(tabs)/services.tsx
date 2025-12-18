@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, RefreshControl, Text, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
+import { View, ScrollView, RefreshControl, Text, TouchableOpacity, Modal, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Calendar, Clock, Banknote, X, Check, ShoppingCart } from 'lucide-react-native';
+import { Calendar, Clock, Banknote, X, ShoppingCart } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { AppHeader } from '../../components/AppHeader';
 import { EmptyState } from '../../components/EmptyState';
+import { StyledInput } from '../../components/StyledInput';
+import { StyledButton } from '../../components/StyledButton';
 import { useLanguage } from '../../lib/LanguageContext';
 import { formatPrice } from '../../lib/utils';
 
@@ -301,57 +303,27 @@ export default function ServicesScreen() {
 
 
                 {/* Notes Input */}
-                <View style={{ marginBottom: theme.spacing.xl }}>
-                  <Text style={{
-                    fontSize: theme.typography.body.fontSize,
-                    fontWeight: '600',
-                    color: theme.colors.text.primary,
-                    marginBottom: theme.spacing.sm,
-                  }}>
-                    {t('notes')} ({t('optional')})
-                  </Text>
-                  <TextInput
-                    style={{
-                      backgroundColor: theme.colors.background.surface,
-                      borderRadius: theme.borderRadius.md,
-                      padding: theme.spacing.md,
-                      fontSize: theme.typography.body.fontSize,
-                      color: theme.colors.text.primary,
-                      borderWidth: 1,
-                      borderColor: 'rgba(30, 155, 113, 0.2)',
-                      minHeight: 80,
-                      textAlignVertical: 'top',
-                    }}
-                    value={notes}
-                    onChangeText={setNotes}
-                    placeholder={t('addNotesPlaceholder')}
-                    placeholderTextColor={theme.colors.text.secondary}
-                    multiline
-                  />
-                </View>
+                <StyledInput
+                  label={`${t('notes').toUpperCase()} (${t('optional').toUpperCase()})`}
+                  value={notes}
+                  onChangeText={setNotes}
+                  placeholder={t('addNotesPlaceholder')}
+                  multiline
+                  numberOfLines={4}
+                  style={{
+                    minHeight: 100,
+                    textAlignVertical: 'top',
+                  }}
+                />
 
                 {/* Submit Button */}
-                <TouchableOpacity
-                  style={{
-                    backgroundColor: theme.colors.primary.DEFAULT,
-                    borderRadius: theme.borderRadius.lg,
-                    padding: theme.spacing.lg,
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginBottom: insets.bottom,
-                  }}
-                  onPress={handlePurchaseSubmit}
-                >
-                  <Check size={20} color="white" style={{ marginRight: theme.spacing.sm }} />
-                  <Text style={{
-                    fontSize: theme.typography.body.fontSize,
-                    fontWeight: '600',
-                    color: 'white',
-                  }}>
-                    {t('purchaseService')}
-                  </Text>
-                </TouchableOpacity>
+                <View style={{ marginTop: theme.spacing.xl, marginBottom: insets.bottom }}>
+                  <StyledButton
+                    title={t('purchaseService')}
+                    onPress={handlePurchaseSubmit}
+                    fullWidth
+                  />
+                </View>
               </>
             )}
           </ScrollView>
