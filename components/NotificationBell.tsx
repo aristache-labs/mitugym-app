@@ -16,248 +16,190 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   size = 24,
 }) => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
-  const pulseAnim = React.useRef(new Animated.Value(1)).current;
-  const rotateAnim = React.useRef(new Animated.Value(0)).current;
-  const glowAnim = React.useRef(new Animated.Value(0)).current;
-  const rippleAnim = React.useRef(new Animated.Value(0)).current;
-  const badgeBounce = React.useRef(new Animated.Value(1)).current;
+  const bellShake = React.useRef(new Animated.Value(0)).current;
+  const dotPulse = React.useRef(new Animated.Value(1)).current;
+  const ringPulse = React.useRef(new Animated.Value(0)).current;
 
-  // Pulse animation for badge when unread count changes
+  // New notification animation - Badge pop + Bell shake
   React.useEffect(() => {
     if (unreadCount > 0) {
       // Badge pop animation
       Animated.sequence([
-        Animated.timing(scaleAnim, {
-          toValue: 1.5,
-          duration: 200,
-          easing: Easing.out(Easing.cubic),
+        Animated.spring(scaleAnim, {
+          toValue: 1.3,
+          friction: 4,
+          tension: 100,
           useNativeDriver: true,
         }),
         Animated.spring(scaleAnim, {
           toValue: 1,
-          friction: 3,
+          friction: 5,
           tension: 80,
           useNativeDriver: true,
         }),
       ]).start();
 
-      // Bell shake animation - more pronounced
+      // Bell shake
       Animated.sequence([
-        Animated.timing(rotateAnim, {
-          toValue: 1,
-          duration: 80,
+        Animated.timing(bellShake, {
+          toValue: -8,
+          duration: 50,
           easing: Easing.linear,
           useNativeDriver: true,
         }),
-        Animated.timing(rotateAnim, {
-          toValue: -1,
-          duration: 80,
+        Animated.timing(bellShake, {
+          toValue: 8,
+          duration: 50,
           easing: Easing.linear,
           useNativeDriver: true,
         }),
-        Animated.timing(rotateAnim, {
-          toValue: 1,
-          duration: 80,
+        Animated.timing(bellShake, {
+          toValue: -6,
+          duration: 50,
           easing: Easing.linear,
           useNativeDriver: true,
         }),
-        Animated.timing(rotateAnim, {
-          toValue: -0.5,
-          duration: 80,
+        Animated.timing(bellShake, {
+          toValue: 6,
+          duration: 50,
           easing: Easing.linear,
           useNativeDriver: true,
         }),
-        Animated.timing(rotateAnim, {
+        Animated.timing(bellShake, {
           toValue: 0,
-          duration: 80,
+          duration: 50,
           easing: Easing.linear,
           useNativeDriver: true,
         }),
       ]).start();
-
-      // Ripple effect
-      rippleAnim.setValue(0);
-      Animated.timing(rippleAnim, {
-        toValue: 1,
-        duration: 800,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }).start();
     }
-  }, [unreadCount, scaleAnim, rotateAnim, rippleAnim]);
+  }, [unreadCount, scaleAnim, bellShake]);
 
-  // Continuous pulse for unread notifications
+  // Continuous pulse animations when unread
   React.useEffect(() => {
     if (unreadCount > 0) {
-      // Badge subtle bounce
-      const bounceAnimation = Animated.loop(
+      // Dot pulse
+      const dotAnimation = Animated.loop(
         Animated.sequence([
-          Animated.timing(badgeBounce, {
-            toValue: 1.08,
-            duration: 1200,
+          Animated.timing(dotPulse, {
+            toValue: 1.15,
+            duration: 1000,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
-          Animated.timing(badgeBounce, {
+          Animated.timing(dotPulse, {
             toValue: 1,
-            duration: 1200,
+            duration: 1000,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
         ])
       );
-      bounceAnimation.start();
+      dotAnimation.start();
 
-      // Glow pulse animation
-      const glowAnimation = Animated.loop(
+      // Ring pulse
+      const ringAnimation = Animated.loop(
         Animated.sequence([
-          Animated.timing(glowAnim, {
+          Animated.timing(ringPulse, {
             toValue: 1,
-            duration: 1800,
-            easing: Easing.inOut(Easing.ease),
+            duration: 2000,
+            easing: Easing.out(Easing.ease),
             useNativeDriver: true,
           }),
-          Animated.timing(glowAnim, {
+          Animated.timing(ringPulse, {
             toValue: 0,
-            duration: 1800,
-            easing: Easing.inOut(Easing.ease),
+            duration: 0,
             useNativeDriver: true,
           }),
         ])
       );
-      glowAnimation.start();
-
-      // Bell subtle pulse
-      const bellPulse = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.05,
-            duration: 2000,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 2000,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-        ])
-      );
-      bellPulse.start();
+      ringAnimation.start();
 
       return () => {
-        bounceAnimation.stop();
-        glowAnimation.stop();
-        bellPulse.stop();
+        dotAnimation.stop();
+        ringAnimation.stop();
       };
     } else {
-      pulseAnim.setValue(1);
-      glowAnim.setValue(0);
-      badgeBounce.setValue(1);
+      dotPulse.setValue(1);
+      ringPulse.setValue(0);
     }
-  }, [unreadCount, pulseAnim, glowAnim, badgeBounce]);
+  }, [unreadCount, dotPulse, ringPulse]);
 
-  const rotation = rotateAnim.interpolate({
-    inputRange: [-1, 1],
-    outputRange: ['-20deg', '20deg'],
-  });
-
-  const glowOpacity = glowAnim.interpolate({
+  const ringScale = ringPulse.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.2, 0.7],
+    outputRange: [1, 1.8],
   });
 
-  const rippleScale = rippleAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.8, 2],
-  });
-
-  const rippleOpacity = rippleAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0.6, 0.3, 0],
+  const ringOpacity = ringPulse.interpolate({
+    inputRange: [0, 0.7, 1],
+    outputRange: [0.4, 0.2, 0],
   });
 
   return (
     <TouchableOpacity
       onPress={onPress}
       style={styles.container}
-      activeOpacity={0.6}
+      activeOpacity={0.7}
     >
-      <View style={styles.bellWrapper}>
-        {/* Ripple effect on notification */}
+      <View style={styles.wrapper}>
+        {/* Pulsing ring effect */}
         {unreadCount > 0 && (
           <Animated.View
             style={[
-              styles.ripple,
+              styles.pulseRing,
               {
-                opacity: rippleOpacity,
-                transform: [{ scale: rippleScale }],
-              },
-            ]}
-          />
-        )}
-        
-        {/* Glow background */}
-        {unreadCount > 0 && (
-          <Animated.View
-            style={[
-              styles.glowRing,
-              {
-                opacity: glowOpacity,
+                opacity: ringOpacity,
+                transform: [{ scale: ringScale }],
               },
             ]}
           />
         )}
 
-        {/* Bell icon with animations */}
+        {/* Bell icon with shake animation */}
         <Animated.View
           style={{
-            transform: [
-              { rotate: rotation },
-              { scale: pulseAnim },
-            ],
+            transform: [{ translateX: bellShake }],
           }}
         >
-          <View style={[
-            styles.bellIconContainer,
-            unreadCount > 0 && styles.bellIconContainerActive,
-          ]}>
-            <Bell 
-              size={size} 
-              color={unreadCount > 0 ? theme.colors.primary.DEFAULT : 'rgba(255, 255, 255, 0.6)'} 
-              strokeWidth={2.5} 
+          <View style={styles.bellContainer}>
+            <Bell
+              size={size}
+              color={unreadCount > 0 ? theme.colors.primary.DEFAULT : 'rgba(255, 255, 255, 0.7)'}
+              strokeWidth={2}
+              fill={unreadCount > 0 ? 'rgba(77, 212, 212, 0.1)' : 'none'}
             />
           </View>
         </Animated.View>
 
-        {/* Badge with gradient */}
+        {/* Modern badge indicator - dot style */}
         {unreadCount > 0 && (
           <Animated.View
             style={[
-              styles.badgeContainer,
+              styles.badgeWrapper,
               {
                 transform: [
-                  { scale: Animated.multiply(scaleAnim, badgeBounce) },
+                  { scale: Animated.multiply(scaleAnim, dotPulse) },
                 ],
               },
             ]}
           >
             <LinearGradient
-              colors={[
-                '#FF6B6B',
-                '#FF4757',
-              ]}
+              colors={['#FF3B5C', '#FF0844']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={styles.badge}
+              style={styles.badgeDot}
             >
-              <View style={styles.badgeInner}>
-                <Text style={styles.badgeText}>
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </Text>
-              </View>
+              {unreadCount > 9 && (
+                <View style={styles.badgeCountContainer}>
+                  <Text style={styles.badgeCount}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              )}
             </LinearGradient>
+            
+            {/* Outer glow ring */}
+            <View style={styles.badgeGlow} />
           </Animated.View>
         )}
       </View>
@@ -267,85 +209,70 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    position: 'relative',
-    padding: 4,
+    padding: 8,
   },
-  bellWrapper: {
+  wrapper: {
     position: 'relative',
-    width: 44,
-    height: 44,
+    width: 32,
+    height: 32,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  ripple: {
+  pulseRing: {
     position: 'absolute',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: theme.colors.primary.DEFAULT,
-  },
-  glowRing: {
-    position: 'absolute',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: theme.colors.primary.DEFAULT,
-    shadowColor: theme.colors.primary.DEFAULT,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 12,
-    elevation: 10,
-  },
-  bellIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bellIconContainerActive: {
-    backgroundColor: 'rgba(77, 212, 212, 0.15)',
-    borderColor: 'rgba(77, 212, 212, 0.3)',
-    shadowColor: theme.colors.primary.DEFAULT,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  badgeContainer: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-  },
-  badge: {
-    borderRadius: 12,
-    minWidth: 20,
-    height: 20,
-    paddingHorizontal: 5,
     borderWidth: 2,
-    borderColor: theme.colors.background.DEFAULT,
-    shadowColor: '#FF6B6B',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-    elevation: 8,
+    borderColor: theme.colors.primary.DEFAULT,
   },
-  badgeInner: {
-    flex: 1,
-    alignItems: 'center',
+  bellContainer: {
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  badgeText: {
+  badgeWrapper: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+  },
+  badgeDot: {
+    minWidth: 18,
+    height: 18,
+    borderRadius: 10,
+    paddingHorizontal: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2.5,
+    borderColor: theme.colors.background.DEFAULT,
+    shadowColor: '#FF0844',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    elevation: 10,
+  },
+  badgeGlow: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    borderRadius: 12,
+    backgroundColor: '#FF0844',
+    opacity: 0.3,
+    zIndex: -1,
+  },
+  badgeCountContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeCount: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '900',
-    lineHeight: 12,
-    letterSpacing: 0.2,
-    textShadowColor: 'rgba(0, 0, 0, 0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    lineHeight: 10,
+    letterSpacing: -0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 0.5 },
+    textShadowRadius: 1,
   },
 });
