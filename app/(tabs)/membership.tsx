@@ -25,6 +25,7 @@ import { AnimatedDeleteButton } from '../../components/AnimatedDeleteButton';
 import { AnimatedEditButton } from '../../components/AnimatedEditButton';
 import { AnimatedCancelButton } from '../../components/AnimatedCancelButton';
 import { CancellationDetailsModal } from '../../components/CancellationDetailsModal';
+import { NotificationModal } from '../../components/NotificationModal';
 import { useLanguage } from '../../lib/LanguageContext';
 
 export default function MembershipScreen() {
@@ -47,6 +48,9 @@ export default function MembershipScreen() {
   // Cancellation details modal state
   const [cancellationModalVisible, setCancellationModalVisible] = useState(false);
   const [selectedCancelledService, setSelectedCancelledService] = useState<any>(null);
+
+  // Notifications modal state
+  const [notificationsModalVisible, setNotificationsModalVisible] = useState(false);
 
   const {
     member,
@@ -370,7 +374,7 @@ export default function MembershipScreen() {
         title={t('membership')}
         subtitle={t('managePlan')}
         showNotifications
-        onNotificationPress={() => console.log('Notifications pressed')}
+        onNotificationPress={() => setNotificationsModalVisible(true)}
       />
 
       <ScrollView
@@ -1613,6 +1617,12 @@ export default function MembershipScreen() {
         visible={cancellationModalVisible}
         onClose={() => setCancellationModalVisible(false)}
         service={selectedCancelledService}
+      />
+
+      {/* Notifications Modal */}
+      <NotificationModal
+        visible={notificationsModalVisible}
+        onClose={() => setNotificationsModalVisible(false)}
       />
 
     </View>

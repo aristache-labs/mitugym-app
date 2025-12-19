@@ -23,6 +23,7 @@ import { AppSettingsSection } from '../../components/AppSettingsSection';
 import { LegalSection } from '../../components/LegalSection';
 import { EditProfileModal } from '../../components/EditProfileModal';
 import { PasswordChangeModal } from '../../components/PasswordChangeModal';
+import { NotificationModal } from '../../components/NotificationModal';
 import { supabase } from '../../utils/supabase';
 import { useLanguage, Language } from '../../lib/LanguageContext';
 
@@ -94,6 +95,9 @@ export default function ProfileScreen() {
     newPassword: '',
     confirmPassword: '',
   });
+
+  // Notifications modal state
+  const [notificationsModalVisible, setNotificationsModalVisible] = useState(false);
 
   const { member, logout, session, showToast } = useAppStore();
   const { language, setLanguage, t } = useLanguage();
@@ -497,7 +501,7 @@ export default function ProfileScreen() {
         title={t('profile')}
         subtitle={t('manageAccount')}
         showNotifications
-        onNotificationPress={() => console.log('Notifications pressed')}
+        onNotificationPress={() => setNotificationsModalVisible(true)}
       />
 
       <ScrollView
@@ -578,6 +582,12 @@ export default function ProfileScreen() {
         passwordForm={passwordForm}
         setPasswordForm={setPasswordForm}
         onChangePassword={handleChangePassword}
+      />
+
+      {/* Notifications Modal */}
+      <NotificationModal
+        visible={notificationsModalVisible}
+        onClose={() => setNotificationsModalVisible(false)}
       />
 
     </View>

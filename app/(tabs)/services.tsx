@@ -8,6 +8,7 @@ import { AppHeader } from '../../components/AppHeader';
 import { EmptyState } from '../../components/EmptyState';
 import { StyledInput } from '../../components/StyledInput';
 import { StyledButton } from '../../components/StyledButton';
+import { NotificationModal } from '../../components/NotificationModal';
 import { useLanguage } from '../../lib/LanguageContext';
 import { formatPrice } from '../../lib/utils';
 
@@ -16,6 +17,7 @@ export default function ServicesScreen() {
   const { t } = useLanguage();
   const [refreshing, setRefreshing] = useState(false);
   const [purchaseModalVisible, setPurchaseModalVisible] = useState(false);
+  const [notificationsModalVisible, setNotificationsModalVisible] = useState(false);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [notes, setNotes] = useState('');
 
@@ -87,7 +89,7 @@ export default function ServicesScreen() {
         title={t('services')}
         subtitle={`${services.length} ${t('availableCount')}`}
         showNotifications
-        onNotificationPress={() => console.log('Notifications pressed')}
+        onNotificationPress={() => setNotificationsModalVisible(true)}
       />
 
       {/* Services List */}
@@ -342,6 +344,12 @@ export default function ServicesScreen() {
 
         </View>
       </Modal>
+
+      {/* Notifications Modal */}
+      <NotificationModal
+        visible={notificationsModalVisible}
+        onClose={() => setNotificationsModalVisible(false)}
+      />
     </View>
   );
 }
