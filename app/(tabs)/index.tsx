@@ -24,6 +24,54 @@ import { NotificationModal } from '../../components/NotificationModal';
 import { useLanguage } from '../../lib/LanguageContext';
 import { getDayTranslationKey } from '../../lib/translationHelpers';
 
+// Utility function to strip HTML tags from text
+const stripHtmlTags = (html: string): string => {
+  if (!html) return '';
+  // Remove HTML tags
+  let text = html.replace(/<[^>]*>/g, '');
+  // Decode HTML entities
+  text = text.replace(/&nbsp;/g, ' ');
+  text = text.replace(/&amp;/g, '&');
+  text = text.replace(/&lt;/g, '<');
+  text = text.replace(/&gt;/g, '>');
+  text = text.replace(/&quot;/g, '"');
+  text = text.replace(/&#39;/g, "'");
+  // Remove extra whitespace
+  text = text.trim();
+  return text;
+};
+
+// Get priority badge configuration
+const getPriorityConfig = (priority: number) => {
+  switch (priority) {
+    case 3: // High
+      return {
+        label: 'HIGH',
+        backgroundColor: 'rgba(255, 59, 92, 0.15)',
+        textColor: '#FF6B7A',
+        borderColor: 'rgba(255, 59, 92, 0.3)',
+        iconColor: '#FF3B5C',
+      };
+    case 2: // Medium
+      return {
+        label: 'MEDIUM',
+        backgroundColor: 'rgba(255, 193, 7, 0.15)',
+        textColor: '#FFD54F',
+        borderColor: 'rgba(255, 193, 7, 0.3)',
+        iconColor: '#FFC107',
+      };
+    case 1: // Low
+    default:
+      return {
+        label: 'LOW',
+        backgroundColor: 'rgba(77, 212, 212, 0.15)',
+        textColor: '#4DD4D4',
+        borderColor: 'rgba(77, 212, 212, 0.3)',
+        iconColor: '#4DD4D4',
+      };
+  }
+};
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
@@ -1090,58 +1138,57 @@ export default function HomeScreen() {
             }}
           >
             {announcements.length > 0 ? (
-              announcements.map((announcement) => (
-                <View
-                  key={announcement.id}
-                  style={{
-                    backgroundColor: theme.colors.background.surface,
-                    borderRadius: theme.borderRadius.lg,
-                    padding: theme.spacing.lg,
-                    marginBottom: theme.spacing.md,
-                    borderWidth: 1,
-                    borderColor: announcement.priority === 3 ?
-                      'rgba(255, 193, 7, 0.3)' :
-                      'rgba(255, 255, 255, 0.1)',
-                    ...theme.shadows.soft,
-                  }}
-                >
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginBottom: theme.spacing.sm,
-                  }}>
-                    <Bell
-                      size={18}
-                      color={announcement.priority === 3 ?
-                        theme.colors.secondary.DEFAULT :
-                        theme.colors.text.secondary}
-                      style={{ marginRight: theme.spacing.xs }}
-                    />
-                    <Text style={{
-                      fontSize: theme.typography.body.fontSize,
-                      fontWeight: '600',
-                      color: theme.colors.text.primary,
-                      flex: 1,
+              announcements.map((announcement) => {
+                const priorityConfig = getPriorityConfig(announcement.priority);
+                return (
+                  <View
+                    key={announcement.id}
+                    style={{
+                      backgroundColor: theme.colors.background.surface,
+                      borderRadius: theme.borderRadius.lg,
+                      padding: theme.spacing.lg,
+                      marginBottom: theme.spacing.md,
+                      borderWidth: 1,
+                      borderColor: priorityConfig.borderColor,
+                      ...theme.shadows.soft,
+                    }}
+                  >
+                    <View style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginBottom: theme.spacing.sm,
                     }}>
-                      {announcement.title}
-                    </Text>
-                    {announcement.priority === 3 && (
+                      <Bell
+                        size={18}
+                        color={priorityConfig.iconColor}
+                        style={{ marginRight: theme.spacing.xs }}
+                      />
+                      <Text style={{
+                        fontSize: theme.typography.body.fontSize,
+                        fontWeight: '600',
+                        color: theme.colors.text.primary,
+                        flex: 1,
+                      }}>
+                        {announcement.title}
+                      </Text>
                       <View style={{
-                        backgroundColor: theme.colors.secondary.DEFAULT,
-                        paddingHorizontal: theme.spacing.xs,
-                        paddingVertical: 2,
-                        borderRadius: theme.borderRadius.sm,
+                        backgroundColor: priorityConfig.backgroundColor,
+                        paddingHorizontal: 10,
+                        paddingVertical: 4,
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        borderColor: priorityConfig.borderColor,
                       }}>
                         <Text style={{
-                          fontSize: theme.typography.caption.fontSize,
-                          color: theme.colors.text.primary,
+                          fontSize: 10,
+                          color: priorityConfig.textColor,
                           fontWeight: '600',
+                          letterSpacing: 0.3,
                         }}>
-                          URGENT
+                          {priorityConfig.label}
                         </Text>
                       </View>
-                    )}
-                  </View>
+                    </View>
 
                   <Text style={{
                     fontSize: theme.typography.body.fontSize,
@@ -1149,7 +1196,7 @@ export default function HomeScreen() {
                     lineHeight: 22,
                     marginBottom: theme.spacing.sm,
                   }}>
-                    {announcement.content}
+                    {stripHtmlTags(announcement.content)}
                   </Text>
 
                   <Text style={{
@@ -1163,7 +1210,8 @@ export default function HomeScreen() {
                     })}
                   </Text>
                 </View>
-              ))
+                );
+              })
             ) : (
               <View style={{
                 backgroundColor: theme.colors.background.surface,
