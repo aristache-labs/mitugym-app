@@ -15,6 +15,7 @@ import { X, Bell, CheckCheck, Clock } from 'lucide-react-native';
 import { theme } from '../lib/theme';
 import { useAppStore, type Notification } from '../lib/store';
 import { StyledButton } from './StyledButton';
+import { useLanguage } from '../lib/LanguageContext';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MIN_HEIGHT = 450; // Minimum modal height (increased for empty state)
@@ -34,6 +35,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   visible,
   onClose,
 }) => {
+  const { t } = useLanguage();
   const {
     notifications,
     notificationsLoading,
@@ -61,10 +63,10 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) {return 'Just now';}
-    if (diffMins < 60) {return `${diffMins}m ago`;}
-    if (diffHours < 24) {return `${diffHours}h ago`;}
-    if (diffDays < 7) {return `${diffDays}d ago`;}
+    if (diffMins < 1) {return t('justNow');}
+    if (diffMins < 60) {return `${diffMins}${t('minutesAgo')}`;}
+    if (diffHours < 24) {return `${diffHours}${t('hoursAgo')}`;}
+    if (diffDays < 7) {return `${diffDays}${t('daysAgo')}`;}
     return date.toLocaleDateString();
   };
 
@@ -183,7 +185,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <Bell size={24} color={theme.colors.primary.DEFAULT} />
-              <Text style={styles.headerTitle}>Notifications</Text>
+              <Text style={styles.headerTitle}>{t('notifications')}</Text>
             </View>
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
               <X size={24} color={theme.colors.text.secondary} />
@@ -199,7 +201,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                   style={styles.markAllButton}
                 >
                   <CheckCheck size={18} color={theme.colors.primary.DEFAULT} />
-                  <Text style={styles.markAllText}>Mark all as read</Text>
+                  <Text style={styles.markAllText}>{t('markAllAsRead')}</Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
@@ -207,7 +209,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                 style={styles.clearAllButton}
               >
                 <X size={18} color={theme.colors.status.error} />
-                <Text style={styles.clearAllText}>Clear all</Text>
+                <Text style={styles.clearAllText}>{t('clearAll')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -228,14 +230,14 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
             {notifications.length === 0 && notificationsLoading ? (
               <View style={styles.emptyState}>
                 <Bell size={48} color={theme.colors.primary.DEFAULT} />
-                <Text style={styles.emptyTitle}>Loading notifications...</Text>
+                <Text style={styles.emptyTitle}>{t('loadingNotifications')}</Text>
               </View>
             ) : notifications.length === 0 ? (
               <View style={styles.emptyState}>
                 <Bell size={48} color={theme.colors.text.secondary} />
-                <Text style={styles.emptyTitle}>No notifications yet</Text>
+                <Text style={styles.emptyTitle}>{t('noNotifications')}</Text>
                 <Text style={styles.emptySubtitle}>
-                  You'll be notified when there are updates
+                  {t('noNotificationsDesc')}
                 </Text>
               </View>
             ) : (
@@ -284,7 +286,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
 
           {/* Close Button */}
           <View style={styles.footer}>
-            <StyledButton title="Close" onPress={handleClose} />
+            <StyledButton title={t('close')} onPress={handleClose} />
           </View>
         </Animated.View>
       </Animated.View>
