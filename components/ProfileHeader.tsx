@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Mail } from 'lucide-react-native';
+import { Mail, Camera } from 'lucide-react-native';
 import { theme } from '../lib/theme';
 import { useLanguage } from '../lib/LanguageContext';
 
@@ -28,9 +28,15 @@ interface Profile {
 
 interface ProfileHeaderProps {
   profile: Profile;
+  onAvatarPress?: () => void;
+  isUploadingAvatar?: boolean;
 }
 
-export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile }) => {
+export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ 
+  profile, 
+  onAvatarPress,
+  isUploadingAvatar = false,
+}) => {
   const { language, t } = useLanguage();
 
   return (
@@ -61,44 +67,105 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile }) => {
           marginBottom: theme.spacing.md,
         }}>
           {/* Compact Premium Avatar */}
-          <View style={{
-            width: 70,
-            height: 70,
-            borderRadius: 35,
-            backgroundColor: theme.colors.primary.DEFAULT,
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginRight: theme.spacing.lg,
-            borderWidth: 2,
-            borderColor: 'rgba(255, 255, 255, 0.2)',
-            ...theme.shadows.medium,
-          }}>
-            <LinearGradient
-              colors={[
-                theme.colors.primary.DEFAULT,
-                'rgba(30, 155, 113, 0.8)',
-              ]}
-              style={{
-                width: '100%',
-                height: '100%',
-                borderRadius: 33,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Text style={{
-                fontSize: 28,
-                fontWeight: '700',
-                color: '#ffffff',
-                textShadowColor: 'rgba(0, 0, 0, 0.3)',
-                textShadowOffset: { width: 1, height: 1 },
-                textShadowRadius: 2,
-              }}>
-                {profile.first_name?.[0]?.toUpperCase() || ''}
-                {profile.last_name?.[0]?.toUpperCase() || ''}
-              </Text>
-            </LinearGradient>
-          </View>
+          <TouchableOpacity
+            onPress={onAvatarPress}
+            disabled={isUploadingAvatar}
+            activeOpacity={0.7}
+            style={{
+              width: 70,
+              height: 70,
+              borderRadius: 35,
+              backgroundColor: theme.colors.primary.DEFAULT,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: theme.spacing.lg,
+              borderWidth: 2,
+              borderColor: 'rgba(255, 255, 255, 0.2)',
+              ...theme.shadows.medium,
+            }}
+          >
+            {profile.avatar_url ? (
+              <>
+                <Image
+                  source={{ uri: profile.avatar_url }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: 33,
+                  }}
+                  resizeMode="cover"
+                />
+                {/* Camera overlay */}
+                <View style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  right: 0,
+                  width: 24,
+                  height: 24,
+                  borderRadius: 12,
+                  backgroundColor: theme.colors.primary.DEFAULT,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderWidth: 2,
+                  borderColor: theme.colors.background.DEFAULT,
+                }}>
+                  {isUploadingAvatar ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <Camera size={12} color="#ffffff" />
+                  )}
+                </View>
+              </>
+            ) : (
+              <LinearGradient
+                colors={[
+                  theme.colors.primary.DEFAULT,
+                  'rgba(30, 155, 113, 0.8)',
+                ]}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: 33,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                {isUploadingAvatar ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <>
+                    <Text style={{
+                      fontSize: 28,
+                      fontWeight: '700',
+                      color: '#ffffff',
+                      textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                      textShadowOffset: { width: 1, height: 1 },
+                      textShadowRadius: 2,
+                    }}>
+                      {profile.first_name?.[0]?.toUpperCase() || ''}
+                      {profile.last_name?.[0]?.toUpperCase() || ''}
+                    </Text>
+                    {/* Camera overlay */}
+                    <View style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: 0,
+                      width: 24,
+                      height: 24,
+                      borderRadius: 12,
+                      backgroundColor: theme.colors.primary.DEFAULT,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderWidth: 2,
+                      borderColor: theme.colors.background.DEFAULT,
+                    }}>
+                      <Camera size={12} color="#ffffff" />
+                    </View>
+                  </>
+                )}
+              </LinearGradient>
+            )}
+          </TouchableOpacity>
 
           {/* User Info - Compact */}
           <View style={{ flex: 1 }}>

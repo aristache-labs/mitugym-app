@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Alert, Platform } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -99,6 +100,9 @@ export default function ProfileScreen() {
   // Notifications modal state
   const [notificationsModalVisible, setNotificationsModalVisible] = useState(false);
 
+  // Avatar upload state
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
   const { member, logout, session, showToast } = useAppStore();
   const { language, setLanguage, t } = useLanguage();
 
@@ -149,6 +153,96 @@ export default function ProfileScreen() {
     loadProfile();
   }, [session?.user?.id, showToast]);
 
+  // Handle avatar upload
+  const handleAvatarPress = async () => {
+    try {
+      // Request permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          t('permissionRequired'),
+          t('cameraPermissionMessage'),
+          [{ text: t('ok') }],
+        );
+        return;
+      }
+
+      // Pick image
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        return;
+      }
+
+      const asset = result.assets[0];
+      setIsUploadingAvatar(true);
+
+      // Get file extension
+      const fileExt = asset.uri.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${session?.user?.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${session?.user?.id}/${fileName}`;
+
+      // Convert URI to ArrayBuffer for upload (better for React Native)
+      const response = await fetch(asset.uri);
+      const arrayBuffer = await response.arrayBuffer();
+      const fileData = new Uint8Array(arrayBuffer);
+
+      // Delete old avatar if exists
+      if (profile?.avatar_url) {
+        // Extract the path from the URL
+        const urlParts = profile.avatar_url.split('/storage/v1/object/public/avatars/');
+        if (urlParts.length > 1) {
+          const oldPath = urlParts[1];
+          await supabase.storage
+            .from('avatars')
+            .remove([oldPath]);
+        }
+      }
+
+      // Upload to Supabase storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, fileData, {
+          contentType: asset.mimeType || 'image/jpeg',
+          upsert: true,
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update profile in database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', session?.user?.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Update local state
+      setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
+      showToast(t('avatarUpdated'), 'success');
+
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      showToast(t('avatarUploadFailed'), 'error');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -512,7 +606,11 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Header */}
-        <ProfileHeader profile={profile} />
+        <ProfileHeader 
+          profile={profile} 
+          onAvatarPress={handleAvatarPress}
+          isUploadingAvatar={isUploadingAvatar}
+        />
 
         {/* Personal Information */}
         <PersonalInfoSection profile={profile} onEdit={handleEditProfile} />
