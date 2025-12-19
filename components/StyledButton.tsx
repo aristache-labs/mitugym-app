@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, Animated, ActivityIndicator, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, Animated, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { LogIn } from 'lucide-react-native';
 
@@ -74,7 +74,7 @@ export const StyledButton: React.FC<StyledButtonProps> = ({
   };
 
   return (
-    <Animated.View 
+    <Animated.View
       style={[
         styles.container,
         fullWidth && styles.fullWidth,
@@ -91,7 +91,7 @@ export const StyledButton: React.FC<StyledButtonProps> = ({
       >
         <LinearGradient
           colors={
-            disabled 
+            disabled
               ? ['#1e293b', '#1e293b', '#1e293b']
               : ['#475569bf', '#164e6373', '#475569bf']
           }
