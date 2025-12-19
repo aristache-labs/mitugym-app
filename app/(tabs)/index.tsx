@@ -1141,36 +1141,36 @@ export default function HomeScreen() {
               announcements.map((announcement) => {
                 const priorityConfig = getPriorityConfig(announcement.priority);
                 return (
-                  <View
-                    key={announcement.id}
-                    style={{
-                      backgroundColor: theme.colors.background.surface,
-                      borderRadius: theme.borderRadius.lg,
-                      padding: theme.spacing.lg,
-                      marginBottom: theme.spacing.md,
-                      borderWidth: 1,
+                <View
+                  key={announcement.id}
+                  style={{
+                    backgroundColor: theme.colors.background.surface,
+                    borderRadius: theme.borderRadius.lg,
+                    padding: theme.spacing.lg,
+                    marginBottom: theme.spacing.md,
+                    borderWidth: 1,
                       borderColor: priorityConfig.borderColor,
-                      ...theme.shadows.soft,
-                    }}
-                  >
-                    <View style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      marginBottom: theme.spacing.sm,
-                    }}>
-                      <Bell
-                        size={18}
+                    ...theme.shadows.soft,
+                  }}
+                >
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: theme.spacing.sm,
+                  }}>
+                    <Bell
+                      size={18}
                         color={priorityConfig.iconColor}
-                        style={{ marginRight: theme.spacing.xs }}
-                      />
-                      <Text style={{
-                        fontSize: theme.typography.body.fontSize,
-                        fontWeight: '600',
-                        color: theme.colors.text.primary,
-                        flex: 1,
-                      }}>
-                        {announcement.title}
-                      </Text>
+                      style={{ marginRight: theme.spacing.xs }}
+                    />
+                    <Text style={{
+                      fontSize: theme.typography.body.fontSize,
+                      fontWeight: '600',
+                      color: theme.colors.text.primary,
+                      flex: 1,
+                    }}>
+                      {announcement.title}
+                    </Text>
                       <View style={{
                         backgroundColor: priorityConfig.backgroundColor,
                         paddingHorizontal: 10,
@@ -1188,7 +1188,7 @@ export default function HomeScreen() {
                           {priorityConfig.label}
                         </Text>
                       </View>
-                    </View>
+                  </View>
 
                   <Text style={{
                     fontSize: theme.typography.body.fontSize,

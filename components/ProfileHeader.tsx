@@ -72,16 +72,16 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             disabled={isUploadingAvatar}
             activeOpacity={0.7}
             style={{
-              width: 70,
-              height: 70,
-              borderRadius: 35,
-              backgroundColor: theme.colors.primary.DEFAULT,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginRight: theme.spacing.lg,
-              borderWidth: 2,
-              borderColor: 'rgba(255, 255, 255, 0.2)',
-              ...theme.shadows.medium,
+            width: 70,
+            height: 70,
+            borderRadius: 35,
+            backgroundColor: theme.colors.primary.DEFAULT,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: theme.spacing.lg,
+            borderWidth: 2,
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            ...theme.shadows.medium,
             }}
           >
             {profile.avatar_url ? (
@@ -117,34 +117,34 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 </View>
               </>
             ) : (
-              <LinearGradient
-                colors={[
-                  theme.colors.primary.DEFAULT,
-                  'rgba(30, 155, 113, 0.8)',
-                ]}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: 33,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
+            <LinearGradient
+              colors={[
+                theme.colors.primary.DEFAULT,
+                'rgba(30, 155, 113, 0.8)',
+              ]}
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: 33,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
                 {isUploadingAvatar ? (
                   <ActivityIndicator size="small" color="#ffffff" />
                 ) : (
                   <>
-                    <Text style={{
-                      fontSize: 28,
-                      fontWeight: '700',
-                      color: '#ffffff',
-                      textShadowColor: 'rgba(0, 0, 0, 0.3)',
-                      textShadowOffset: { width: 1, height: 1 },
-                      textShadowRadius: 2,
-                    }}>
-                      {profile.first_name?.[0]?.toUpperCase() || ''}
-                      {profile.last_name?.[0]?.toUpperCase() || ''}
-                    </Text>
+              <Text style={{
+                fontSize: 28,
+                fontWeight: '700',
+                color: '#ffffff',
+                textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                textShadowOffset: { width: 1, height: 1 },
+                textShadowRadius: 2,
+              }}>
+                {profile.first_name?.[0]?.toUpperCase() || ''}
+                {profile.last_name?.[0]?.toUpperCase() || ''}
+              </Text>
                     {/* Camera overlay */}
                     <View style={{
                       position: 'absolute',
@@ -163,7 +163,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                     </View>
                   </>
                 )}
-              </LinearGradient>
+            </LinearGradient>
             )}
           </TouchableOpacity>
 
