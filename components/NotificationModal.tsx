@@ -8,11 +8,22 @@ import {
   StyleSheet,
   RefreshControl,
   Animated,
+  Dimensions,
+  Easing,
 } from 'react-native';
 import { X, Bell, CheckCheck, Clock } from 'lucide-react-native';
 import { theme } from '../lib/theme';
 import { useAppStore, type Notification } from '../lib/store';
 import { StyledButton } from './StyledButton';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const MIN_HEIGHT = 450; // Minimum modal height (increased for empty state)
+const MAX_HEIGHT = SCREEN_HEIGHT * 0.85; // Maximum 85% of screen
+const NOTIFICATION_ITEM_HEIGHT = 120; // Approximate height per notification
+const HEADER_HEIGHT = 100; // Header height
+const ACTION_BAR_HEIGHT = 50; // Action bar height (when visible)
+const FOOTER_HEIGHT = 90; // Footer with close button
+const EMPTY_STATE_HEIGHT = 200; // Empty state content height
 
 interface NotificationModalProps {
   visible: boolean;
@@ -63,10 +74,57 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
     if (type.includes('announcement')) {return '📢';}
     if (type.includes('gym_schedule')) {return '🏋️';}
     if (type.includes('membership_plans')) {return '💳';}
+    if (type.includes('profile_update')) {return '👤';}
     return '🔔';
   };
 
   const [slideAnim] = React.useState(new Animated.Value(-500));
+  const [overlayOpacity] = React.useState(new Animated.Value(0));
+  const [isClosing, setIsClosing] = React.useState(false);
+  const closingHeightRef = React.useRef<number>(0);
+
+  // Calculate dynamic height based on number of notifications
+  const calculateModalHeight = () => {
+    if (notifications.length === 0) {
+      // Empty state: header + empty state content + footer
+      return HEADER_HEIGHT + EMPTY_STATE_HEIGHT + FOOTER_HEIGHT;
+    }
+
+    // With notifications: header + action bar + notifications + footer
+    const actionBarHeight = notifications.length > 0 ? ACTION_BAR_HEIGHT : 0;
+    const contentHeight = HEADER_HEIGHT + actionBarHeight + FOOTER_HEIGHT + (notifications.length * NOTIFICATION_ITEM_HEIGHT);
+
+    return Math.min(Math.max(contentHeight, MIN_HEIGHT), MAX_HEIGHT);
+  };
+
+  const modalHeight = isClosing ? closingHeightRef.current : calculateModalHeight();
+
+  // Handle close with animation
+  const handleClose = () => {
+    // Capture current height before closing
+    closingHeightRef.current = calculateModalHeight();
+    setIsClosing(true);
+
+    // Run both animations in parallel
+    Animated.parallel([
+      // Slide up animation - slide completely off screen
+      Animated.timing(slideAnim, {
+        toValue: -(closingHeightRef.current + 100),
+        duration: 400,
+        easing: Easing.in(Easing.ease),
+        useNativeDriver: true,
+      }),
+      // Fade out overlay
+      Animated.timing(overlayOpacity, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setIsClosing(false);
+      onClose();
+    });
+  };
 
   // Fetch notifications when modal opens
   React.useEffect(() => {
@@ -76,33 +134,47 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
       console.log('Notifications length:', notifications.length);
       console.log('Loading state:', notificationsLoading);
       fetchNotifications();
-      // Slide down animation
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        friction: 8,
-        tension: 40,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      // Reset position when closing
+      // Reset closing state when opening
+      setIsClosing(false);
+
+      // Run both animations in parallel
+      Animated.parallel([
+        // Slide down animation
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+        // Fade in overlay
+        Animated.timing(overlayOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (!isClosing) {
+      // Only reset position if not currently closing
       slideAnim.setValue(-500);
+      overlayOpacity.setValue(0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
   return (
     <Modal
-      visible={visible}
+      visible={visible || isClosing}
       animationType="none"
       transparent={true}
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
       presentationStyle="overFullScreen"
     >
-      <View style={styles.overlay}>
+      <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]}>
         <Animated.View
           style={[
             styles.modalContainer,
             {
+              height: modalHeight,
               transform: [{ translateY: slideAnim }],
             },
           ]}
@@ -113,7 +185,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               <Bell size={24} color={theme.colors.primary.DEFAULT} />
               <Text style={styles.headerTitle}>Notifications</Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
               <X size={24} color={theme.colors.text.secondary} />
             </TouchableOpacity>
           </View>
@@ -144,6 +216,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
+            scrollEnabled={notifications.length > 0}
             refreshControl={
               <RefreshControl
                 refreshing={notificationsLoading}
@@ -211,10 +284,10 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
 
           {/* Close Button */}
           <View style={styles.footer}>
-            <StyledButton title="Close" onPress={onClose} />
+            <StyledButton title="Close" onPress={handleClose} />
           </View>
         </Animated.View>
-      </View>
+      </Animated.View>
     </Modal>
   );
 };
@@ -229,8 +302,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background.DEFAULT,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    minHeight: '70%',
-    maxHeight: '90%',
     shadowColor: theme.colors.primary.DEFAULT,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -298,8 +369,9 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: theme.spacing.xl * 2,
+    justifyContent: 'flex-start',
+    paddingTop: theme.spacing.xl * 1,
+    paddingBottom: theme.spacing.xl,
   },
   emptyTitle: {
     fontSize: 18,

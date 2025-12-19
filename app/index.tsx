@@ -41,11 +41,29 @@ const onboardingSlides: OnboardingSlide[] = [
 export default function OnboardingScreen() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const { isAuthenticated } = useAppStore();
+  const { isAuthenticated, checkAuthState } = useAppStore();
 
-  // Handle authentication state changes
-  // Note: We don't set a timeout here anymore because the SplashScreen
-  // component controls the timing with its onFinish callback
+  // Check authentication and load data on mount
+  React.useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        console.log('Initializing app - checking auth state...');
+        await checkAuthState();
+        console.log('Auth state checked, authenticated:', isAuthenticated);
+
+        // Wait a minimum of 2 seconds for splash screen animations
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        setIsCheckingAuth(false);
+      } catch (error) {
+        console.error('Error initializing app:', error);
+        setIsCheckingAuth(false);
+      }
+    };
+
+    initializeApp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Handle subsequent auth changes
   React.useEffect(() => {
@@ -77,10 +95,8 @@ export default function OnboardingScreen() {
     return (
       <SplashScreen
         onFinish={() => {
-          setIsCheckingAuth(false);
-          if (isAuthenticated) {
-            router.replace('/(tabs)');
-          }
+          // This callback is no longer used since we control timing in useEffect
+          // but kept for component compatibility
         }}
       />
     );
