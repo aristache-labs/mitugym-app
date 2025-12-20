@@ -20,11 +20,12 @@ import { useLanguage } from '../lib/LanguageContext';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MIN_HEIGHT = 450; // Minimum modal height (increased for empty state)
 const MAX_HEIGHT = SCREEN_HEIGHT * 0.85; // Maximum 85% of screen
-const NOTIFICATION_ITEM_HEIGHT = 120; // Approximate height per notification
+const NOTIFICATION_ITEM_HEIGHT = 130; // Approximate height per notification (increased for better spacing)
 const HEADER_HEIGHT = 100; // Header height
 const ACTION_BAR_HEIGHT = 50; // Action bar height (when visible)
 const FOOTER_HEIGHT = 90; // Footer with close button
 const EMPTY_STATE_HEIGHT = 200; // Empty state content height
+const BOTTOM_PADDING = 20; // Extra padding at bottom for last notification
 
 interface NotificationModalProps {
   visible: boolean;
@@ -92,9 +93,9 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
       return HEADER_HEIGHT + EMPTY_STATE_HEIGHT + FOOTER_HEIGHT;
     }
 
-    // With notifications: header + action bar + notifications + footer
+    // With notifications: header + action bar + notifications + footer + bottom padding
     const actionBarHeight = notifications.length > 0 ? ACTION_BAR_HEIGHT : 0;
-    const contentHeight = HEADER_HEIGHT + actionBarHeight + FOOTER_HEIGHT + (notifications.length * NOTIFICATION_ITEM_HEIGHT);
+    const contentHeight = HEADER_HEIGHT + actionBarHeight + FOOTER_HEIGHT + (notifications.length * NOTIFICATION_ITEM_HEIGHT) + BOTTOM_PADDING;
 
     return Math.min(Math.max(contentHeight, MIN_HEIGHT), MAX_HEIGHT);
   };
@@ -367,7 +368,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.lg,
   },
   emptyState: {
     alignItems: 'center',

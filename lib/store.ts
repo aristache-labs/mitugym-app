@@ -31,6 +31,7 @@ export interface Notification {
   reference_type?: string;
   is_read: boolean;
   is_global: boolean;
+  is_admin_only?: boolean;
   created_at: string;
 }
 import { generateTOTPCode as generateTOTPCodeUtil, getTOTPTimeRemaining, setupTOTP } from '../utils/totp';
@@ -1654,9 +1655,13 @@ export const useAppStore = create<AppState>((set, get) => ({
         readData?.filter(r => r.dismissed).map(r => r.notification_id) || [],
       );
 
-      // Filter out dismissed global notifications and mark read ones as read
+      // Filter out dismissed global notifications, admin-only notifications, and mark read ones as read
       const notificationsWithReadStatus = data
         ?.filter(n => {
+          // Exclude admin-only notifications for members
+          if (n.is_admin_only === true) {
+            return false;
+          }
           // Exclude dismissed global notifications
           if (n.is_global && dismissedGlobalIds.has(n.id)) {
             return false;
@@ -1799,6 +1804,12 @@ export const useAppStore = create<AppState>((set, get) => ({
           console.log('New personal notification received:', payload);
           const newNotification = payload.new as Notification;
 
+          // Skip admin-only notifications
+          if (newNotification.is_admin_only === true) {
+            console.log('Skipping admin-only notification');
+            return;
+          }
+
           // Add to local state
           set({
             notifications: [newNotification, ...get().notifications],
@@ -1821,6 +1832,12 @@ export const useAppStore = create<AppState>((set, get) => ({
         (payload) => {
           console.log('New global notification received:', payload);
           const newNotification = payload.new as Notification;
+
+          // Skip admin-only notifications
+          if (newNotification.is_admin_only === true) {
+            console.log('Skipping admin-only notification');
+            return;
+          }
 
           // Add to local state
           set({
