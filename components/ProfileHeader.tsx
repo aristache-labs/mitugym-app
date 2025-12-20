@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Mail, Camera } from 'lucide-react-native';
+import { Mail, Camera, Calendar } from 'lucide-react-native';
 import { theme } from '../lib/theme';
 import { useLanguage } from '../lib/LanguageContext';
 
@@ -32,8 +32,8 @@ interface ProfileHeaderProps {
   isUploadingAvatar?: boolean;
 }
 
-export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ 
-  profile, 
+export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
+  profile,
   onAvatarPress,
   isUploadingAvatar = false,
 }) => {
@@ -54,34 +54,33 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         end={{ x: 1, y: 1 }}
         style={{
           borderRadius: theme.borderRadius.xl,
-          padding: theme.spacing.xl,
+          padding: theme.spacing.lg,
           borderWidth: 1,
           borderColor: 'rgba(30, 155, 113, 0.3)',
           ...theme.shadows.strong,
         }}
       >
-        {/* Compact Profile Section */}
+        {/* Profile Section - Compact Row Layout */}
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
-          marginBottom: theme.spacing.md,
         }}>
-          {/* Compact Premium Avatar */}
+          {/* Avatar */}
           <TouchableOpacity
             onPress={onAvatarPress}
             disabled={isUploadingAvatar}
             activeOpacity={0.7}
             style={{
-            width: 70,
-            height: 70,
-            borderRadius: 35,
-            backgroundColor: theme.colors.primary.DEFAULT,
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginRight: theme.spacing.lg,
-            borderWidth: 2,
-            borderColor: 'rgba(255, 255, 255, 0.2)',
-            ...theme.shadows.medium,
+              width: 80,
+              height: 80,
+              borderRadius: 40,
+              backgroundColor: theme.colors.primary.DEFAULT,
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderWidth: 2,
+              borderColor: 'rgba(30, 155, 113, 0.4)',
+              marginRight: theme.spacing.md,
+              ...theme.shadows.medium,
             }}
           >
             {profile.avatar_url ? (
@@ -91,7 +90,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                   style={{
                     width: '100%',
                     height: '100%',
-                    borderRadius: 33,
+                    borderRadius: 38,
                   }}
                   resizeMode="cover"
                 />
@@ -117,34 +116,34 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 </View>
               </>
             ) : (
-            <LinearGradient
-              colors={[
-                theme.colors.primary.DEFAULT,
-                'rgba(30, 155, 113, 0.8)',
-              ]}
-              style={{
-                width: '100%',
-                height: '100%',
-                borderRadius: 33,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
+              <LinearGradient
+                colors={[
+                  theme.colors.primary.DEFAULT,
+                  'rgba(30, 155, 113, 0.8)',
+                ]}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: 38,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
                 {isUploadingAvatar ? (
                   <ActivityIndicator size="small" color="#ffffff" />
                 ) : (
                   <>
-              <Text style={{
-                fontSize: 28,
-                fontWeight: '700',
-                color: '#ffffff',
-                textShadowColor: 'rgba(0, 0, 0, 0.3)',
-                textShadowOffset: { width: 1, height: 1 },
-                textShadowRadius: 2,
-              }}>
-                {profile.first_name?.[0]?.toUpperCase() || ''}
-                {profile.last_name?.[0]?.toUpperCase() || ''}
-              </Text>
+                    <Text style={{
+                      fontSize: 32,
+                      fontWeight: '700',
+                      color: '#ffffff',
+                      textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                      textShadowOffset: { width: 1, height: 1 },
+                      textShadowRadius: 2,
+                    }}>
+                      {profile.first_name?.[0]?.toUpperCase() || ''}
+                      {profile.last_name?.[0]?.toUpperCase() || ''}
+                    </Text>
                     {/* Camera overlay */}
                     <View style={{
                       position: 'absolute',
@@ -163,63 +162,66 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                     </View>
                   </>
                 )}
-            </LinearGradient>
+              </LinearGradient>
             )}
           </TouchableOpacity>
 
           {/* User Info - Compact */}
           <View style={{ flex: 1 }}>
+            {/* Name */}
             <Text style={{
               fontSize: theme.typography.h2.fontSize,
               fontWeight: '700',
               color: theme.colors.text.primary,
-              marginBottom: theme.spacing.xs,
+              marginBottom: theme.spacing.sm,
             }}>
               {profile.first_name} {profile.last_name}
             </Text>
 
+            {/* Member Since - Compact */}
             <View style={{
-              backgroundColor: 'rgba(30, 155, 113, 0.15)',
-              paddingHorizontal: theme.spacing.md,
-              paddingVertical: theme.spacing.xs,
-              borderRadius: theme.borderRadius.md,
-              alignSelf: 'flex-start',
+              flexDirection: 'row',
+              alignItems: 'center',
               marginBottom: theme.spacing.xs,
             }}>
+              <Calendar
+                size={14}
+                color={theme.colors.primary.DEFAULT}
+                style={{ marginRight: theme.spacing.xs }}
+              />
               <Text style={{
-                fontSize: theme.typography.caption.fontSize,
-                color: theme.colors.primary.DEFAULT,
-                fontWeight: '600',
+                fontSize: theme.typography.small.fontSize,
+                color: theme.colors.text.secondary,
+                fontWeight: '500',
               }}>
                 {t('memberSince')} {(() => {
                   const date = new Date(profile.join_date).toLocaleDateString(language === 'ro' ? 'ro-RO' : 'en-US', {
                     month: 'short',
                     year: 'numeric',
                   }).replace(/\./g, '');
-
-                  // Capitalize first letter for proper formatting
                   return date.charAt(0).toUpperCase() + date.slice(1);
                 })()}
               </Text>
             </View>
 
-             {/* Email Only */}
-             <View style={{
-               flexDirection: 'row',
-               alignItems: 'center',
-             }}>
-               <Mail
-                 size={12}
-                 color={theme.colors.text.secondary}
-                 style={{ marginRight: theme.spacing.xs }}
-               />
-               <Text style={{
-                 fontSize: theme.typography.caption.fontSize,
-                 color: theme.colors.text.secondary,
-               }} numberOfLines={1} ellipsizeMode="middle">
-                 {profile.email}
-               </Text>
-             </View>
+            {/* Email - Compact */}
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
+              <Mail
+                size={14}
+                color={theme.colors.primary.DEFAULT}
+                style={{ marginRight: theme.spacing.xs }}
+              />
+              <Text style={{
+                fontSize: theme.typography.small.fontSize,
+                color: theme.colors.text.secondary,
+                fontWeight: '500',
+              }} numberOfLines={1} ellipsizeMode="middle">
+                {profile.email}
+              </Text>
+            </View>
           </View>
         </View>
       </LinearGradient>
