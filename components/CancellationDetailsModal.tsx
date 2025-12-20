@@ -203,6 +203,7 @@ export const CancellationDetailsModal: React.FC<CancellationDetailsModalProps> =
               title={t('close')}
               onPress={onClose}
               fullWidth
+              icon="x"
             />
           </View>
         </ScrollView>
