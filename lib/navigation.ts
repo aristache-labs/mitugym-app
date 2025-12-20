@@ -91,7 +91,9 @@ export const isTabRoute = (routeName: string): boolean => {
 
 export const shouldShowFloatingQR = (routeName: string): boolean => {
   // Show floating QR button on all tabs except QR tab itself
-  return isTabRoute(routeName) && routeName !== 'qr';
+  // Explicitly list the pages where we want the button to appear
+  const pagesWithFloatingQR = ['index', 'services', 'membership', 'profile'];
+  return pagesWithFloatingQR.includes(routeName);
 };
 
 // Route params helpers

@@ -167,7 +167,9 @@ export default function TabLayout() {
     return null;
   }
 
-  const currentRoute = segments[segments.length - 1] || 'index';
+  // Get current route - handle the case where segments might be ['(tabs)', 'index'] or just ['(tabs)']
+  const lastSegment = segments[segments.length - 1];
+  const currentRoute = lastSegment && lastSegment !== '(tabs)' ? lastSegment : 'index';
   const showFloatingQR = shouldShowFloatingQR(currentRoute);
 
   const handleFloatingQRPress = () => {
