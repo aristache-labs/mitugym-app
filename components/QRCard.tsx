@@ -260,6 +260,7 @@ export function QRCard({
             title={isExpired ? t('generateNewQr') : t('refresh')}
             onPress={onRefresh}
               fullWidth
+              icon="refresh"
           />
           </View>
         )}

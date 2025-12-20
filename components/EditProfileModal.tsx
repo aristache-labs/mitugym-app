@@ -215,6 +215,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               title={t('saveChanges')}
               onPress={onSave}
               fullWidth
+              icon="check"
             />
           <TouchableOpacity
               onPress={onClose}

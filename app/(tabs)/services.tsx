@@ -336,6 +336,7 @@ export default function ServicesScreen() {
                     title={t('purchaseService')}
                   onPress={handlePurchaseSubmit}
                     fullWidth
+                    icon="check"
                   />
                 </View>
               </>

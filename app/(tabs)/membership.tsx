@@ -633,6 +633,7 @@ export default function MembershipScreen() {
                           title={t('bookSession')}
                           onPress={() => handleBookSessionPress(purchasedService)}
                           fullWidth
+                          icon="calendar"
                         />
                       </View>
                     )}
@@ -1018,6 +1019,7 @@ export default function MembershipScreen() {
                 onPress={handleConfirmRenewal}
                 fullWidth
                 disabled={!selectedPlanId}
+                icon="check"
               />
 
               <TouchableOpacity

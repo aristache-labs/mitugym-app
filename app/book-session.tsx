@@ -260,7 +260,7 @@ export default function BookSessionScreen() {
           />
 
         {/* Action Buttons */}
-        <View style={{ 
+        <View style={{
           gap: theme.spacing.md,
           marginTop: theme.spacing.xl,
               alignItems: 'center',
@@ -269,6 +269,7 @@ export default function BookSessionScreen() {
             title={isEditMode ? t('updateSession') : t('submitBooking')}
             onPress={handleSubmit}
             fullWidth
+            icon="check"
           />
 
           <TouchableOpacity

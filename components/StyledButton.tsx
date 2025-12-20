@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, Animated, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { LogIn } from 'lucide-react-native';
+import { LogIn, Check, Save, RefreshCw, Calendar, X } from 'lucide-react-native';
 
 interface StyledButtonProps {
   title: string;
@@ -9,6 +9,7 @@ interface StyledButtonProps {
   disabled?: boolean;
   loading?: boolean;
   fullWidth?: boolean;
+  icon?: 'login' | 'check' | 'save' | 'refresh' | 'calendar' | 'x';
 }
 
 export const StyledButton: React.FC<StyledButtonProps> = ({
@@ -17,11 +18,36 @@ export const StyledButton: React.FC<StyledButtonProps> = ({
   disabled = false,
   loading = false,
   fullWidth = false,
+  icon = 'login',
 }) => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
   const iconTranslateX = React.useRef(new Animated.Value(0)).current;
   const iconScale = React.useRef(new Animated.Value(1)).current;
   const textOpacity = React.useRef(new Animated.Value(1)).current;
+
+  const renderIcon = () => {
+    if (loading) {
+      return <ActivityIndicator size="small" color="#a0f0f0" />;
+    }
+
+    const iconProps = { size: 16, color: '#a0f0f099', strokeWidth: 2 };
+
+    switch (icon) {
+      case 'check':
+        return <Check {...iconProps} />;
+      case 'save':
+        return <Save {...iconProps} />;
+      case 'refresh':
+        return <RefreshCw {...iconProps} />;
+      case 'calendar':
+        return <Calendar {...iconProps} />;
+      case 'x':
+        return <X {...iconProps} />;
+      case 'login':
+      default:
+        return <LogIn {...iconProps} />;
+    }
+  };
 
   const handlePressIn = () => {
     Animated.parallel([
@@ -114,11 +140,7 @@ export const StyledButton: React.FC<StyledButtonProps> = ({
               },
             ]}
           >
-            {loading ? (
-              <ActivityIndicator size="small" color="#a0f0f0" />
-            ) : (
-              <LogIn size={16} color="#a0f0f099" strokeWidth={2} />
-            )}
+            {renderIcon()}
           </Animated.View>
 
           {/* Text */}

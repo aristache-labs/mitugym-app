@@ -210,6 +210,7 @@ export function StatusCard({
               title={status === 'expired' ? t('renewMembership') : t('renewEarly')}
               onPress={onRenew}
               fullWidth
+              icon="refresh"
             />
           </View>
         )}

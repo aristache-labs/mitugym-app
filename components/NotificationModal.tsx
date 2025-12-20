@@ -286,7 +286,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
 
           {/* Close Button */}
           <View style={styles.footer}>
-            <StyledButton title={t('close')} onPress={handleClose} />
+            <StyledButton title={t('close')} onPress={handleClose} icon="x" />
           </View>
         </Animated.View>
       </Animated.View>

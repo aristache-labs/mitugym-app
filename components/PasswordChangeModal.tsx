@@ -176,6 +176,7 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
               title={t('updatePassword')}
               onPress={onChangePassword}
               fullWidth
+              icon="check"
             />
             <TouchableOpacity
               onPress={onClose}
