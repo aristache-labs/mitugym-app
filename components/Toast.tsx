@@ -1,15 +1,16 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { View, Text, Animated, TouchableOpacity, Platform } from 'react-native';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { View, Text, Animated, TouchableOpacity, PanResponder, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CheckCircle, XCircle, Info, X } from 'lucide-react-native';
-import { theme } from '../lib/theme';
+import { CheckCircle, XCircle, AlertTriangle, X } from 'lucide-react-native';
 
 interface ToastProps {
   message: string;
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'warning' | 'info';
   visible: boolean;
   onDismiss: () => void;
-  duration?: number;
+  duration: number | undefined;
+  description: string | undefined;
 }
 
 export function Toast({
@@ -17,162 +18,402 @@ export function Toast({
   type,
   visible,
   onDismiss,
-  duration = 3000,
+  duration = 5000,
+  description,
 }: ToastProps) {
   const insets = useSafeAreaInsets();
-  const slideAnim = useRef(new Animated.Value(-100)).current;
+  const translateX = useRef(new Animated.Value(400)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  const progressAnim = useRef(new Animated.Value(1)).current;
+  const shimmerAnim = useRef(new Animated.Value(-1)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  const [isPaused, setIsPaused] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
+  const startTimeRef = useRef<number>(0);
+  const remainingTimeRef = useRef<number>(duration);
+  const currentProgressRef = useRef<number>(1);
 
   const handleDismiss = useCallback(() => {
+    if (isLeaving) {
+      return;
+    }
+    setIsLeaving(true);
+
     Animated.parallel([
-      Animated.timing(slideAnim, {
-        toValue: -100,
-        duration: 200,
+      Animated.timing(translateX, {
+        toValue: 400,
+        duration: 400,
         useNativeDriver: true,
       }),
       Animated.timing(opacityAnim, {
         toValue: 0,
-        duration: 200,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 0.9,
+        duration: 400,
         useNativeDriver: true,
       }),
     ]).start(() => {
       onDismiss();
     });
-  }, [slideAnim, opacityAnim, onDismiss]);
+  }, [translateX, opacityAnim, scaleAnim, onDismiss, isLeaving]);
+
+  // Pan responder for swipe gesture
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 5,
+      onPanResponderGrant: () => {
+        setIsPaused(true);
+        // Store current progress when pausing
+        remainingTimeRef.current = currentProgressRef.current * duration;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dx > 0) {
+          translateX.setValue(gestureState.dx);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dx > 100) {
+          handleDismiss();
+        } else {
+          Animated.spring(translateX, {
+            toValue: 0,
+            useNativeDriver: true,
+            tension: 100,
+            friction: 8,
+          }).start();
+          setIsPaused(false);
+          startTimeRef.current = Date.now();
+        }
+      },
+    }),
+  ).current;
 
   useEffect(() => {
     if (visible) {
-      // Slide in and fade in
+      setIsLeaving(false);
+      startTimeRef.current = Date.now();
+      remainingTimeRef.current = duration;
+
+      // Slide in animation
       Animated.parallel([
-        Animated.spring(slideAnim, {
+        Animated.timing(translateX, {
           toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
           useNativeDriver: true,
           tension: 100,
           friction: 8,
         }),
-        Animated.timing(opacityAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
       ]).start();
 
-      // Auto dismiss
-      const timer = setTimeout(() => {
-        handleDismiss();
-      }, duration);
+      // Shimmer animation
+      Animated.loop(
+        Animated.timing(shimmerAnim, {
+          toValue: 2,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ).start();
 
-      return () => clearTimeout(timer);
+      // Pulse animation
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.2,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ]),
+      ).start();
+    }
+  }, [visible, duration, translateX, opacityAnim, scaleAnim, shimmerAnim, pulseAnim]);
+
+  // Progress countdown
+  useEffect(() => {
+    if (visible && !isPaused) {
+      const currentValue = remainingTimeRef.current / duration;
+      progressAnim.setValue(currentValue);
+      currentProgressRef.current = currentValue;
+
+      const animation = Animated.timing(progressAnim, {
+        toValue: 0,
+        duration: remainingTimeRef.current,
+        useNativeDriver: false,
+      });
+
+      // Track progress
+      const listenerId = progressAnim.addListener(({ value }) => {
+        currentProgressRef.current = value;
+      });
+
+      animation.start(({ finished }) => {
+        if (finished) {
+          handleDismiss();
+        }
+      });
+
+      return () => {
+        progressAnim.removeListener(listenerId);
+        animation.stop();
+      };
     }
     return undefined;
-  }, [visible, duration, slideAnim, opacityAnim, handleDismiss]);
+  }, [visible, isPaused, handleDismiss, progressAnim, duration]);
 
-
-  const getToastColors = () => {
+  const getToastStyles = () => {
     switch (type) {
       case 'success':
         return {
-          backgroundColor: 'rgba(46, 204, 113, 0.9)',
-          borderColor: theme.colors.status.success,
-          iconColor: '#ffffff',
-          textColor: '#ffffff',
+          Icon: CheckCircle,
+          iconColor: '#22c55e',
+          iconBgColor: 'rgba(34, 197, 94, 0.1)',
+          borderColor: 'rgba(34, 197, 94, 0.2)',
+          gradientColors: ['#0e1512', '#0a110d'] as const,
+          shadowColor: 'rgba(34, 197, 94, 0.2)',
+          progressColor: '#22c55e',
+          progressBg: 'rgba(34, 197, 94, 0.15)',
         };
       case 'error':
         return {
-          backgroundColor: 'rgba(231, 76, 60, 0.9)',
-          borderColor: theme.colors.status.error,
-          iconColor: '#ffffff',
-          textColor: '#ffffff',
+          Icon: XCircle,
+          iconColor: '#ef4444',
+          iconBgColor: 'rgba(239, 68, 68, 0.1)',
+          borderColor: 'rgba(239, 68, 68, 0.2)',
+          gradientColors: ['#1a0e0e', '#140a0a'] as const,
+          shadowColor: 'rgba(239, 68, 68, 0.2)',
+          progressColor: '#ef4444',
+          progressBg: 'rgba(239, 68, 68, 0.15)',
         };
-      default: // info
+      case 'warning':
         return {
-          backgroundColor: 'rgba(30, 155, 113, 0.9)',
-          borderColor: theme.colors.primary.DEFAULT,
-          iconColor: '#ffffff',
-          textColor: '#ffffff',
+          Icon: AlertTriangle,
+          iconColor: '#eab308',
+          iconBgColor: 'rgba(234, 179, 8, 0.1)',
+          borderColor: 'rgba(234, 179, 8, 0.2)',
+          gradientColors: ['#1a1810', '#14120c'] as const,
+          shadowColor: 'rgba(234, 179, 8, 0.2)',
+          progressColor: '#eab308',
+          progressBg: 'rgba(234, 179, 8, 0.15)',
+        };
+      case 'info':
+        return {
+          Icon: CheckCircle,
+          iconColor: '#3b82f6',
+          iconBgColor: 'rgba(59, 130, 246, 0.1)',
+          borderColor: 'rgba(59, 130, 246, 0.2)',
+          gradientColors: ['#0e1419', '#0a0f14'] as const,
+          shadowColor: 'rgba(59, 130, 246, 0.2)',
+          progressColor: '#3b82f6',
+          progressBg: 'rgba(59, 130, 246, 0.15)',
         };
     }
   };
 
-  const getToastIcon = () => {
-    switch (type) {
-      case 'success':
-        return CheckCircle;
-      case 'error':
-        return XCircle;
-      default:
-        return Info;
-    }
-  };
+  const styles = getToastStyles();
+  const Icon = styles.Icon;
 
-  const colors = getToastColors();
-  const Icon = getToastIcon();
-
-  if (!visible) {return null;}
+  if (!visible) {
+    return null;
+  }
 
   return (
     <Animated.View
+      {...panResponder.panHandlers}
       style={{
         position: 'absolute',
-        top: insets.top + theme.spacing.md,
-        left: theme.spacing.lg,
-        right: theme.spacing.lg,
-        zIndex: 1000,
-        transform: [{ translateY: slideAnim }],
+        top: insets.top + 72,
+        left: 8,
+        right: 8,
+        zIndex: 9999,
+        transform: [
+          { translateX },
+          { scale: scaleAnim },
+        ],
         opacity: opacityAnim,
       }}
     >
       <View
         style={{
-          backgroundColor: colors.backgroundColor,
-          borderLeftWidth: 4,
-          borderLeftColor: colors.borderColor,
-          borderRadius: theme.borderRadius.lg,
-          padding: theme.spacing.lg,
-          flexDirection: 'row',
-          alignItems: 'center',
-          ...theme.shadows.strong,
-          ...(Platform.OS === 'android' && {
-            elevation: 8,
+          borderRadius: 16,
+          overflow: 'hidden',
+          borderWidth: 1,
+          borderColor: styles.borderColor,
+          ...Platform.select({
+            ios: {
+              shadowColor: styles.shadowColor,
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.3,
+              shadowRadius: 16,
+            },
+            android: {
+              elevation: 12,
+            },
           }),
         }}
       >
-        {/* Icon */}
-        <Icon
-          size={24}
-          color={colors.iconColor}
-          style={{ marginRight: theme.spacing.md }}
-        />
-
-        {/* Message */}
-        <Text
-          style={{
-            flex: 1,
-            fontSize: theme.typography.body.fontSize,
-            fontWeight: '500',
-            color: colors.textColor,
-            lineHeight: 20,
-          }}
-          numberOfLines={2}
+        <LinearGradient
+          colors={styles.gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ position: 'relative' }}
         >
-          {message}
-        </Text>
-
-        {/* Dismiss button */}
-        <TouchableOpacity
-          onPress={handleDismiss}
-          style={{
-            padding: theme.spacing.xs,
-            marginLeft: theme.spacing.sm,
-          }}
-          activeOpacity={0.7}
-        >
-          <X
-            size={20}
-            color={colors.iconColor}
+          {/* Top glow line */}
+          <LinearGradient
+            colors={['transparent', styles.iconColor + '66', 'transparent']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 1,
+              opacity: 0.4,
+            }}
           />
-        </TouchableOpacity>
+
+          {/* Main content */}
+          <View style={{ paddingHorizontal: 12, paddingTop: 14, paddingBottom: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+              {/* Icon with background */}
+              <View style={{ position: 'relative', marginTop: 2 }}>
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    backgroundColor: styles.iconBgColor,
+                    borderWidth: 1.5,
+                    borderColor: styles.iconColor + '35',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Icon size={20} color={styles.iconColor} strokeWidth={2.5} />
+                </View>
+
+                {/* Animated pulse ring */}
+                <Animated.View
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    borderRadius: 12,
+                    backgroundColor: styles.iconColor,
+                    opacity: 0.15,
+                    transform: [{ scale: pulseAnim }],
+                  }}
+                />
+              </View>
+
+              {/* Text content */}
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '700',
+                    color: '#ffffff',
+                    lineHeight: 18,
+                    marginBottom: description ? 4 : 0,
+                  }}
+                  numberOfLines={2}
+                >
+                  {message}
+                </Text>
+                {description && (
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '500',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      lineHeight: 16,
+                    }}
+                    numberOfLines={2}
+                  >
+                    {description}
+                  </Text>
+                )}
+              </View>
+
+              {/* Close button */}
+              <TouchableOpacity
+                onPress={handleDismiss}
+                style={{
+                  padding: 6,
+                  borderRadius: 8,
+                  marginTop: -2,
+                }}
+                activeOpacity={0.6}
+              >
+                <X size={16} color="rgba(255, 255, 255, 0.5)" strokeWidth={2} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Progress bar */}
+          <View
+            style={{
+              height: 4,
+              width: '100%',
+              backgroundColor: styles.progressBg,
+              overflow: 'hidden',
+            }}
+          >
+            <Animated.View
+              style={{
+                height: '100%',
+                backgroundColor: styles.progressColor,
+                width: progressAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ['0%', '100%'],
+                }),
+              }}
+            >
+              {/* Shimmer effect */}
+              <Animated.View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                  transform: [
+                    {
+                      translateX: shimmerAnim.interpolate({
+                        inputRange: [-1, 2],
+                        outputRange: ['-100%', '200%'],
+                      }),
+                    },
+                  ],
+                }}
+              />
+            </Animated.View>
+          </View>
+        </LinearGradient>
       </View>
     </Animated.View>
   );
 }
+

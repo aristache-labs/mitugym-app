@@ -133,10 +133,12 @@ interface NotificationState {
 
 interface ToastState {
   message: string;
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'warning' | 'info';
   visible: boolean;
+  description: string | undefined;
+  duration: number | undefined;
   toastTimeoutId: ReturnType<typeof setTimeout> | null;
-  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
+  showToast: (message: string, type: 'success' | 'error' | 'warning' | 'info', description?: string, duration?: number) => void;
   hideToast: () => void;
 }
 
@@ -146,6 +148,41 @@ interface LanguageState {
 }
 
 type AppState = AuthState & ServiceState & QRState & CheckinState & AnnouncementState & GymScheduleState & MembershipState & NotificationState & ToastState & LanguageState;
+
+// Helper function to map notification types to toast types
+const getToastTypeFromNotification = (notificationType: string): 'success' | 'error' | 'warning' | 'info' => {
+  const lowerType = notificationType.toLowerCase();
+
+  // Success notifications
+  if (lowerType.includes('success') ||
+      lowerType.includes('approved') ||
+      lowerType.includes('confirmed') ||
+      lowerType.includes('completed') ||
+      lowerType.includes('updated') ||
+      lowerType.includes('profile_update')) {
+    return 'success';
+  }
+
+  // Error notifications
+  if (lowerType.includes('error') ||
+      lowerType.includes('failed') ||
+      lowerType.includes('rejected') ||
+      lowerType.includes('cancelled') ||
+      lowerType.includes('expired')) {
+    return 'error';
+  }
+
+  // Warning notifications
+  if (lowerType.includes('warning') ||
+      lowerType.includes('expiring') ||
+      lowerType.includes('pending') ||
+      lowerType.includes('attention')) {
+    return 'warning';
+  }
+
+  // Default to info for general notifications
+  return 'info';
+};
 
 export const useAppStore = create<AppState>((set, get) => ({
   // Auth state
@@ -1816,8 +1853,9 @@ export const useAppStore = create<AppState>((set, get) => ({
             unreadCount: get().unreadCount + 1,
           });
 
-          // Show toast notification
-          get().showToast(newNotification.title, 'info');
+          // Show toast notification with appropriate type
+          const toastType = getToastTypeFromNotification(newNotification.type);
+          get().showToast(newNotification.title, toastType, newNotification.message);
         },
       )
       // Listen for global notifications
@@ -1845,8 +1883,9 @@ export const useAppStore = create<AppState>((set, get) => ({
             unreadCount: get().unreadCount + 1,
           });
 
-          // Show toast notification
-          get().showToast(newNotification.title, 'info');
+          // Show toast notification with appropriate type
+          const toastType = getToastTypeFromNotification(newNotification.type);
+          get().showToast(newNotification.title, toastType, newNotification.message);
         },
       )
       .subscribe();
@@ -1926,8 +1965,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   message: '',
   type: 'info',
   visible: false,
+  description: undefined,
+  duration: 5000,
   toastTimeoutId: null as ReturnType<typeof setTimeout> | null,
-  showToast: (message: string, type: 'success' | 'error' | 'info') => {
+  showToast: (message: string, type: 'success' | 'error' | 'warning' | 'info', description?: string, duration?: number) => {
     const state = get();
 
     // Clear existing timeout
@@ -1935,11 +1976,13 @@ export const useAppStore = create<AppState>((set, get) => ({
       clearTimeout(state.toastTimeoutId);
     }
 
+    const toastDuration = duration || 5000;
+
     const timeoutId = setTimeout(() => {
       get().hideToast();
-    }, 3000);
+    }, toastDuration);
 
-    set({ message, type, visible: true, toastTimeoutId: timeoutId });
+    set({ message, type, visible: true, description, duration: toastDuration, toastTimeoutId: timeoutId });
   },
   hideToast: () => {
     const state = get();

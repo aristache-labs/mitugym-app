@@ -26,6 +26,8 @@ export default function RootLayout() {
     message,
     type,
     visible: toastVisible,
+    description,
+    duration,
     hideToast,
   } = useAppStore();
 
@@ -77,6 +79,8 @@ export default function RootLayout() {
             message={message}
             type={type}
             visible={toastVisible}
+            description={description}
+            duration={duration}
             onDismiss={hideToast}
           />
         </LanguageProvider>
