@@ -165,11 +165,12 @@ export default function LoginScreen() {
             </View>
 
             {/* Email Input */}
-            <View style={{ marginBottom: emailError ? theme.spacing.xs : theme.spacing.md }}>
+            <View style={{ marginBottom: theme.spacing.lg }}>
               <StyledInput
                 icon="email"
                 label={t('emailAddress').toUpperCase()}
                 value={email}
+                hasError={!!emailError}
                 onChangeText={(text) => {
                   setEmail(text);
                   setEmailError('');
@@ -186,7 +187,7 @@ export default function LoginScreen() {
                 <Text style={{
                   fontSize: theme.typography.small.fontSize,
                   color: theme.colors.status.error,
-                  marginTop: theme.spacing.xs,
+                  marginTop: 4,
                   marginLeft: theme.spacing.sm,
                 }}>
                   {emailError}
@@ -195,11 +196,12 @@ export default function LoginScreen() {
             </View>
 
             {/* Password Input */}
-            <View style={{ marginBottom: passwordError ? theme.spacing.xs : theme.spacing.md }}>
+            <View style={{ marginBottom: theme.spacing.lg }}>
               <StyledInput
                 icon="password"
                 label={t('password').toUpperCase()}
                 value={password}
+                hasError={!!passwordError}
                 onChangeText={(text) => {
                   setPassword(text);
                   setPasswordError('');
@@ -216,7 +218,7 @@ export default function LoginScreen() {
                 <Text style={{
                   fontSize: theme.typography.small.fontSize,
                   color: theme.colors.status.error,
-                  marginTop: theme.spacing.xs,
+                  marginTop: 4,
                   marginLeft: theme.spacing.sm,
                 }}>
                   {passwordError}

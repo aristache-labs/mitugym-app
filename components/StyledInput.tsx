@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { View, TextInput, TextInputProps, Animated, StyleSheet, TouchableOpacity, TextStyle } from 'react-native';
 import { Mail, Lock, Eye, EyeOff, User, Phone, MapPin } from 'lucide-react-native';
-import { theme } from '../lib/theme';
 
-interface StyledInputProps extends Omit<TextInputProps, 'style'> {
+interface StyledInputProps extends Omit<TextInputProps, 'style' | 'onBlur'> {
   icon?: 'email' | 'password' | 'user' | 'phone' | 'location';
   label?: string;
   onChangeText?: (text: string) => void;
+  onBlur?: () => void;
   value?: string;
   isPassword?: boolean;
+  hasError?: boolean;
   style?: TextStyle | TextStyle[];
 }
 
@@ -16,8 +17,10 @@ export const StyledInput: React.FC<StyledInputProps> = ({
   icon,
   label,
   onChangeText,
+  onBlur,
   value,
   isPassword = false,
+  hasError = false,
   placeholder,
   style: customStyle,
   ...props
@@ -39,11 +42,18 @@ export const StyledInput: React.FC<StyledInputProps> = ({
       duration: 500,
       useNativeDriver: false,
     }).start();
+
+    // Call parent's onBlur if provided
+    if (onBlur) {
+      onBlur();
+    }
   };
 
   const borderColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ['rgba(0, 212, 212, 0.3)', '#00d4d4'],
+    outputRange: hasError
+      ? ['rgba(239, 68, 68, 0.5)', '#ef4444'] // Red for errors
+      : ['rgba(0, 212, 212, 0.3)', '#00d4d4'], // Cyan for normal
   });
 
   const borderWidth = animatedValue.interpolate({
@@ -67,16 +77,17 @@ export const StyledInput: React.FC<StyledInputProps> = ({
   });
 
   const renderIcon = () => {
+    const iconColor = hasError ? '#ef4444' : '#00d4d4';
     if (icon === 'email') {
-      return <Mail size={20} color="#00d4d4" />;
+      return <Mail size={20} color={iconColor} />;
     } else if (icon === 'password') {
-      return <Lock size={20} color="#00d4d4" />;
+      return <Lock size={20} color={iconColor} />;
     } else if (icon === 'user') {
-      return <User size={20} color="#00d4d4" />;
+      return <User size={20} color={iconColor} />;
     } else if (icon === 'phone') {
-      return <Phone size={20} color="#00d4d4" />;
+      return <Phone size={20} color={iconColor} />;
     } else if (icon === 'location') {
-      return <MapPin size={20} color="#00d4d4" />;
+      return <MapPin size={20} color={iconColor} />;
     }
     return null;
   };
@@ -92,7 +103,9 @@ export const StyledInput: React.FC<StyledInputProps> = ({
               opacity: labelOpacity,
               color: animatedValue.interpolate({
                 inputRange: [0, 1],
-                outputRange: ['rgba(255, 255, 255, 0.6)', '#00d4d4'],
+                outputRange: hasError
+                  ? ['rgba(239, 68, 68, 0.8)', '#ef4444'] // Red for errors
+                  : ['rgba(255, 255, 255, 0.6)', '#00d4d4'], // Cyan for normal
               }),
             },
           ]}
@@ -102,17 +115,17 @@ export const StyledInput: React.FC<StyledInputProps> = ({
       )}
 
       <Animated.View
-        style={[
-          styles.inputWrapper,
-          {
-            borderColor: borderColor,
-            borderWidth: borderWidth,
-            shadowColor: '#00d4d4',
-            shadowOpacity: shadowOpacity,
-            shadowRadius: 20,
-            shadowOffset: { width: 0, height: 0 },
-          },
-        ]}
+          style={[
+            styles.inputWrapper,
+            {
+              borderColor: borderColor,
+              borderWidth: borderWidth,
+              shadowColor: hasError ? '#ef4444' : '#00d4d4',
+              shadowOpacity: shadowOpacity,
+              shadowRadius: 20,
+              shadowOffset: { width: 0, height: 0 },
+            },
+          ]}
       >
         {/* Background overlay */}
         <View style={styles.innerBackground} />
@@ -130,6 +143,7 @@ export const StyledInput: React.FC<StyledInputProps> = ({
                 inputRange: [0, 1],
                 outputRange: ['80%', '20%'],
               }),
+              borderColor: hasError ? '#ef4444' : '#00d4d4',
             },
           ]}
         />
@@ -147,6 +161,7 @@ export const StyledInput: React.FC<StyledInputProps> = ({
                 inputRange: [0, 1],
                 outputRange: ['20%', '80%'],
               }),
+              borderColor: hasError ? '#ef4444' : '#00d4d4',
             },
           ]}
         />
@@ -198,7 +213,7 @@ export const StyledInput: React.FC<StyledInputProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
-    marginBottom: theme.spacing.lg,
+    marginBottom: 0,
   },
   label: {
     fontSize: 11,

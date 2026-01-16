@@ -222,11 +222,12 @@ export default function RegisterScreen() {
             </View>
 
             {/* First Name Input */}
-            <View style={{ marginBottom: errors.firstName ? theme.spacing.xs : theme.spacing.md }}>
+            <View style={{ marginBottom: theme.spacing.lg }}>
               <StyledInput
                 icon="user"
                 label={t('firstName').toUpperCase()}
                 value={firstName}
+                hasError={!!errors.firstName}
                 onChangeText={(text) => {
                   setFirstName(text);
                   setErrors(prev => ({ ...prev, firstName: '' }));
@@ -241,7 +242,7 @@ export default function RegisterScreen() {
                 <Text style={{
                   fontSize: theme.typography.small.fontSize,
                   color: theme.colors.status.error,
-                  marginTop: theme.spacing.xs,
+                  marginTop: 4,
                   marginLeft: theme.spacing.sm,
                 }}>
                   {errors.firstName}
@@ -250,11 +251,12 @@ export default function RegisterScreen() {
             </View>
 
             {/* Last Name Input */}
-            <View style={{ marginBottom: errors.lastName ? theme.spacing.xs : theme.spacing.md }}>
+            <View style={{ marginBottom: theme.spacing.lg }}>
               <StyledInput
                 icon="user"
                 label={t('lastName').toUpperCase()}
                 value={lastName}
+                hasError={!!errors.lastName}
                 onChangeText={(text) => {
                   setLastName(text);
                   setErrors(prev => ({ ...prev, lastName: '' }));
@@ -269,7 +271,7 @@ export default function RegisterScreen() {
                 <Text style={{
                   fontSize: theme.typography.small.fontSize,
                   color: theme.colors.status.error,
-                  marginTop: theme.spacing.xs,
+                  marginTop: 4,
                   marginLeft: theme.spacing.sm,
                 }}>
                   {errors.lastName}
@@ -278,7 +280,7 @@ export default function RegisterScreen() {
             </View>
 
             {/* Date of Birth */}
-            <View style={{ marginBottom: errors.dateOfBirth ? theme.spacing.xs : theme.spacing.md }}>
+            <View style={{ marginBottom: theme.spacing.xs }}>
               <NativeDatePicker
                 value={dateOfBirth}
                 onDateChange={(date) => {
@@ -294,7 +296,7 @@ export default function RegisterScreen() {
                 <Text style={{
                   fontSize: theme.typography.small.fontSize,
                   color: theme.colors.status.error,
-                  marginTop: theme.spacing.xs,
+                  marginTop: 4,
                   marginLeft: theme.spacing.sm,
                 }}>
                   {errors.dateOfBirth}
@@ -303,11 +305,12 @@ export default function RegisterScreen() {
             </View>
 
             {/* Email Input */}
-            <View style={{ marginBottom: errors.email ? theme.spacing.xs : theme.spacing.md }}>
+            <View style={{ marginBottom: theme.spacing.lg }}>
               <StyledInput
                 icon="email"
                 label={t('emailAddress').toUpperCase()}
                 value={email}
+                hasError={!!errors.email}
                 onChangeText={(text) => {
                   setEmail(text);
                   setErrors(prev => ({ ...prev, email: '' }));
@@ -323,7 +326,7 @@ export default function RegisterScreen() {
                 <Text style={{
                   fontSize: theme.typography.small.fontSize,
                   color: theme.colors.status.error,
-                  marginTop: theme.spacing.xs,
+                  marginTop: 4,
                   marginLeft: theme.spacing.sm,
                 }}>
                   {errors.email}
@@ -332,11 +335,12 @@ export default function RegisterScreen() {
             </View>
 
             {/* Phone Input */}
-            <View style={{ marginBottom: errors.phone ? theme.spacing.xs : theme.spacing.md }}>
+            <View style={{ marginBottom: theme.spacing.lg }}>
               <StyledInput
                 icon="phone"
                 label={t('phone').toUpperCase()}
                 value={phone}
+                hasError={!!errors.phone}
                 onChangeText={(text) => {
                   setPhone(text);
                   setErrors(prev => ({ ...prev, phone: '' }));
@@ -350,7 +354,7 @@ export default function RegisterScreen() {
                 <Text style={{
                   fontSize: theme.typography.small.fontSize,
                   color: theme.colors.status.error,
-                  marginTop: theme.spacing.xs,
+                  marginTop: 4,
                   marginLeft: theme.spacing.sm,
                 }}>
                   {errors.phone}
@@ -359,37 +363,43 @@ export default function RegisterScreen() {
             </View>
 
             {/* Address Input */}
-            <StyledInput
-              icon="location"
-              label={t('addressOptional').toUpperCase()}
-                  value={address}
-                  onChangeText={setAddress}
-                  placeholder={t('addressOptional')}
-                  autoComplete="street-address"
-            />
+            <View style={{ marginBottom: theme.spacing.lg }}>
+              <StyledInput
+                icon="location"
+                label={t('addressOptional').toUpperCase()}
+                value={address}
+                onChangeText={setAddress}
+                placeholder={t('addressOptional')}
+                autoComplete="street-address"
+              />
+            </View>
 
             {/* City Input */}
-            <StyledInput
-              icon="location"
-              label={t('cityOptional').toUpperCase()}
-                  value={city}
-                  onChangeText={setCity}
-                  placeholder={t('cityOptional')}
-                  autoComplete="address-line2"
-            />
+            <View style={{ marginBottom: theme.spacing.lg }}>
+              <StyledInput
+                icon="location"
+                label={t('cityOptional').toUpperCase()}
+                value={city}
+                onChangeText={setCity}
+                placeholder={t('cityOptional')}
+                autoComplete="address-line2"
+              />
+            </View>
 
             {/* County Input */}
-            <StyledInput
-              icon="location"
-              label={t('countyOptional').toUpperCase()}
-                  value={county}
-                  onChangeText={setCounty}
-                  placeholder={t('countyOptional')}
-                  autoComplete="address-line1"
-            />
+            <View style={{ marginBottom: theme.spacing.lg }}>
+              <StyledInput
+                icon="location"
+                label={t('countyOptional').toUpperCase()}
+                value={county}
+                onChangeText={setCounty}
+                placeholder={t('countyOptional')}
+                autoComplete="address-line1"
+              />
+            </View>
 
             {/* Gender Selection */}
-            <View style={{ marginBottom: errors.gender ? theme.spacing.xs : theme.spacing.md }}>
+            <View style={{ marginBottom: theme.spacing.xs }}>
               <DropdownPicker
                 value={gender}
                 onValueChange={(value) => {
@@ -405,7 +415,7 @@ export default function RegisterScreen() {
                 <Text style={{
                   fontSize: theme.typography.small.fontSize,
                   color: theme.colors.status.error,
-                  marginTop: theme.spacing.xs,
+                  marginTop: 4,
                   marginLeft: theme.spacing.sm,
                 }}>
                   {errors.gender}
@@ -414,11 +424,12 @@ export default function RegisterScreen() {
             </View>
 
             {/* Password Input */}
-            <View style={{ marginBottom: errors.password ? theme.spacing.xs : theme.spacing.md }}>
+            <View style={{ marginBottom: theme.spacing.lg }}>
               <StyledInput
                 icon="password"
                 label={t('password').toUpperCase()}
                 value={password}
+                hasError={!!errors.password}
                 onChangeText={(text) => {
                   setPassword(text);
                   setErrors(prev => ({ ...prev, password: '', confirmPassword: '' }));
@@ -434,7 +445,7 @@ export default function RegisterScreen() {
                 <Text style={{
                   fontSize: theme.typography.small.fontSize,
                   color: theme.colors.status.error,
-                  marginTop: theme.spacing.xs,
+                  marginTop: 4,
                   marginLeft: theme.spacing.sm,
                 }}>
                   {errors.password}
@@ -448,6 +459,7 @@ export default function RegisterScreen() {
                 icon="password"
                 label={t('confirmPassword').toUpperCase()}
                 value={confirmPassword}
+                hasError={!!errors.confirmPassword}
                 onChangeText={(text) => {
                   setConfirmPassword(text);
                   setErrors(prev => ({ ...prev, confirmPassword: '' }));
@@ -463,7 +475,7 @@ export default function RegisterScreen() {
                 <Text style={{
                   fontSize: theme.typography.small.fontSize,
                   color: theme.colors.status.error,
-                  marginTop: theme.spacing.xs,
+                  marginTop: 4,
                   marginLeft: theme.spacing.sm,
                 }}>
                   {errors.confirmPassword}
