@@ -50,6 +50,7 @@ export default function TabLayout() {
   const { t } = useLanguage();
   const [localAuthState, setLocalAuthState] = React.useState(true); // Start optimistic
   const hasCheckedAuth = React.useRef(false);
+  const hasSubscribedToNotifications = React.useRef(false);
 
   // Define tabBarIcon function outside render to avoid creating new component instances
   const renderTabBarIcon = React.useCallback((props: any, routeName: string) => (
@@ -96,6 +97,13 @@ export default function TabLayout() {
         }, 1500);
       }, 100);
       return; // Don't set up polling if we're redirecting
+    }
+
+    // Subscribe to notifications if authenticated and not already subscribed
+    if (initialAuth && !hasSubscribedToNotifications.current) {
+      console.log('TabLayout: Subscribing to notifications');
+      hasSubscribedToNotifications.current = true;
+      useAppStore.getState().subscribeToNotifications();
     }
 
     // Set up a simple polling mechanism to check auth state changes
@@ -158,6 +166,7 @@ export default function TabLayout() {
     return () => {
       isActive = false;
       globalTabLayoutInitialized = false;
+      // Don't unsubscribe here - let it persist across tab changes
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // router intentionally excluded to prevent re-initialization
