@@ -181,6 +181,10 @@ export default function ProfileScreen() {
       }
 
       const asset = result.assets[0];
+      if (!asset) {
+        return;
+      }
+
       setIsUploadingAvatar(true);
 
       // Get file extension
@@ -199,9 +203,11 @@ export default function ProfileScreen() {
         const urlParts = profile.avatar_url.split('/storage/v1/object/public/avatars/');
         if (urlParts.length > 1) {
           const oldPath = urlParts[1];
-          await supabase.storage
-            .from('avatars')
-            .remove([oldPath]);
+          if (oldPath) {
+            await supabase.storage
+              .from('avatars')
+              .remove([oldPath]);
+          }
         }
       }
 
