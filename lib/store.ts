@@ -197,6 +197,7 @@ const translateNotification = (title: string, message: string, language: 'en' | 
     'Session Cancelled': 'sessionCancelled',
     'Booking Approved': 'bookingApproved',
     'Booking Rejected': 'bookingRejected',
+    'Gym Schedule Updated': 'gymScheduleUpdated',
   };
 
   const messageMap: Record<string, keyof typeof translations.en> = {
@@ -207,6 +208,7 @@ const translateNotification = (title: string, message: string, language: 'en' | 
     'Session Cancelled': 'sessionCancelledDesc',
     'Booking Approved': 'bookingApprovedDesc',
     'Booking Rejected': 'bookingRejectedDesc',
+    'Gym Schedule Updated': 'gymScheduleUpdatedDesc',
   };
 
   const titleKey = titleMap[title];
@@ -853,7 +855,8 @@ export const useAppStore = create<AppState>((set, get) => ({
           sessionBookings: [...get().sessionBookings, data],
         });
 
-        get().showToast('Session booking submitted! Awaiting confirmation.', 'success');
+        const t = translations[get().language];
+        get().showToast(t.sessionBookingSubmitted, 'success', t.sessionBookingSubmittedDesc);
         return true;
       }
 
@@ -982,7 +985,8 @@ export const useAppStore = create<AppState>((set, get) => ({
           ),
         });
 
-        get().showToast('Session updated successfully!', 'success');
+        const t = translations[get().language];
+        get().showToast(t.sessionUpdatedSuccessfully, 'success');
         return true;
       }
 
@@ -1058,7 +1062,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         return;
       }
 
-      get().showToast('Session cancelled successfully', 'success');
+      const t = translations[get().language];
+      get().showToast(t.sessionCancelledSuccessfully, 'success');
     } catch (error) {
       console.error('Error canceling session:', error);
       get().showToast('Failed to cancel session', 'error');

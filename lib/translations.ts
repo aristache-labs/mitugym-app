@@ -398,6 +398,16 @@ export const translations = {
     failedToUpdatePassword: 'Failed to update password',
     accountDeletedSuccessfully: 'Account deleted successfully',
     failedToDeleteAccount: 'Failed to delete account',
+
+    // Session bookings
+    sessionBookingSubmitted: 'Session booking submitted!',
+    sessionBookingSubmittedDesc: 'Awaiting confirmation',
+    sessionUpdatedSuccessfully: 'Session updated successfully!',
+    sessionCancelledSuccessfully: 'Session cancelled successfully',
+
+    // Gym schedule
+    gymScheduleUpdated: 'Gym Schedule Updated',
+    gymScheduleUpdatedDesc: 'Check the new gym hours',
   },
 
   ro: {
@@ -799,6 +809,16 @@ export const translations = {
     failedToUpdatePassword: 'Eroare la actualizarea parolei',
     accountDeletedSuccessfully: 'Contul a fost șters cu succes',
     failedToDeleteAccount: 'Eroare la ștergerea contului',
+
+    // Session bookings
+    sessionBookingSubmitted: 'Programare trimisă!',
+    sessionBookingSubmittedDesc: 'Așteaptă confirmarea',
+    sessionUpdatedSuccessfully: 'Programare actualizată cu succes!',
+    sessionCancelledSuccessfully: 'Programare anulată cu succes',
+
+    // Gym schedule
+    gymScheduleUpdated: 'Program Actualizat',
+    gymScheduleUpdatedDesc: 'Verifică noul program al sălii',
   },
 } as const;
 
