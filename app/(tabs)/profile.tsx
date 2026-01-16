@@ -158,7 +158,7 @@ export default function ProfileScreen() {
     try {
       // Request permissions
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+
       if (status !== 'granted') {
         Alert.alert(
           t('permissionRequired'),
@@ -381,9 +381,9 @@ export default function ProfileScreen() {
 
       if (error) {
         console.error('Error updating password:', error);
-        showToast('Failed to update password', 'error');
+        showToast(t('failedToUpdatePassword'), 'error');
       } else {
-        showToast('Password updated successfully', 'success');
+        showToast(t('passwordUpdatedSuccessfully'), 'success');
         setPasswordModalVisible(false);
         setPasswordForm({
           currentPassword: '',
@@ -418,7 +418,7 @@ export default function ProfileScreen() {
                 return;
               }
 
-              showToast('Account deleted successfully', 'success');
+              showToast(t('accountDeletedSuccessfully'), 'success');
               logout();
             } catch (error) {
               console.error('Error deleting account:', error);
@@ -452,16 +452,16 @@ export default function ProfileScreen() {
 
       if (error) {
         console.error('Error updating profile:', error);
-        showToast('Failed to update profile', 'error');
+        showToast(t('failedToUpdateProfile'), 'error');
       } else {
-        showToast('Profile updated successfully', 'success');
+        showToast(t('profileUpdatedSuccessfully'), 'success');
         setEditModalVisible(false);
         // Reload profile data
         reloadProfile();
       }
     } catch (error) {
       console.error('Error saving profile:', error);
-      showToast('Failed to update profile', 'error');
+      showToast(t('failedToUpdateProfile'), 'error');
     }
   };
 
@@ -606,8 +606,8 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Header */}
-        <ProfileHeader 
-          profile={profile} 
+        <ProfileHeader
+          profile={profile}
           onAvatarPress={handleAvatarPress}
           isUploadingAvatar={isUploadingAvatar}
         />

@@ -391,9 +391,9 @@ export function Toast({
 
           {/* Main content */}
           <View style={{ paddingHorizontal: 12, paddingTop: 14, paddingBottom: 10 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               {/* Icon with background */}
-              <View style={{ position: 'relative', marginTop: 2 }}>
+              <View style={{ position: 'relative' }}>
                 {/* Icon shadow layer */}
                 <View
                   style={{
@@ -449,25 +449,25 @@ export function Toast({
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text
                   style={{
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: '700',
                     color: '#ffffff',
                     lineHeight: 18,
                     marginBottom: description ? 4 : 0,
+                    flexWrap: 'wrap',
                   }}
-                  numberOfLines={2}
                 >
                   {message}
                 </Text>
                 {description && (
                   <Text
                     style={{
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: '500',
-                      color: 'rgba(255, 255, 255, 0.7)',
+                      color: 'rgba(255, 255, 255, 0.65)',
                       lineHeight: 16,
+                      flexWrap: 'wrap',
                     }}
-                    numberOfLines={2}
                   >
                     {description}
                   </Text>
@@ -480,7 +480,7 @@ export function Toast({
                 style={{
                   padding: 6,
                   borderRadius: 8,
-                  marginTop: -2,
+                  alignSelf: 'center',
                 }}
                 activeOpacity={0.6}
               >

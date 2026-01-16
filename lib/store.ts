@@ -184,6 +184,45 @@ const getToastTypeFromNotification = (notificationType: string): 'success' | 'er
   return 'info';
 };
 
+// Helper function to translate notification messages using translations system
+const translateNotification = (title: string, message: string, language: 'en' | 'ro'): { title: string; message: string } => {
+  const t = translations[language];
+
+  // Map notification titles to translation keys
+  const titleMap: Record<string, keyof typeof translations.en> = {
+    'Profile Updated': 'profileUpdated',
+    'Membership Approved': 'membershipApproved',
+    'Membership Expired': 'membershipExpired',
+    'Session Approved': 'sessionApproved',
+    'Session Cancelled': 'sessionCancelled',
+    'Booking Approved': 'bookingApproved',
+    'Booking Rejected': 'bookingRejected',
+  };
+
+  const messageMap: Record<string, keyof typeof translations.en> = {
+    'Profile Updated': 'profileUpdatedDesc',
+    'Membership Approved': 'membershipApprovedDesc',
+    'Membership Expired': 'membershipExpiredDesc',
+    'Session Approved': 'sessionApprovedDesc',
+    'Session Cancelled': 'sessionCancelledDesc',
+    'Booking Approved': 'bookingApprovedDesc',
+    'Booking Rejected': 'bookingRejectedDesc',
+  };
+
+  const titleKey = titleMap[title];
+  const messageKey = messageMap[title];
+
+  if (titleKey && t[titleKey]) {
+    return {
+      title: t[titleKey],
+      message: messageKey && t[messageKey] ? t[messageKey] : message,
+    };
+  }
+
+  // Return original if no translation found
+  return { title, message };
+};
+
 export const useAppStore = create<AppState>((set, get) => ({
   // Auth state
   isAuthenticated: false,
@@ -220,11 +259,15 @@ export const useAppStore = create<AppState>((set, get) => ({
         }
 
         // Don't set state here - let authManager handle it to prevent conflicts
-        get().showToast('Welcome back!', 'success');
+        // Removed "Welcome back!" toast - user can see they're logged in from the UI
       }
     } catch (error: any) {
       console.log('Login failed:', error.message);
-      get().showToast(error.message || 'Login failed', 'error');
+      // Show error with description using translations
+      const t = translations[get().language];
+      const errorTitle = t.loginFailed;
+      const errorDescription = error.message || t.loginFailedDesc;
+      get().showToast(errorTitle, 'error', errorDescription);
       throw error;
     }
   },
@@ -296,10 +339,13 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       console.log('Supabase logout successful - auth state will be handled by authManager');
       // Don't set state here - let authManager handle the SIGNED_OUT event
-      get().showToast('Logged out successfully', 'info');
+      // Removed "Logged out successfully" toast - user navigates to login screen anyway
     } catch (error: any) {
       console.error('Logout failed:', error.message);
-      get().showToast(error.message || 'Logout failed', 'error');
+      const t = translations[get().language];
+      const errorTitle = t.logoutFailed;
+      const errorDescription = error.message || t.logoutFailedDesc;
+      get().showToast(errorTitle, 'error', errorDescription);
     }
   },
 
@@ -1853,9 +1899,10 @@ export const useAppStore = create<AppState>((set, get) => ({
             unreadCount: get().unreadCount + 1,
           });
 
-          // Show toast notification with appropriate type
+          // Show toast notification with appropriate type and translation
           const toastType = getToastTypeFromNotification(newNotification.type);
-          get().showToast(newNotification.title, toastType, newNotification.message);
+          const translated = translateNotification(newNotification.title, newNotification.message, get().language);
+          get().showToast(translated.title, toastType, translated.message);
         },
       )
       // Listen for global notifications
@@ -1883,9 +1930,10 @@ export const useAppStore = create<AppState>((set, get) => ({
             unreadCount: get().unreadCount + 1,
           });
 
-          // Show toast notification with appropriate type
+          // Show toast notification with appropriate type and translation
           const toastType = getToastTypeFromNotification(newNotification.type);
-          get().showToast(newNotification.title, toastType, newNotification.message);
+          const translated = translateNotification(newNotification.title, newNotification.message, get().language);
+          get().showToast(translated.title, toastType, translated.message);
         },
       )
       .subscribe();
@@ -1923,7 +1971,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 
         if (error) {
           console.error('Error deleting personal notifications:', error);
-          get().showToast('Failed to clear notifications', 'error');
+          const t = translations[get().language];
+          get().showToast(t.failedToClearNotifications, 'error');
           return;
         }
       }
@@ -1954,10 +2003,12 @@ export const useAppStore = create<AppState>((set, get) => ({
         unreadCount: 0,
       });
 
-      get().showToast('All notifications cleared', 'success');
+      const t = translations[get().language];
+      get().showToast(t.allNotificationsCleared, 'success');
     } catch (error) {
       console.error('Error clearing notifications:', error);
-      get().showToast('Failed to clear notifications', 'error');
+      const t = translations[get().language];
+      get().showToast(t.failedToClearNotifications, 'error');
     }
   },
 

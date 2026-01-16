@@ -243,7 +243,7 @@ export const translations = {
     completedSessions: 'Completed',
     cancelledSessions: 'Cancelled',
     thisWeek: 'This Week',
-    threeMonths: '3 Months',
+    threeMonthsPeriod: '3 Months',
   sessionBookedSuccessfully: 'Session booked successfully',
   bookingFailed: 'Booking failed',
   noServiceSelected: 'No service selected',
@@ -366,6 +366,38 @@ export const translations = {
     checkedIn: 'Checked In',
     checkedOut: 'Checked Out',
     membershipType: 'Membership Type',
+
+    // Notifications
+    profileUpdated: 'Profile Updated',
+    profileUpdatedDesc: 'Your profile has been successfully updated',
+    membershipApproved: 'Membership Approved',
+    membershipApprovedDesc: 'Your membership has been approved',
+    membershipExpired: 'Membership Expired',
+    membershipExpiredDesc: 'Your membership has expired',
+    sessionApproved: 'Session Approved',
+    sessionApprovedDesc: 'Your session has been approved',
+    sessionCancelled: 'Session Cancelled',
+    sessionCancelledDesc: 'Your session has been cancelled',
+    bookingApproved: 'Booking Approved',
+    bookingApprovedDesc: 'Your booking has been approved',
+    bookingRejected: 'Booking Rejected',
+    bookingRejectedDesc: 'Your booking has been rejected',
+    allNotificationsCleared: 'All notifications cleared',
+    failedToClearNotifications: 'Failed to clear notifications',
+
+    // Auth errors
+    loginFailed: 'Login failed',
+    loginFailedDesc: 'Please try again',
+    logoutFailed: 'Logout failed',
+    logoutFailedDesc: 'Please try again',
+
+    // Profile updates
+    profileUpdatedSuccessfully: 'Profile updated successfully',
+    failedToUpdateProfile: 'Failed to update profile',
+    passwordUpdatedSuccessfully: 'Password updated successfully',
+    failedToUpdatePassword: 'Failed to update password',
+    accountDeletedSuccessfully: 'Account deleted successfully',
+    failedToDeleteAccount: 'Failed to delete account',
   },
 
   ro: {
@@ -612,7 +644,7 @@ export const translations = {
     completedSessions: 'Completate',
     cancelledSessions: 'Anulate',
     thisWeek: 'Săptămâna Aceasta',
-    threeMonths: '3 Luni',
+    threeMonthsPeriod: '3 Luni',
   sessionBookedSuccessfully: 'Sesiunea a fost rezervată cu succes',
   bookingFailed: 'Rezervarea a eșuat',
   noServiceSelected: 'Nu a fost selectat niciun serviciu',
@@ -735,6 +767,38 @@ export const translations = {
     checkedIn: 'Intrare',
     checkedOut: 'Ieșire',
     membershipType: 'Tip Abonament',
+
+    // Notifications
+    profileUpdated: 'Profil actualizat',
+    profileUpdatedDesc: 'Profilul tău a fost actualizat cu succes',
+    membershipApproved: 'Abonament aprobat',
+    membershipApprovedDesc: 'Abonamentul tău a fost aprobat',
+    membershipExpired: 'Abonament expirat',
+    membershipExpiredDesc: 'Abonamentul tău a expirat',
+    sessionApproved: 'Sesiune aprobată',
+    sessionApprovedDesc: 'Sesiunea ta a fost aprobată',
+    sessionCancelled: 'Sesiune anulată',
+    sessionCancelledDesc: 'Sesiunea ta a fost anulată',
+    bookingApproved: 'Rezervare aprobată',
+    bookingApprovedDesc: 'Rezervarea ta a fost aprobată',
+    bookingRejected: 'Rezervare respinsă',
+    bookingRejectedDesc: 'Rezervarea ta a fost respinsă',
+    allNotificationsCleared: 'Toate notificările au fost șterse',
+    failedToClearNotifications: 'Eroare la ștergerea notificărilor',
+
+    // Auth errors
+    loginFailed: 'Conectare eșuată',
+    loginFailedDesc: 'Te rugăm să încerci din nou',
+    logoutFailed: 'Deconectare eșuată',
+    logoutFailedDesc: 'Te rugăm să încerci din nou',
+
+    // Profile updates
+    profileUpdatedSuccessfully: 'Profil actualizat cu succes',
+    failedToUpdateProfile: 'Eroare la actualizarea profilului',
+    passwordUpdatedSuccessfully: 'Parola a fost actualizată cu succes',
+    failedToUpdatePassword: 'Eroare la actualizarea parolei',
+    accountDeletedSuccessfully: 'Contul a fost șters cu succes',
+    failedToDeleteAccount: 'Eroare la ștergerea contului',
   },
 } as const;
 
