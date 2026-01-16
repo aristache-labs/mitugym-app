@@ -420,7 +420,7 @@ export default function ProfileScreen() {
 
               if (deleteError) {
                 console.error('Error deleting account:', deleteError);
-                showToast('Failed to delete account', 'error');
+                showToast(t('failedToDeleteAccount'), 'error');
                 return;
               }
 
@@ -428,7 +428,7 @@ export default function ProfileScreen() {
               logout();
             } catch (error) {
               console.error('Error deleting account:', error);
-              showToast('Failed to delete account', 'error');
+              showToast(t('failedToDeleteAccount'), 'error');
             }
           },
         },

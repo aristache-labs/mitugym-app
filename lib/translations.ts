@@ -408,6 +408,21 @@ export const translations = {
     // Gym schedule
     gymScheduleUpdated: 'Gym Schedule Updated',
     gymScheduleUpdatedDesc: 'Check the new gym hours',
+
+    // Form validation errors
+    invalidEmail: 'Invalid email address',
+    emailRequired: 'Email is required',
+    passwordTooShort: 'Password must be at least 6 characters',
+    passwordRequired: 'Password is required',
+    passwordsDoNotMatch: 'Passwords do not match',
+    firstNameRequired: 'First name is required',
+    lastNameRequired: 'Last name is required',
+    dateOfBirthRequired: 'Date of birth is required',
+    phoneRequired: 'Phone number is required',
+    genderRequired: 'Gender is required',
+    invalidCredentials: 'Invalid email or password',
+    pleaseFillAllRequiredFields: 'Please fill all required fields',
+    failedToCreateAccount: 'Failed to create account. Email may already be in use.',
   },
 
   ro: {
@@ -819,6 +834,21 @@ export const translations = {
     // Gym schedule
     gymScheduleUpdated: 'Program Actualizat',
     gymScheduleUpdatedDesc: 'Verifică noul program al sălii',
+
+    // Form validation errors
+    invalidEmail: 'Adresă de email invalidă',
+    emailRequired: 'Emailul este obligatoriu',
+    passwordTooShort: 'Parola trebuie să aibă cel puțin 6 caractere',
+    passwordRequired: 'Parola este obligatorie',
+    passwordsDoNotMatch: 'Parolele nu se potrivesc',
+    firstNameRequired: 'Prenumele este obligatoriu',
+    lastNameRequired: 'Numele este obligatoriu',
+    dateOfBirthRequired: 'Data nașterii este obligatorie',
+    phoneRequired: 'Numărul de telefon este obligatoriu',
+    genderRequired: 'Genul este obligatoriu',
+    invalidCredentials: 'Email sau parolă incorectă',
+    pleaseFillAllRequiredFields: 'Te rugăm să completezi toate câmpurile obligatorii',
+    failedToCreateAccount: 'Eroare la crearea contului. Este posibil ca emailul să fie deja utilizat.',
   },
 } as const;
 

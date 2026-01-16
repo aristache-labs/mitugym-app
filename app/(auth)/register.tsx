@@ -26,6 +26,16 @@ export default function RegisterScreen() {
   const [county, setCounty] = useState('');
   const [gender, setGender] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    dateOfBirth: '',
+    phone: '',
+    gender: '',
+    password: '',
+    confirmPassword: '',
+  });
   const { signUpWithSupabase, isAuthenticated, showToast } = useAppStore();
   const { t } = useLanguage();
 
@@ -42,45 +52,54 @@ export default function RegisterScreen() {
     }
   }, [isAuthenticated]);
 
+  const validateField = (field: string, value: any): string => {
+    switch (field) {
+      case 'firstName':
+        return !value?.trim() ? t('firstNameRequired') : '';
+      case 'lastName':
+        return !value?.trim() ? t('lastNameRequired') : '';
+      case 'email':
+        if (!value?.trim()) {return t('emailRequired');}
+        if (!isValidEmail(value)) {return t('invalidEmail');}
+        return '';
+      case 'dateOfBirth':
+        return !value ? t('dateOfBirthRequired') : '';
+      case 'phone':
+        return !value?.trim() ? t('phoneRequired') : '';
+      case 'gender':
+        return !value ? t('genderRequired') : '';
+      case 'password':
+        if (!value) {return t('passwordRequired');}
+        if (value.length < 6) {return t('passwordTooShort');}
+        return '';
+      case 'confirmPassword':
+        if (!value) {return t('passwordRequired');}
+        if (value !== password) {return t('passwordsDoNotMatch');}
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  const validateAllFields = (): boolean => {
+    const newErrors = {
+      firstName: validateField('firstName', firstName),
+      lastName: validateField('lastName', lastName),
+      email: validateField('email', email),
+      dateOfBirth: validateField('dateOfBirth', dateOfBirth),
+      phone: validateField('phone', phone),
+      gender: validateField('gender', gender),
+      password: validateField('password', password),
+      confirmPassword: validateField('confirmPassword', confirmPassword),
+    };
+
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(error => error !== '');
+  };
+
   const handleRegister = async () => {
-    // Validate required fields
-    if (!firstName.trim()) {
-      showToast('Please enter your first name', 'error');
-      return;
-    }
-
-    if (!lastName.trim()) {
-      showToast('Please enter your last name', 'error');
-      return;
-    }
-
-    if (!isValidEmail(email)) {
-      showToast('Please enter a valid email address', 'error');
-      return;
-    }
-
-    if (!dateOfBirth) {
-      showToast('Please select your date of birth', 'error');
-      return;
-    }
-
-    if (!phone.trim()) {
-      showToast('Please enter your phone number', 'error');
-      return;
-    }
-
-    if (!gender) {
-      showToast('Please select your gender', 'error');
-      return;
-    }
-
-    if (password.length < 6) {
-      showToast('Password must be at least 6 characters', 'error');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      showToast('Passwords do not match', 'error');
+    if (!validateAllFields()) {
+      showToast(t('pleaseFillAllRequiredFields'), 'error');
       return;
     }
 
@@ -89,7 +108,7 @@ export default function RegisterScreen() {
       const profileData = {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
-        date_of_birth: dateOfBirth.toISOString().split('T')[0], // Format as YYYY-MM-DD
+        date_of_birth: dateOfBirth!.toISOString().split('T')[0], // Format as YYYY-MM-DD
         phone: phone.trim(),
         address: address.trim(),
         city: city.trim(),
@@ -101,7 +120,7 @@ export default function RegisterScreen() {
       // Redirect to login page after successful registration
       router.replace('/(auth)/login');
     } catch (error) {
-      showToast('Failed to create account. Email may already be in use.', 'error');
+      showToast(t('failedToCreateAccount'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -203,62 +222,141 @@ export default function RegisterScreen() {
             </View>
 
             {/* First Name Input */}
-            <StyledInput
-              icon="user"
-              label={t('firstName').toUpperCase()}
-                  value={firstName}
-                  onChangeText={setFirstName}
-                  placeholder={t('firstName')}
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                  autoComplete="given-name"
-            />
+            <View style={{ marginBottom: errors.firstName ? theme.spacing.xs : theme.spacing.md }}>
+              <StyledInput
+                icon="user"
+                label={t('firstName').toUpperCase()}
+                value={firstName}
+                onChangeText={(text) => {
+                  setFirstName(text);
+                  setErrors(prev => ({ ...prev, firstName: '' }));
+                }}
+                onBlur={() => setErrors(prev => ({ ...prev, firstName: validateField('firstName', firstName) }))}
+                placeholder={t('firstName')}
+                autoCapitalize="words"
+                autoCorrect={false}
+                autoComplete="given-name"
+              />
+              {errors.firstName ? (
+                <Text style={{
+                  fontSize: theme.typography.small.fontSize,
+                  color: theme.colors.status.error,
+                  marginTop: theme.spacing.xs,
+                  marginLeft: theme.spacing.sm,
+                }}>
+                  {errors.firstName}
+                </Text>
+              ) : null}
+            </View>
 
             {/* Last Name Input */}
-            <StyledInput
-              icon="user"
-              label={t('lastName').toUpperCase()}
-                  value={lastName}
-                  onChangeText={setLastName}
-                  placeholder={t('lastName')}
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                  autoComplete="family-name"
-            />
+            <View style={{ marginBottom: errors.lastName ? theme.spacing.xs : theme.spacing.md }}>
+              <StyledInput
+                icon="user"
+                label={t('lastName').toUpperCase()}
+                value={lastName}
+                onChangeText={(text) => {
+                  setLastName(text);
+                  setErrors(prev => ({ ...prev, lastName: '' }));
+                }}
+                onBlur={() => setErrors(prev => ({ ...prev, lastName: validateField('lastName', lastName) }))}
+                placeholder={t('lastName')}
+                autoCapitalize="words"
+                autoCorrect={false}
+                autoComplete="family-name"
+              />
+              {errors.lastName ? (
+                <Text style={{
+                  fontSize: theme.typography.small.fontSize,
+                  color: theme.colors.status.error,
+                  marginTop: theme.spacing.xs,
+                  marginLeft: theme.spacing.sm,
+                }}>
+                  {errors.lastName}
+                </Text>
+              ) : null}
+            </View>
 
             {/* Date of Birth */}
+            <View style={{ marginBottom: errors.dateOfBirth ? theme.spacing.xs : theme.spacing.md }}>
               <NativeDatePicker
                 value={dateOfBirth}
-                onDateChange={setDateOfBirth}
+                onDateChange={(date) => {
+                  setDateOfBirth(date);
+                  setErrors(prev => ({ ...prev, dateOfBirth: '' }));
+                }}
                 placeholder={t('selectDateOfBirth')}
-              label={t('dateOfBirth').toUpperCase()}
+                label={t('dateOfBirth').toUpperCase()}
                 maximumDate={new Date(new Date().getFullYear() - 13, 11, 31)} // Must be at least 13 years old
                 minimumDate={new Date(new Date().getFullYear() - 120, 0, 1)} // Max 120 years old
               />
+              {errors.dateOfBirth ? (
+                <Text style={{
+                  fontSize: theme.typography.small.fontSize,
+                  color: theme.colors.status.error,
+                  marginTop: theme.spacing.xs,
+                  marginLeft: theme.spacing.sm,
+                }}>
+                  {errors.dateOfBirth}
+                </Text>
+              ) : null}
+            </View>
 
             {/* Email Input */}
-            <StyledInput
-              icon="email"
-              label={t('emailAddress').toUpperCase()}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder={t('emailAddress')}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="email"
-            />
+            <View style={{ marginBottom: errors.email ? theme.spacing.xs : theme.spacing.md }}>
+              <StyledInput
+                icon="email"
+                label={t('emailAddress').toUpperCase()}
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  setErrors(prev => ({ ...prev, email: '' }));
+                }}
+                onBlur={() => setErrors(prev => ({ ...prev, email: validateField('email', email) }))}
+                placeholder={t('emailAddress')}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="email"
+              />
+              {errors.email ? (
+                <Text style={{
+                  fontSize: theme.typography.small.fontSize,
+                  color: theme.colors.status.error,
+                  marginTop: theme.spacing.xs,
+                  marginLeft: theme.spacing.sm,
+                }}>
+                  {errors.email}
+                </Text>
+              ) : null}
+            </View>
 
             {/* Phone Input */}
-            <StyledInput
-              icon="phone"
-              label={t('phone').toUpperCase()}
-                  value={phone}
-                  onChangeText={setPhone}
-                  placeholder={t('phone')}
-                  keyboardType="phone-pad"
-                  autoComplete="tel"
-            />
+            <View style={{ marginBottom: errors.phone ? theme.spacing.xs : theme.spacing.md }}>
+              <StyledInput
+                icon="phone"
+                label={t('phone').toUpperCase()}
+                value={phone}
+                onChangeText={(text) => {
+                  setPhone(text);
+                  setErrors(prev => ({ ...prev, phone: '' }));
+                }}
+                onBlur={() => setErrors(prev => ({ ...prev, phone: validateField('phone', phone) }))}
+                placeholder={t('phone')}
+                keyboardType="phone-pad"
+                autoComplete="tel"
+              />
+              {errors.phone ? (
+                <Text style={{
+                  fontSize: theme.typography.small.fontSize,
+                  color: theme.colors.status.error,
+                  marginTop: theme.spacing.xs,
+                  marginLeft: theme.spacing.sm,
+                }}>
+                  {errors.phone}
+                </Text>
+              ) : null}
+            </View>
 
             {/* Address Input */}
             <StyledInput
@@ -291,51 +389,86 @@ export default function RegisterScreen() {
             />
 
             {/* Gender Selection */}
+            <View style={{ marginBottom: errors.gender ? theme.spacing.xs : theme.spacing.md }}>
               <DropdownPicker
                 value={gender}
-                onValueChange={setGender}
+                onValueChange={(value) => {
+                  setGender(value);
+                  setErrors(prev => ({ ...prev, gender: '' }));
+                }}
                 options={genderOptions}
                 placeholder={t('selectGender')}
-              label={t('gender').toUpperCase()}
+                label={t('gender').toUpperCase()}
                 doneButtonText={t('done')}
               />
-
-            {/* Password Input */}
-            <StyledInput
-              icon="password"
-              label={t('password').toUpperCase()}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder={t('password')}
-              isPassword={true}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="password-new"
-            />
-
-            {/* Confirm Password Input */}
-            <View style={{ marginBottom: theme.spacing.lg }}>
-              <StyledInput
-                icon="password"
-                label={t('confirmPassword').toUpperCase()}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  placeholder={t('confirmPassword')}
-                isPassword={true}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="password-new"
-              />
-              {confirmPassword.length > 0 && password !== confirmPassword && (
+              {errors.gender ? (
                 <Text style={{
                   fontSize: theme.typography.small.fontSize,
                   color: theme.colors.status.error,
                   marginTop: theme.spacing.xs,
                   marginLeft: theme.spacing.sm,
                 }}>
-                  Passwords do not match
+                  {errors.gender}
                 </Text>
-              )}
+              ) : null}
+            </View>
+
+            {/* Password Input */}
+            <View style={{ marginBottom: errors.password ? theme.spacing.xs : theme.spacing.md }}>
+              <StyledInput
+                icon="password"
+                label={t('password').toUpperCase()}
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setErrors(prev => ({ ...prev, password: '', confirmPassword: '' }));
+                }}
+                onBlur={() => setErrors(prev => ({ ...prev, password: validateField('password', password) }))}
+                placeholder={t('password')}
+                isPassword={true}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="password-new"
+              />
+              {errors.password ? (
+                <Text style={{
+                  fontSize: theme.typography.small.fontSize,
+                  color: theme.colors.status.error,
+                  marginTop: theme.spacing.xs,
+                  marginLeft: theme.spacing.sm,
+                }}>
+                  {errors.password}
+                </Text>
+              ) : null}
+            </View>
+
+            {/* Confirm Password Input */}
+            <View style={{ marginBottom: theme.spacing.lg }}>
+              <StyledInput
+                icon="password"
+                label={t('confirmPassword').toUpperCase()}
+                value={confirmPassword}
+                onChangeText={(text) => {
+                  setConfirmPassword(text);
+                  setErrors(prev => ({ ...prev, confirmPassword: '' }));
+                }}
+                onBlur={() => setErrors(prev => ({ ...prev, confirmPassword: validateField('confirmPassword', confirmPassword) }))}
+                placeholder={t('confirmPassword')}
+                isPassword={true}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="password-new"
+              />
+              {errors.confirmPassword ? (
+                <Text style={{
+                  fontSize: theme.typography.small.fontSize,
+                  color: theme.colors.status.error,
+                  marginTop: theme.spacing.xs,
+                  marginLeft: theme.spacing.sm,
+                }}>
+                  {errors.confirmPassword}
+                </Text>
+              ) : null}
             </View>
 
             {/* Register Button */}

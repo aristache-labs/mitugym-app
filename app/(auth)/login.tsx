@@ -16,6 +16,9 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [loginError, setLoginError] = useState('');
   const { loginWithSupabase, isAuthenticated, showToast } = useAppStore();
   const { t } = useLanguage();
 
@@ -43,14 +46,38 @@ export default function LoginScreen() {
     }
   }, [isAuthenticated]);
 
-  const handleLogin = async () => {
-    if (!isValidEmail(email)) {
-      showToast(t('loginError'), 'error');
-      return;
+  const validateEmail = () => {
+    if (!email.trim()) {
+      setEmailError(t('emailRequired'));
+      return false;
     }
+    if (!isValidEmail(email)) {
+      setEmailError(t('invalidEmail'));
+      return false;
+    }
+    setEmailError('');
+    return true;
+  };
 
+  const validatePassword = () => {
+    if (!password) {
+      setPasswordError(t('passwordRequired'));
+      return false;
+    }
     if (password.length < 6) {
-      showToast(t('loginError'), 'error');
+      setPasswordError(t('passwordTooShort'));
+      return false;
+    }
+    setPasswordError('');
+    return true;
+  };
+
+  const handleLogin = async () => {
+    setLoginError('');
+    const isEmailValid = validateEmail();
+    const isPasswordValid = validatePassword();
+
+    if (!isEmailValid || !isPasswordValid) {
       return;
     }
 
@@ -58,8 +85,10 @@ export default function LoginScreen() {
     try {
       await loginWithSupabase(email, password, rememberMe);
       // Don't manually navigate - let the auth state change handle navigation
-    } catch (error) {
-      showToast(t('loginError'), 'error');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      setLoginError(t('invalidCredentials'));
+      showToast(t('invalidCredentials'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -136,30 +165,84 @@ export default function LoginScreen() {
             </View>
 
             {/* Email Input */}
-            <StyledInput
-              icon="email"
-              label={t('emailAddress').toUpperCase()}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder={t('emailAddress')}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="email"
-            />
+            <View style={{ marginBottom: emailError ? theme.spacing.xs : theme.spacing.md }}>
+              <StyledInput
+                icon="email"
+                label={t('emailAddress').toUpperCase()}
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  setEmailError('');
+                  setLoginError('');
+                }}
+                onBlur={validateEmail}
+                placeholder={t('emailAddress')}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="email"
+              />
+              {emailError ? (
+                <Text style={{
+                  fontSize: theme.typography.small.fontSize,
+                  color: theme.colors.status.error,
+                  marginTop: theme.spacing.xs,
+                  marginLeft: theme.spacing.sm,
+                }}>
+                  {emailError}
+                </Text>
+              ) : null}
+            </View>
 
             {/* Password Input */}
-            <StyledInput
-              icon="password"
-              label={t('password').toUpperCase()}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder={t('password')}
-              isPassword={true}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="password"
-            />
+            <View style={{ marginBottom: passwordError ? theme.spacing.xs : theme.spacing.md }}>
+              <StyledInput
+                icon="password"
+                label={t('password').toUpperCase()}
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setPasswordError('');
+                  setLoginError('');
+                }}
+                onBlur={validatePassword}
+                placeholder={t('password')}
+                isPassword={true}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="password"
+              />
+              {passwordError ? (
+                <Text style={{
+                  fontSize: theme.typography.small.fontSize,
+                  color: theme.colors.status.error,
+                  marginTop: theme.spacing.xs,
+                  marginLeft: theme.spacing.sm,
+                }}>
+                  {passwordError}
+                </Text>
+              ) : null}
+            </View>
+
+            {/* Login Error Message */}
+            {loginError ? (
+              <View style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                borderWidth: 1,
+                borderColor: 'rgba(239, 68, 68, 0.3)',
+                borderRadius: theme.borderRadius.md,
+                padding: theme.spacing.md,
+                marginBottom: theme.spacing.md,
+              }}>
+                <Text style={{
+                  fontSize: theme.typography.body.fontSize,
+                  color: theme.colors.status.error,
+                  textAlign: 'center',
+                }}>
+                  {loginError}
+                </Text>
+              </View>
+            ) : null}
 
             {/* Remember Me Checkbox */}
              <View style={{
