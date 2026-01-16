@@ -423,6 +423,10 @@ export const translations = {
     invalidCredentials: 'Invalid email or password',
     pleaseFillAllRequiredFields: 'Please fill all required fields',
     failedToCreateAccount: 'Failed to create account. Email may already be in use.',
+
+    // Password recovery
+    passwordResetEmailSent: 'Password reset email sent! Check your inbox.',
+    failedToSendResetEmail: 'Failed to send reset email. Please try again.',
   },
 
   ro: {
@@ -849,6 +853,10 @@ export const translations = {
     invalidCredentials: 'Email sau parolă incorectă',
     pleaseFillAllRequiredFields: 'Te rugăm să completezi toate câmpurile obligatorii',
     failedToCreateAccount: 'Eroare la crearea contului. Este posibil ca emailul să fie deja utilizat.',
+
+    // Password recovery
+    passwordResetEmailSent: 'Email de resetare trimis! Verifică inbox-ul.',
+    failedToSendResetEmail: 'Eroare la trimiterea emailului. Te rugăm să încerci din nou.',
   },
 } as const;
 

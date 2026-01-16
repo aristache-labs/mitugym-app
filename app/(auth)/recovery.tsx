@@ -17,12 +17,25 @@ export default function RecoveryScreen() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [emailError, setEmailError] = useState('');
   const { showToast } = useAppStore();
   const { t } = useLanguage();
 
-  const handlePasswordReset = async () => {
+  const validateEmail = () => {
+    if (!email.trim()) {
+      setEmailError(t('emailRequired'));
+      return false;
+    }
     if (!isValidEmail(email)) {
-      showToast('Please enter a valid email address', 'error');
+      setEmailError(t('invalidEmail'));
+      return false;
+    }
+    setEmailError('');
+    return true;
+  };
+
+  const handlePasswordReset = async () => {
+    if (!validateEmail()) {
       return;
     }
 
@@ -37,9 +50,9 @@ export default function RecoveryScreen() {
       }
 
       setEmailSent(true);
-      showToast('Password reset email sent! Check your inbox.', 'success');
+      showToast(t('passwordResetEmailSent'), 'success');
     } catch (error) {
-      showToast('Failed to send reset email. Please try again.', 'error');
+      showToast(t('failedToSendResetEmail'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -143,17 +156,34 @@ export default function RecoveryScreen() {
               </Text>
 
               {/* Email Input */}
-              <StyledInput
-                icon="email"
-                label={t('emailAddress').toUpperCase()}
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder={t('emailAddress')}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    autoComplete="email"
-              />
+              <View style={{ marginBottom: theme.spacing.lg }}>
+                <StyledInput
+                  icon="email"
+                  label={t('emailAddress').toUpperCase()}
+                  value={email}
+                  hasError={!!emailError}
+                  onChangeText={(text) => {
+                    setEmail(text);
+                    setEmailError('');
+                  }}
+                  onBlur={validateEmail}
+                  placeholder={t('emailAddress')}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="email"
+                />
+                {emailError ? (
+                  <Text style={{
+                    fontSize: theme.typography.small.fontSize,
+                    color: theme.colors.status.error,
+                    marginTop: 4,
+                    marginLeft: theme.spacing.sm,
+                  }}>
+                    {emailError}
+                  </Text>
+                ) : null}
+              </View>
 
               {/* Reset Button */}
               <StyledButton
