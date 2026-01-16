@@ -23,27 +23,36 @@ export function Toast({
 }: ToastProps) {
   const insets = useSafeAreaInsets();
   const translateX = useRef(new Animated.Value(400)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
-  const progressAnim = useRef(new Animated.Value(1)).current;
+  const progressAnim = useRef(new Animated.Value(100)).current;
   const shimmerAnim = useRef(new Animated.Value(-1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   const [isPaused, setIsPaused] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
-  const startTimeRef = useRef<number>(0);
-  const remainingTimeRef = useRef<number>(duration);
-  const currentProgressRef = useRef<number>(1);
+  const progressAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
+  const pausedTimeRef = useRef<number>(0);
+  const elapsedTimeRef = useRef<number>(0);
 
   const handleDismiss = useCallback(() => {
     if (isLeaving) {
       return;
     }
+
+    // Stop progress animation immediately
+    if (progressAnimationRef.current) {
+      progressAnimationRef.current.stop();
+      progressAnimationRef.current = null;
+    }
+
     setIsLeaving(true);
 
+    // Fade out upward animation
     Animated.parallel([
-      Animated.timing(translateX, {
-        toValue: 400,
+      Animated.timing(translateY, {
+        toValue: -150,
         duration: 400,
         useNativeDriver: true,
       }),
@@ -57,38 +66,60 @@ export function Toast({
         duration: 400,
         useNativeDriver: true,
       }),
-    ]).start(() => {
-      onDismiss();
+    ]).start(({ finished }) => {
+      if (finished) {
+        onDismiss();
+      }
     });
-  }, [translateX, opacityAnim, scaleAnim, onDismiss, isLeaving]);
+  }, [translateY, opacityAnim, scaleAnim, onDismiss, isLeaving]);
 
-  // Pan responder for swipe gesture
+  // Pan responder for swipe gesture (swipe up to dismiss)
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 5,
+      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 5 || Math.abs(gestureState.dx) > 5,
       onPanResponderGrant: () => {
-        setIsPaused(true);
-        // Store current progress when pausing
-        remainingTimeRef.current = currentProgressRef.current * duration;
+        if (!isPaused) {
+          setIsPaused(true);
+          pausedTimeRef.current = Date.now();
+        }
       },
       onPanResponderMove: (_, gestureState) => {
-        if (gestureState.dx > 0) {
+        // Allow upward swipe
+        if (gestureState.dy < 0) {
+          translateY.setValue(gestureState.dy);
+        }
+        // Also allow left swipe for horizontal dismiss
+        if (gestureState.dx < 0) {
           translateX.setValue(gestureState.dx);
         }
       },
       onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dx > 100) {
+        // Check for upward swipe (primary)
+        if (gestureState.dy < -50 || gestureState.dx < -100) {
           handleDismiss();
         } else {
-          Animated.spring(translateX, {
-            toValue: 0,
-            useNativeDriver: true,
-            tension: 100,
-            friction: 8,
-          }).start();
-          setIsPaused(false);
-          startTimeRef.current = Date.now();
+          // Return to original position
+          Animated.parallel([
+            Animated.spring(translateY, {
+              toValue: 0,
+              useNativeDriver: true,
+              tension: 100,
+              friction: 8,
+            }),
+            Animated.spring(translateX, {
+              toValue: 0,
+              useNativeDriver: true,
+              tension: 100,
+              friction: 8,
+            }),
+          ]).start();
+
+          if (isPaused) {
+            const pauseDuration = Date.now() - pausedTimeRef.current;
+            elapsedTimeRef.current += pauseDuration;
+            setIsPaused(false);
+          }
         }
       },
     }),
@@ -96,20 +127,30 @@ export function Toast({
 
   useEffect(() => {
     if (visible) {
+      // Reset state for new toast
       setIsLeaving(false);
-      startTimeRef.current = Date.now();
-      remainingTimeRef.current = duration;
+      setIsPaused(false);
+      elapsedTimeRef.current = 0;
+      pausedTimeRef.current = 0;
 
-      // Slide in animation
+      // Reset animations
+      translateX.setValue(400);
+      translateY.setValue(0);
+      opacityAnim.setValue(0);
+      scaleAnim.setValue(0.95);
+      progressAnim.setValue(100);
+
+      // Slide in from right animation
       Animated.parallel([
-        Animated.timing(translateX, {
+        Animated.spring(translateX, {
           toValue: 0,
-          duration: 500,
           useNativeDriver: true,
+          tension: 80,
+          friction: 10,
         }),
         Animated.timing(opacityAnim, {
           toValue: 1,
-          duration: 500,
+          duration: 400,
           useNativeDriver: true,
         }),
         Animated.spring(scaleAnim, {
@@ -145,39 +186,68 @@ export function Toast({
         ]),
       ).start();
     }
-  }, [visible, duration, translateX, opacityAnim, scaleAnim, shimmerAnim, pulseAnim]);
 
-  // Progress countdown
+    return () => {
+      if (progressAnimationRef.current) {
+        progressAnimationRef.current.stop();
+      }
+    };
+  }, [visible, duration, translateX, translateY, opacityAnim, scaleAnim, shimmerAnim, pulseAnim, progressAnim]);
+
+  // Progress countdown with smooth pause/resume
   useEffect(() => {
-    if (visible && !isPaused) {
-      const currentValue = remainingTimeRef.current / duration;
-      progressAnim.setValue(currentValue);
-      currentProgressRef.current = currentValue;
-
-      const animation = Animated.timing(progressAnim, {
-        toValue: 0,
-        duration: remainingTimeRef.current,
-        useNativeDriver: false,
-      });
-
-      // Track progress
-      const listenerId = progressAnim.addListener(({ value }) => {
-        currentProgressRef.current = value;
-      });
-
-      animation.start(({ finished }) => {
-        if (finished) {
-          handleDismiss();
-        }
-      });
-
-      return () => {
-        progressAnim.removeListener(listenerId);
-        animation.stop();
-      };
+    if (!visible || isLeaving) {
+      return undefined;
     }
-    return undefined;
-  }, [visible, isPaused, handleDismiss, progressAnim, duration]);
+
+    if (isPaused) {
+      // Pause the animation
+      if (progressAnimationRef.current) {
+        progressAnimationRef.current.stop();
+        progressAnimationRef.current = null;
+      }
+      return undefined;
+    }
+
+    // Start or resume animation
+    const remainingTime = duration - elapsedTimeRef.current;
+
+    if (remainingTime <= 0) {
+      handleDismiss();
+      return undefined;
+    }
+
+    const startTime = Date.now();
+    const animation = Animated.timing(progressAnim, {
+      toValue: 0,
+      duration: remainingTime,
+      useNativeDriver: false,
+      easing: (t: number) => t, // Linear easing for smooth progress
+    });
+
+    progressAnimationRef.current = animation;
+
+    animation.start(({ finished }) => {
+      if (finished) {
+        elapsedTimeRef.current = duration;
+        // Call handleDismiss even if isLeaving is true
+        // handleDismiss has its own check to prevent double execution
+        handleDismiss();
+      } else {
+        // Track elapsed time when stopped
+        elapsedTimeRef.current += Date.now() - startTime;
+      }
+    });
+
+    return () => {
+      if (progressAnimationRef.current) {
+        const elapsed = Date.now() - startTime;
+        elapsedTimeRef.current += elapsed;
+        progressAnimationRef.current.stop();
+        progressAnimationRef.current = null;
+      }
+    };
+  }, [visible, isPaused, isLeaving, duration, progressAnim, handleDismiss]);
 
   const getToastStyles = () => {
     switch (type) {
@@ -231,7 +301,9 @@ export function Toast({
   const styles = getToastStyles();
   const Icon = styles.Icon;
 
-  if (!visible) {
+  // Keep component rendered during exit animation
+  // Only hide after both visible is false AND not currently animating out
+  if (!visible && !isLeaving) {
     return null;
   }
 
@@ -246,6 +318,7 @@ export function Toast({
         zIndex: 9999,
         transform: [
           { translateX },
+          { translateY },
           { scale: scaleAnim },
         ],
         opacity: opacityAnim,
@@ -430,7 +503,7 @@ export function Toast({
                 height: '100%',
                 backgroundColor: styles.progressColor,
                 width: progressAnim.interpolate({
-                  inputRange: [0, 1],
+                  inputRange: [0, 100],
                   outputRange: ['0%', '100%'],
                 }),
               }}

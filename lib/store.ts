@@ -1978,11 +1978,10 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     const toastDuration = duration || 5000;
 
-    const timeoutId = setTimeout(() => {
-      get().hideToast();
-    }, toastDuration);
+    // Don't set a timeout here - let the Toast component handle its own dismissal
+    // This allows the exit animation to play properly
 
-    set({ message, type, visible: true, description, duration: toastDuration, toastTimeoutId: timeoutId });
+    set({ message, type, visible: true, description, duration: toastDuration, toastTimeoutId: null });
   },
   hideToast: () => {
     const state = get();
