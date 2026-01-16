@@ -185,10 +185,10 @@ export function Toast({
         return {
           Icon: CheckCircle,
           iconColor: '#22c55e',
-          iconBgColor: 'rgba(34, 197, 94, 0.1)',
-          borderColor: 'rgba(34, 197, 94, 0.2)',
+          iconBgColor: 'rgba(34, 197, 94, 0.15)',
+          borderColor: 'rgba(34, 197, 94, 0.25)',
           gradientColors: ['#0e1512', '#0a110d'] as const,
-          shadowColor: 'rgba(34, 197, 94, 0.2)',
+          shadowColor: 'rgba(34, 197, 94, 0.3)',
           progressColor: '#22c55e',
           progressBg: 'rgba(34, 197, 94, 0.15)',
         };
@@ -196,10 +196,10 @@ export function Toast({
         return {
           Icon: XCircle,
           iconColor: '#ef4444',
-          iconBgColor: 'rgba(239, 68, 68, 0.1)',
-          borderColor: 'rgba(239, 68, 68, 0.2)',
+          iconBgColor: 'rgba(239, 68, 68, 0.15)',
+          borderColor: 'rgba(239, 68, 68, 0.25)',
           gradientColors: ['#1a0e0e', '#140a0a'] as const,
-          shadowColor: 'rgba(239, 68, 68, 0.2)',
+          shadowColor: 'rgba(239, 68, 68, 0.3)',
           progressColor: '#ef4444',
           progressBg: 'rgba(239, 68, 68, 0.15)',
         };
@@ -207,10 +207,10 @@ export function Toast({
         return {
           Icon: AlertTriangle,
           iconColor: '#eab308',
-          iconBgColor: 'rgba(234, 179, 8, 0.1)',
-          borderColor: 'rgba(234, 179, 8, 0.2)',
+          iconBgColor: 'rgba(234, 179, 8, 0.15)',
+          borderColor: 'rgba(234, 179, 8, 0.25)',
           gradientColors: ['#1a1810', '#14120c'] as const,
-          shadowColor: 'rgba(234, 179, 8, 0.2)',
+          shadowColor: 'rgba(234, 179, 8, 0.3)',
           progressColor: '#eab308',
           progressBg: 'rgba(234, 179, 8, 0.15)',
         };
@@ -218,10 +218,10 @@ export function Toast({
         return {
           Icon: CheckCircle,
           iconColor: '#3b82f6',
-          iconBgColor: 'rgba(59, 130, 246, 0.1)',
-          borderColor: 'rgba(59, 130, 246, 0.2)',
+          iconBgColor: 'rgba(59, 130, 246, 0.15)',
+          borderColor: 'rgba(59, 130, 246, 0.25)',
           gradientColors: ['#0e1419', '#0a0f14'] as const,
-          shadowColor: 'rgba(59, 130, 246, 0.2)',
+          shadowColor: 'rgba(59, 130, 246, 0.3)',
           progressColor: '#3b82f6',
           progressBg: 'rgba(59, 130, 246, 0.15)',
         };
@@ -251,25 +251,50 @@ export function Toast({
         opacity: opacityAnim,
       }}
     >
+      {/* Outer glow effect */}
       <View
         style={{
-          borderRadius: 16,
-          overflow: 'hidden',
-          borderWidth: 1,
-          borderColor: styles.borderColor,
-          ...Platform.select({
-            ios: {
-              shadowColor: styles.shadowColor,
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.3,
-              shadowRadius: 16,
-            },
-            android: {
-              elevation: 12,
-            },
-          }),
+          borderRadius: 18,
+          padding: 2,
+          backgroundColor: 'transparent',
         }}
       >
+        {/* Enhanced shadow container */}
+        <View
+          style={{
+            borderRadius: 16,
+            ...Platform.select({
+              ios: {
+                shadowColor: styles.iconColor,
+                shadowOffset: { width: 0, height: 12 },
+                shadowOpacity: 0.6,
+                shadowRadius: 28,
+              },
+              android: {
+                elevation: 24,
+              },
+            }),
+          }}
+        >
+          <View
+            style={{
+              borderRadius: 16,
+              overflow: 'hidden',
+              borderWidth: 1,
+              borderColor: styles.borderColor,
+              ...Platform.select({
+                ios: {
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: 0.7,
+                  shadowRadius: 32,
+                },
+                android: {
+                  elevation: 16,
+                },
+              }),
+            }}
+          >
         <LinearGradient
           colors={styles.gradientColors}
           start={{ x: 0, y: 0 }}
@@ -296,6 +321,26 @@ export function Toast({
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
               {/* Icon with background */}
               <View style={{ position: 'relative', marginTop: 2 }}>
+                {/* Icon shadow layer */}
+                <View
+                  style={{
+                    position: 'absolute',
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    ...Platform.select({
+                      ios: {
+                        shadowColor: styles.iconColor,
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.6,
+                        shadowRadius: 8,
+                      },
+                      android: {
+                        elevation: 8,
+                      },
+                    }),
+                  }}
+                />
                 <View
                   style={{
                     width: 40,
@@ -412,6 +457,8 @@ export function Toast({
             </Animated.View>
           </View>
         </LinearGradient>
+          </View>
+        </View>
       </View>
     </Animated.View>
   );
