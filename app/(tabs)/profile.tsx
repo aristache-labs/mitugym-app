@@ -65,7 +65,6 @@ interface Profile {
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const [emailNotifications, setEmailNotifications] = useState(false);
   const [servicesReminders, setServicesReminders] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -114,6 +113,8 @@ export default function ProfileScreen() {
     biometricAvailable,
     setBiometricEnabled,
     checkBiometricAvailability,
+    emailNotificationsEnabled,
+    setEmailNotificationsEnabled,
   } = useAppStore();
   const { language, setLanguage, t } = useLanguage();
 
@@ -600,8 +601,14 @@ export default function ProfileScreen() {
       title: t('emailNotifications'),
       icon: Mail,
       type: 'toggle',
-      value: emailNotifications,
-      onToggle: setEmailNotifications,
+      value: emailNotificationsEnabled,
+      onToggle: async (enabled: boolean) => {
+        await setEmailNotificationsEnabled(enabled);
+        showToast(
+          enabled ? t('emailNotificationsEnabled') : t('emailNotificationsDisabled'),
+          'success',
+        );
+      },
     },
     {
       id: 'reminders',

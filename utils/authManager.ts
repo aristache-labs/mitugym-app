@@ -82,7 +82,7 @@ class AuthManager {
               isAuthenticated: true,
               session: authSession,
             });
-            
+
             // Load real member profile from Supabase
             try {
               await useAppStore.getState().loadMemberProfile();
@@ -103,13 +103,14 @@ class AuthManager {
             try {
               await Promise.all([
                 useAppStore.getState().fetchAnnouncements(),
-                useAppStore.getState().fetchGymSchedule()
+                useAppStore.getState().fetchGymSchedule(),
               ]);
               console.log('AuthManager: Announcements and gym schedule loaded successfully');
             } catch (error) {
               console.error('AuthManager: Failed to load announcements/schedule:', error);
             }
-            
+
+
             this.isProcessing = false;
           }, 300);
         } else {
@@ -128,6 +129,8 @@ class AuthManager {
               // Clear push notification state so it loads fresh for next user
               pushNotificationsEnabled: false,
               pushToken: null,
+              // Clear email notification state so it loads fresh for next user
+              emailNotificationsEnabled: false,
             });
             this.isProcessing = false;
             console.log('AuthManager: Sign out state applied successfully');

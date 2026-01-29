@@ -168,7 +168,12 @@ interface BiometricState {
   checkBiometricAvailability: () => Promise<void>;
 }
 
-type AppState = AuthState & ServiceState & QRState & CheckinState & AnnouncementState & GymScheduleState & MembershipState & NotificationState & ToastState & LanguageState & PushNotificationState & BiometricState;
+interface EmailNotificationState {
+  emailNotificationsEnabled: boolean;
+  setEmailNotificationsEnabled: (enabled: boolean) => Promise<void>;
+}
+
+type AppState = AuthState & ServiceState & QRState & CheckinState & AnnouncementState & GymScheduleState & MembershipState & NotificationState & ToastState & LanguageState & PushNotificationState & BiometricState & EmailNotificationState;
 
 // Helper function to map notification types to toast types
 const getToastTypeFromNotification = (notificationType: string): 'success' | 'error' | 'warning' | 'info' => {
@@ -528,6 +533,11 @@ export const useAppStore = create<AppState>((set, get) => ({
         const pushNotifEnabled = data.push_notifications_enabled !== false; // Default to true
         set({ pushNotificationsEnabled: pushNotifEnabled });
         console.log('Push notifications preference loaded:', pushNotifEnabled);
+
+        // Load email notification preference from database
+        const emailNotifEnabled = data.email_notifications_enabled !== false; // Default to true
+        set({ emailNotificationsEnabled: emailNotifEnabled });
+        console.log('Email notifications preference loaded:', emailNotifEnabled);
 
         // Fetch notifications and subscribe to real-time updates
         await get().fetchNotifications();
@@ -2275,6 +2285,37 @@ export const useAppStore = create<AppState>((set, get) => ({
         biometricAvailable: false,
         biometricEnabled: false,
       });
+    }
+  },
+
+  // Email Notification state
+  emailNotificationsEnabled: false,
+
+  setEmailNotificationsEnabled: async (enabled: boolean) => {
+    try {
+      const session = get().session;
+      if (!session?.user?.id) {
+        console.log('No user session, cannot update email notification preference');
+        return;
+      }
+
+      // Update user's email notification preference in database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ email_notifications_enabled: enabled })
+        .eq('id', session.user.id);
+
+      if (updateError) {
+        console.error('Error updating email notification preference:', updateError);
+        get().showToast('Failed to update preference', 'error');
+        return;
+      }
+
+      // Update local state
+      set({ emailNotificationsEnabled: enabled });
+      console.log('Email notifications preference updated:', enabled);
+    } catch (error) {
+      console.error('Error in setEmailNotificationsEnabled:', error);
     }
   },
 }));
