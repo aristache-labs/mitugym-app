@@ -8,14 +8,6 @@ const ASYNC_STORAGE_KEYS = {
   USER_EMAIL: '@mitugym_user_email',
 } as const;
 
-// Storage keys for SecureStore (must use alphanumeric, ".", "-", and "_" only)
-const SECURE_STORE_KEYS = {
-  BIOMETRIC_ENABLED: 'mitugym_biometric_enabled',
-  BIOMETRIC_EMAIL: 'mitugym_biometric_email',
-  BIOMETRIC_PASSWORD: 'mitugym_biometric_password',
-  BIOMETRIC_LAST_FAIL: 'mitugym_biometric_last_fail',
-} as const;
-
 // Interface for stored auth data
 interface StoredAuthData {
   email: string;
@@ -176,23 +168,33 @@ export class SecureStorage {
     }
   }
 
-  // ==================== Biometric Authentication Methods ====================
+  // ==================== Biometric Authentication Methods (Per-User) ====================
 
   /**
-   * Store biometric credentials securely
+   * Generate user-specific key for secure storage
+   */
+  private static getUserKey(userId: string, suffix: string): string {
+    return `${suffix}_${userId}`;
+  }
+
+  /**
+   * Store biometric credentials securely for a specific user
    * Uses expo-secure-store for encrypted storage
    */
-  static async storeBiometricCredentials(email: string, password: string): Promise<void> {
+  static async storeBiometricCredentials(userId: string, email: string, password: string): Promise<void> {
     try {
-      if (!email || !password) {
-        throw new Error('Invalid email or password provided');
+      if (!userId || !email || !password) {
+        throw new Error('Invalid userId, email or password provided');
       }
 
-      // Store email and password separately in SecureStore
-      await SecureStore.setItemAsync(SECURE_STORE_KEYS.BIOMETRIC_EMAIL, email.toLowerCase().trim());
-      await SecureStore.setItemAsync(SECURE_STORE_KEYS.BIOMETRIC_PASSWORD, password);
+      // Store email and password per user in SecureStore
+      const emailKey = this.getUserKey(userId, 'biometric_email');
+      const passwordKey = this.getUserKey(userId, 'biometric_password');
 
-      console.log('SecureStorage: Biometric credentials stored successfully');
+      await SecureStore.setItemAsync(emailKey, email.toLowerCase().trim());
+      await SecureStore.setItemAsync(passwordKey, password);
+
+      console.log('SecureStorage: Biometric credentials stored successfully for user:', userId);
     } catch (error) {
       console.error('SecureStorage: Failed to store biometric credentials:', error);
       throw error;
@@ -200,20 +202,27 @@ export class SecureStorage {
   }
 
   /**
-   * Retrieve stored biometric credentials
+   * Retrieve stored biometric credentials for a specific user
    * Returns null if no credentials are stored
    */
-  static async getBiometricCredentials(): Promise<{ email: string; password: string } | null> {
+  static async getBiometricCredentials(userId: string): Promise<{ email: string; password: string } | null> {
     try {
-      const email = await SecureStore.getItemAsync(SECURE_STORE_KEYS.BIOMETRIC_EMAIL);
-      const password = await SecureStore.getItemAsync(SECURE_STORE_KEYS.BIOMETRIC_PASSWORD);
-
-      if (!email || !password) {
-        console.log('SecureStorage: No biometric credentials found');
+      if (!userId) {
         return null;
       }
 
-      console.log('SecureStorage: Biometric credentials retrieved successfully');
+      const emailKey = this.getUserKey(userId, 'biometric_email');
+      const passwordKey = this.getUserKey(userId, 'biometric_password');
+
+      const email = await SecureStore.getItemAsync(emailKey);
+      const password = await SecureStore.getItemAsync(passwordKey);
+
+      if (!email || !password) {
+        console.log('SecureStorage: No biometric credentials found for user:', userId);
+        return null;
+      }
+
+      console.log('SecureStorage: Biometric credentials retrieved successfully for user:', userId);
       return { email, password };
     } catch (error) {
       console.error('SecureStorage: Failed to retrieve biometric credentials:', error);
@@ -222,25 +231,39 @@ export class SecureStorage {
   }
 
   /**
-   * Clear stored biometric credentials
+   * Clear stored biometric credentials for a specific user
    */
-  static async clearBiometricCredentials(): Promise<void> {
+  static async clearBiometricCredentials(userId: string): Promise<void> {
     try {
-      await SecureStore.deleteItemAsync(SECURE_STORE_KEYS.BIOMETRIC_EMAIL);
-      await SecureStore.deleteItemAsync(SECURE_STORE_KEYS.BIOMETRIC_PASSWORD);
-      console.log('SecureStorage: Biometric credentials cleared successfully');
+      if (!userId) {
+        return;
+      }
+
+      const emailKey = this.getUserKey(userId, 'biometric_email');
+      const passwordKey = this.getUserKey(userId, 'biometric_password');
+
+      await SecureStore.deleteItemAsync(emailKey);
+      await SecureStore.deleteItemAsync(passwordKey);
+      console.log('SecureStorage: Biometric credentials cleared successfully for user:', userId);
     } catch (error) {
       console.error('SecureStorage: Failed to clear biometric credentials:', error);
     }
   }
 
   /**
-   * Check if biometric credentials are stored
+   * Check if biometric credentials are stored for a specific user
    */
-  static async hasBiometricCredentials(): Promise<boolean> {
+  static async hasBiometricCredentials(userId: string): Promise<boolean> {
     try {
-      const email = await SecureStore.getItemAsync(SECURE_STORE_KEYS.BIOMETRIC_EMAIL);
-      const password = await SecureStore.getItemAsync(SECURE_STORE_KEYS.BIOMETRIC_PASSWORD);
+      if (!userId) {
+        return false;
+      }
+
+      const emailKey = this.getUserKey(userId, 'biometric_email');
+      const passwordKey = this.getUserKey(userId, 'biometric_password');
+
+      const email = await SecureStore.getItemAsync(emailKey);
+      const password = await SecureStore.getItemAsync(passwordKey);
       return email !== null && password !== null;
     } catch (error) {
       console.error('SecureStorage: Failed to check biometric credentials:', error);
@@ -249,12 +272,17 @@ export class SecureStorage {
   }
 
   /**
-   * Set biometric authentication enabled status
+   * Set biometric authentication enabled status for a specific user
    */
-  static async setBiometricEnabled(enabled: boolean): Promise<void> {
+  static async setBiometricEnabled(userId: string, enabled: boolean): Promise<void> {
     try {
-      await SecureStore.setItemAsync(SECURE_STORE_KEYS.BIOMETRIC_ENABLED, enabled.toString());
-      console.log('SecureStorage: Biometric enabled status set to:', enabled);
+      if (!userId) {
+        throw new Error('Invalid userId provided');
+      }
+
+      const key = this.getUserKey(userId, 'biometric_enabled');
+      await SecureStore.setItemAsync(key, enabled.toString());
+      console.log('SecureStorage: Biometric enabled status set to:', enabled, 'for user:', userId);
     } catch (error) {
       console.error('SecureStorage: Failed to set biometric enabled status:', error);
       throw error;
@@ -262,11 +290,16 @@ export class SecureStorage {
   }
 
   /**
-   * Check if biometric authentication is enabled
+   * Check if biometric authentication is enabled for a specific user
    */
-  static async isBiometricEnabled(): Promise<boolean> {
+  static async isBiometricEnabled(userId: string): Promise<boolean> {
     try {
-      const enabled = await SecureStore.getItemAsync(SECURE_STORE_KEYS.BIOMETRIC_ENABLED);
+      if (!userId) {
+        return false;
+      }
+
+      const key = this.getUserKey(userId, 'biometric_enabled');
+      const enabled = await SecureStore.getItemAsync(key);
       return enabled === 'true';
     } catch (error) {
       console.error('SecureStorage: Failed to check biometric enabled status:', error);
@@ -275,22 +308,55 @@ export class SecureStorage {
   }
 
   /**
-   * Set the last biometric authentication failure timestamp
+   * Store the last userId that used biometrics (for UX convenience)
    */
-  static async setLastBiometricFailTime(timestamp: number): Promise<void> {
+  static async setLastBiometricUserId(userId: string): Promise<void> {
     try {
-      await SecureStore.setItemAsync(SECURE_STORE_KEYS.BIOMETRIC_LAST_FAIL, timestamp.toString());
+      await SecureStore.setItemAsync('biometric_last_user', userId);
+    } catch (error) {
+      console.error('SecureStorage: Failed to set last biometric user:', error);
+    }
+  }
+
+  /**
+   * Get the last userId that used biometrics
+   */
+  static async getLastBiometricUserId(): Promise<string | null> {
+    try {
+      return await SecureStore.getItemAsync('biometric_last_user');
+    } catch (error) {
+      console.error('SecureStorage: Failed to get last biometric user:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Set the last biometric authentication failure timestamp for a specific user
+   */
+  static async setLastBiometricFailTime(userId: string, timestamp: number): Promise<void> {
+    try {
+      if (!userId) {
+        return;
+      }
+
+      const key = this.getUserKey(userId, 'biometric_last_fail');
+      await SecureStore.setItemAsync(key, timestamp.toString());
     } catch (error) {
       console.error('SecureStorage: Failed to set last biometric fail time:', error);
     }
   }
 
   /**
-   * Get the last biometric authentication failure timestamp
+   * Get the last biometric authentication failure timestamp for a specific user
    */
-  static async getLastBiometricFailTime(): Promise<number | null> {
+  static async getLastBiometricFailTime(userId: string): Promise<number | null> {
     try {
-      const timestamp = await SecureStore.getItemAsync(SECURE_STORE_KEYS.BIOMETRIC_LAST_FAIL);
+      if (!userId) {
+        return null;
+      }
+
+      const key = this.getUserKey(userId, 'biometric_last_fail');
+      const timestamp = await SecureStore.getItemAsync(key);
       return timestamp ? parseInt(timestamp, 10) : null;
     } catch (error) {
       console.error('SecureStorage: Failed to get last biometric fail time:', error);
@@ -299,25 +365,37 @@ export class SecureStorage {
   }
 
   /**
-   * Clear the last biometric authentication failure timestamp
+   * Clear the last biometric authentication failure timestamp for a specific user
    */
-  static async clearLastBiometricFailTime(): Promise<void> {
+  static async clearLastBiometricFailTime(userId: string): Promise<void> {
     try {
-      await SecureStore.deleteItemAsync(SECURE_STORE_KEYS.BIOMETRIC_LAST_FAIL);
+      if (!userId) {
+        return;
+      }
+
+      const key = this.getUserKey(userId, 'biometric_last_fail');
+      await SecureStore.deleteItemAsync(key);
     } catch (error) {
       console.error('SecureStorage: Failed to clear last biometric fail time:', error);
     }
   }
 
   /**
-   * Clear all biometric-related data (credentials + preferences)
+   * Clear all biometric-related data for a specific user (credentials + preferences)
    */
-  static async clearAllBiometricData(): Promise<void> {
+  static async clearAllBiometricData(userId: string): Promise<void> {
     try {
-      await this.clearBiometricCredentials();
-      await SecureStore.deleteItemAsync(SECURE_STORE_KEYS.BIOMETRIC_ENABLED);
-      await this.clearLastBiometricFailTime();
-      console.log('SecureStorage: All biometric data cleared successfully');
+      if (!userId) {
+        return;
+      }
+
+      await this.clearBiometricCredentials(userId);
+
+      const enabledKey = this.getUserKey(userId, 'biometric_enabled');
+      await SecureStore.deleteItemAsync(enabledKey);
+
+      await this.clearLastBiometricFailTime(userId);
+      console.log('SecureStorage: All biometric data cleared successfully for user:', userId);
     } catch (error) {
       console.error('SecureStorage: Failed to clear all biometric data:', error);
     }

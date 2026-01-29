@@ -281,12 +281,13 @@ export const useAppStore = create<AppState>((set, get) => ({
           }
         }
 
-        // Store biometric credentials if biometric is enabled
-        const biometricEnabled = await SecureStorage.isBiometricEnabled();
+        // Store biometric credentials if biometric is enabled for this user
+        const userId = data.session.user.id;
+        const biometricEnabled = await SecureStorage.isBiometricEnabled(userId);
         if (biometricEnabled) {
           try {
-            await SecureStorage.storeBiometricCredentials(email, password);
-            console.log('Biometric credentials stored successfully');
+            await SecureStorage.storeBiometricCredentials(userId, email, password);
+            console.log('Biometric credentials stored successfully for user:', userId);
           } catch (storageError) {
             console.error('Failed to store biometric credentials:', storageError);
             // Don't fail the login if storage fails
@@ -359,15 +360,20 @@ export const useAppStore = create<AppState>((set, get) => ({
       await SecureStorage.clearRememberMeData();
       console.log('Remember me data cleared successfully');
 
-      // Only clear biometric credentials if biometric is NOT enabled
+      // Only clear biometric credentials if biometric is NOT enabled for this user
       // If enabled, keep credentials for biometric login on next session
-      const biometricEnabled = await SecureStorage.isBiometricEnabled();
-      if (!biometricEnabled) {
-        console.log('Clearing biometric credentials...');
-        await SecureStorage.clearBiometricCredentials();
-        console.log('Biometric credentials cleared successfully');
-      } else {
-        console.log('Biometric enabled - keeping credentials for next login');
+      const currentState = get();
+      const userId = currentState.session?.user?.id;
+
+      if (userId) {
+        const biometricEnabled = await SecureStorage.isBiometricEnabled(userId);
+        if (!biometricEnabled) {
+          console.log('Clearing biometric credentials for user:', userId);
+          await SecureStorage.clearBiometricCredentials(userId);
+          console.log('Biometric credentials cleared successfully');
+        } else {
+          console.log('Biometric enabled - keeping credentials for next login');
+        }
       }
 
       console.log('Signing out from Supabase...');
@@ -2218,6 +2224,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         return;
       }
 
+      const userId = session.user.id;
+
       if (enabled) {
         // Check if biometric is available
         const available = await isBiometricAvailable();
@@ -2229,15 +2237,16 @@ export const useAppStore = create<AppState>((set, get) => ({
 
         // Note: The actual credential storage and biometric prompt
         // will be handled in the profile screen when user toggles the switch
-        await SecureStorage.setBiometricEnabled(true);
+        await SecureStorage.setBiometricEnabled(userId, true);
+        await SecureStorage.setLastBiometricUserId(userId);
         set({ biometricEnabled: true });
-        console.log('Biometric authentication enabled');
+        console.log('Biometric authentication enabled for user:', userId);
       } else {
-        // Disable biometric and clear stored credentials
-        await SecureStorage.setBiometricEnabled(false);
-        await SecureStorage.clearBiometricCredentials();
+        // Disable biometric and clear stored credentials for this user
+        await SecureStorage.setBiometricEnabled(userId, false);
+        await SecureStorage.clearBiometricCredentials(userId);
         set({ biometricEnabled: false });
-        console.log('Biometric authentication disabled');
+        console.log('Biometric authentication disabled for user:', userId);
       }
     } catch (error) {
       console.error('Error setting biometric enabled:', error);
@@ -2248,8 +2257,11 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   checkBiometricAvailability: async () => {
     try {
+      const currentState = get();
+      const userId = currentState.session?.user?.id;
+
       const available = await isBiometricAvailable();
-      const enabled = await SecureStorage.isBiometricEnabled();
+      const enabled = userId ? await SecureStorage.isBiometricEnabled(userId) : false;
 
       set({
         biometricAvailable: available,

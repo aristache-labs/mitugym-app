@@ -147,9 +147,13 @@ export async function authenticateWithBiometrics(
  * Check if biometric authentication should be prompted
  * Takes into account if it's enabled, available, and not recently failed
  */
-export async function shouldPromptBiometric(): Promise<boolean> {
+export async function shouldPromptBiometric(userId: string): Promise<boolean> {
   try {
-    const enabled = await SecureStorage.isBiometricEnabled();
+    if (!userId) {
+      return false;
+    }
+
+    const enabled = await SecureStorage.isBiometricEnabled(userId);
     if (!enabled) {
       return false;
     }
@@ -159,13 +163,13 @@ export async function shouldPromptBiometric(): Promise<boolean> {
       return false;
     }
 
-    const hasCredentials = await SecureStorage.hasBiometricCredentials();
+    const hasCredentials = await SecureStorage.hasBiometricCredentials(userId);
     if (!hasCredentials) {
       return false;
     }
 
-    // Check if authentication failed recently (within last 5 minutes)
-    const lastFailed = await SecureStorage.getLastBiometricFailTime();
+    // Check if authentication failed recently (within last 5 minutes) for this user
+    const lastFailed = await SecureStorage.getLastBiometricFailTime(userId);
     if (lastFailed) {
       const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
       if (lastFailed > fiveMinutesAgo) {
@@ -182,22 +186,28 @@ export async function shouldPromptBiometric(): Promise<boolean> {
 }
 
 /**
- * Record a failed biometric authentication attempt
+ * Record a failed biometric authentication attempt for a specific user
  */
-export async function recordBiometricFailure(): Promise<void> {
+export async function recordBiometricFailure(userId: string): Promise<void> {
   try {
-    await SecureStorage.setLastBiometricFailTime(Date.now());
+    if (!userId) {
+      return;
+    }
+    await SecureStorage.setLastBiometricFailTime(userId, Date.now());
   } catch (error) {
     console.error('BiometricAuth: Error recording failure:', error);
   }
 }
 
 /**
- * Clear the last biometric failure timestamp
+ * Clear the last biometric failure timestamp for a specific user
  */
-export async function clearBiometricFailure(): Promise<void> {
+export async function clearBiometricFailure(userId: string): Promise<void> {
   try {
-    await SecureStorage.clearLastBiometricFailTime();
+    if (!userId) {
+      return;
+    }
+    await SecureStorage.clearLastBiometricFailTime(userId);
   } catch (error) {
     console.error('BiometricAuth: Error clearing failure:', error);
   }

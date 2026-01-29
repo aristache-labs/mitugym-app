@@ -546,16 +546,19 @@ export default function ProfileScreen() {
       // Enable biometric - credentials will be stored on next login
       await setBiometricEnabled(true);
 
-      // Check if user has already stored credentials
-      const hasCredentials = await SecureStorage.hasBiometricCredentials();
+      // Check if this user has already stored credentials
+      const userId = session?.user?.id;
+      if (userId) {
+        const hasCredentials = await SecureStorage.hasBiometricCredentials(userId);
 
-      if (!hasCredentials) {
-        // First time enabling - need to login with password once
-        Alert.alert(
-          t('biometricAuth'),
-          'Biometric authentication enabled. Please log out and log in with your password once to complete the setup. Your credentials will be securely stored for future biometric logins.',
-          [{ text: t('ok') }],
-        );
+        if (!hasCredentials) {
+          // First time enabling - need to login with password once
+          Alert.alert(
+            t('biometricAuth'),
+            'Biometric authentication enabled. Please log out and log in with your password once to complete the setup. Your credentials will be securely stored for future biometric logins.',
+            [{ text: t('ok') }],
+          );
+        }
       }
 
       showToast(t('biometricEnabled'), 'success');

@@ -65,17 +65,25 @@ export default function LoginScreen() {
       setIsLoading(true);
       console.log('Attempting biometric login...');
 
+      // Get the last user who used biometrics on this device
+      const lastUserId = await SecureStorage.getLastBiometricUserId();
+      if (!lastUserId) {
+        console.log('No biometric user found on this device');
+        showToast(t('biometricFailed'), 'error');
+        return;
+      }
+
       // Authenticate with biometrics
       const result = await authenticateWithBiometrics(t('biometricPrompt'));
 
       if (result.success) {
-        // Get stored credentials
-        const credentials = await SecureStorage.getBiometricCredentials();
+        // Get stored credentials for this user
+        const credentials = await SecureStorage.getBiometricCredentials(lastUserId);
 
         if (!credentials) {
-          console.log('No biometric credentials found');
+          console.log('No biometric credentials found for user:', lastUserId);
           showToast(t('biometricFailed'), 'error');
-          await recordBiometricFailure();
+          await recordBiometricFailure(lastUserId);
           return;
         }
 
@@ -84,11 +92,11 @@ export default function LoginScreen() {
         await loginWithSupabase(credentials.email, credentials.password, false);
 
         // Clear any previous failure records on success
-        await clearBiometricFailure();
+        await clearBiometricFailure(lastUserId);
       } else {
         // User cancelled or authentication failed
         console.log('Biometric authentication failed:', result.error);
-        await recordBiometricFailure();
+        await recordBiometricFailure(lastUserId);
 
         // Don't show error toast for user cancellation
         if (result.error && !result.error.includes('cancel')) {
@@ -97,7 +105,10 @@ export default function LoginScreen() {
       }
     } catch (error: any) {
       console.error('Biometric login error:', error);
-      await recordBiometricFailure();
+      const lastUserId = await SecureStorage.getLastBiometricUserId();
+      if (lastUserId) {
+        await recordBiometricFailure(lastUserId);
+      }
       showToast(t('biometricFailed'), 'error');
     } finally {
       setIsLoading(false);
@@ -111,10 +122,18 @@ export default function LoginScreen() {
         // Check if biometric is available for manual use
         const typeName = await getBiometricTypeName();
         setBiometricType(typeName);
-        const enabled = await SecureStorage.isBiometricEnabled();
-        const hasCredentials = await SecureStorage.hasBiometricCredentials();
-        console.log('Biometric check - enabled:', enabled, 'hasCredentials:', hasCredentials);
-        setBiometricAvailable(enabled && hasCredentials);
+
+        // Get the last user who used biometrics on this device
+        const lastUserId = await SecureStorage.getLastBiometricUserId();
+        if (lastUserId) {
+          const enabled = await SecureStorage.isBiometricEnabled(lastUserId);
+          const hasCredentials = await SecureStorage.hasBiometricCredentials(lastUserId);
+          console.log('Biometric check for last user:', lastUserId, '- enabled:', enabled, 'hasCredentials:', hasCredentials);
+          setBiometricAvailable(enabled && hasCredentials);
+        } else {
+          console.log('No previous biometric user found');
+          setBiometricAvailable(false);
+        }
       } catch (error) {
         console.log('Failed to initialize biometric:', error);
       }
