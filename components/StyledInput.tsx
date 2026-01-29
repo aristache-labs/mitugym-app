@@ -101,12 +101,12 @@ export const StyledInput: React.FC<StyledInputProps> = ({
             styles.label,
             {
               opacity: labelOpacity,
-              color: animatedValue.interpolate({
-                inputRange: [0, 1],
-                outputRange: hasError
-                  ? ['rgba(239, 68, 68, 0.8)', '#ef4444'] // Red for errors
-                  : ['rgba(255, 255, 255, 0.6)', '#00d4d4'], // Cyan for normal
-              }),
+              color: hasError
+                ? '#ef4444' // Always red when there's an error
+                : animatedValue.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['rgba(255, 255, 255, 0.6)', '#00d4d4'], // Cyan for normal
+                  }),
             },
           ]}
         >

@@ -30,9 +30,11 @@ export default function LoginScreen() {
   const { loginWithSupabase, isAuthenticated, showToast } = useAppStore();
   const { t } = useLanguage();
 
-  const validateEmail = () => {
+  const validateEmail = (showEmptyError = true) => {
     if (!email.trim()) {
-      setEmailError(t('emailRequired'));
+      if (showEmptyError) {
+        setEmailError(t('emailRequired'));
+      }
       return false;
     }
     if (!isValidEmail(email)) {
@@ -43,9 +45,11 @@ export default function LoginScreen() {
     return true;
   };
 
-  const validatePassword = () => {
+  const validatePassword = (showEmptyError = true) => {
     if (!password) {
-      setPasswordError(t('passwordRequired'));
+      if (showEmptyError) {
+        setPasswordError(t('passwordRequired'));
+      }
       return false;
     }
     if (password.length < 6) {
@@ -181,19 +185,19 @@ export default function LoginScreen() {
           {/* Brand */}
           <View style={{
             alignItems: 'center',
-            marginBottom: theme.spacing.md,
+            marginBottom: theme.spacing.sm,
           }}>
             <Image
               source={require('../../assets/logo.png')}
               style={{
-                width: 120,
-                height: 120,
-                marginBottom: theme.spacing.sm,
+                width: 100,
+                height: 100,
+                marginBottom: theme.spacing.xs,
               }}
               resizeMode="contain"
             />
             <Text style={{
-              fontSize: theme.typography.body.fontSize,
+              fontSize: theme.typography.small.fontSize,
               color: theme.colors.text.secondary,
               textAlign: 'center',
             }}>
@@ -205,8 +209,8 @@ export default function LoginScreen() {
           <View style={{
             backgroundColor: theme.colors.background.surface,
             borderRadius: theme.borderRadius.xl,
-            padding: theme.spacing.xl,
-            marginBottom: theme.spacing.xl,
+            padding: theme.spacing.lg,
+            marginBottom: theme.spacing.md,
             borderWidth: 1,
             borderColor: 'rgba(77, 212, 212, 0.2)',
             ...theme.shadows.medium,
@@ -231,43 +235,47 @@ export default function LoginScreen() {
               </Text>
             </View>
 
-            {/* Biometric Login Button - Prominent at top */}
+            {/* Biometric Login Button - Compact at top */}
             {biometricAvailable && !isLoading && (
               <>
-                <TouchableOpacity
-                  onPress={handleBiometricLogin}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    paddingVertical: theme.spacing.md + 2,
-                    paddingHorizontal: theme.spacing.lg,
-                    borderRadius: theme.borderRadius.lg,
-                    backgroundColor: theme.colors.primary.DEFAULT,
-                    marginBottom: theme.spacing.md,
-                    ...theme.shadows.medium,
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Fingerprint
-                    size={22}
-                    color="#ffffff"
-                    style={{ marginRight: theme.spacing.sm }}
-                  />
-                  <Text style={{
-                    fontSize: theme.typography.body.fontSize,
-                    color: '#ffffff',
-                    fontWeight: '600',
-                  }}>
-                    {t('useBiometric').replace('{type}', biometricType)}
-                  </Text>
-                </TouchableOpacity>
+                <View style={{
+                  alignItems: 'center',
+                  marginBottom: theme.spacing.sm,
+                }}>
+                  <TouchableOpacity
+                    onPress={handleBiometricLogin}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingVertical: theme.spacing.sm + 2,
+                      paddingHorizontal: theme.spacing.lg,
+                      borderRadius: theme.borderRadius.md,
+                      backgroundColor: theme.colors.primary.DEFAULT,
+                      ...theme.shadows.medium,
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Fingerprint
+                      size={18}
+                      color="#ffffff"
+                      style={{ marginRight: theme.spacing.xs }}
+                    />
+                    <Text style={{
+                      fontSize: theme.typography.small.fontSize,
+                      color: '#ffffff',
+                      fontWeight: '600',
+                    }}>
+                      {t('useBiometric').replace('{type}', biometricType)}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
 
                 {/* Divider */}
                 <View style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  marginVertical: theme.spacing.lg,
+                  marginVertical: theme.spacing.md,
                 }}>
                   <View style={{
                     flex: 1,
@@ -277,7 +285,7 @@ export default function LoginScreen() {
                   <Text style={{
                     fontSize: theme.typography.caption.fontSize,
                     color: theme.colors.text.secondary,
-                    marginHorizontal: theme.spacing.md,
+                    marginHorizontal: theme.spacing.sm,
                     fontWeight: '500',
                   }}>
                     {t('or')}
@@ -300,10 +308,18 @@ export default function LoginScreen() {
                 hasError={!!emailError}
                 onChangeText={(text) => {
                   setEmail(text);
-                  setEmailError('');
+                  // Clear error immediately when user types
+                  if (emailError) {
+                    setEmailError('');
+                  }
                   setLoginError('');
                 }}
-                onBlur={validateEmail}
+                onBlur={() => {
+                  // Only validate if field has content or if it was previously filled
+                  if (email.trim()) {
+                    validateEmail();
+                  }
+                }}
                 placeholder={t('emailAddress')}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -331,10 +347,18 @@ export default function LoginScreen() {
                 hasError={!!passwordError}
                 onChangeText={(text) => {
                   setPassword(text);
-                  setPasswordError('');
+                  // Clear error immediately when user types
+                  if (passwordError) {
+                    setPasswordError('');
+                  }
                   setLoginError('');
                 }}
-                onBlur={validatePassword}
+                onBlur={() => {
+                  // Only validate if field has content or if it was previously filled
+                  if (password.trim()) {
+                    validatePassword();
+                  }
+                }}
                 placeholder={t('password')}
                 isPassword={true}
                 autoCapitalize="none"
@@ -443,8 +467,8 @@ export default function LoginScreen() {
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
-            marginTop: theme.spacing.xs,
-            marginBottom: theme.spacing.md,
+            marginTop: 0,
+            marginBottom: theme.spacing.sm,
             paddingHorizontal: theme.spacing.lg,
           }}>
             <View style={{
@@ -472,7 +496,7 @@ export default function LoginScreen() {
             flexDirection: 'row',
             justifyContent: 'space-between',
             paddingHorizontal: theme.spacing.lg,
-            marginBottom: theme.spacing.xl,
+            marginBottom: theme.spacing.md,
             gap: theme.spacing.md,
           }}>
             {/* Google Login Button */}
