@@ -2,6 +2,7 @@
 import React from 'react';
 import { Tabs, useRouter, useSegments } from 'expo-router';
 import { Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
 import {
   Home,
   QrCode,
@@ -14,6 +15,7 @@ import { theme } from '../../lib/theme';
 import { FloatingQRButton } from '../../components/FloatingQRButton';
 import { shouldShowFloatingQR } from '../../lib/navigation';
 import { useLanguage } from '../../lib/LanguageContext';
+import { setupNotificationListeners, setBadgeCount } from '../../utils/pushNotifications';
 
 interface TabIconProps {
   name: string;
@@ -51,6 +53,7 @@ export default function TabLayout() {
   const [localAuthState, setLocalAuthState] = React.useState(true); // Start optimistic
   const hasCheckedAuth = React.useRef(false);
   const hasSubscribedToNotifications = React.useRef(false);
+  const notificationListenerCleanup = React.useRef<(() => void) | null>(null);
 
   // Define tabBarIcon function outside render to avoid creating new component instances
   const renderTabBarIcon = React.useCallback((props: any, routeName: string) => (
@@ -104,6 +107,45 @@ export default function TabLayout() {
       console.log('TabLayout: Subscribing to notifications');
       hasSubscribedToNotifications.current = true;
       useAppStore.getState().subscribeToNotifications();
+
+      // Setup push notification handlers
+      const handleNotificationReceived = (notification: Notifications.Notification) => {
+        console.log('Notification received in foreground:', notification);
+        // Update badge count
+        const currentUnreadCount = useAppStore.getState().unreadCount;
+        setBadgeCount(currentUnreadCount + 1);
+      };
+
+      const handleNotificationTapped = (response: Notifications.NotificationResponse) => {
+        console.log('Notification tapped:', response);
+        const notificationData = response.notification.request.content.data;
+        const notificationType = notificationData?.type as string;
+
+        // Navigate based on notification type
+        if (notificationType) {
+          if (notificationType.includes('service') || notificationType.includes('session')) {
+            router.push('/(tabs)/services' as any);
+          } else if (notificationType.includes('membership')) {
+            router.push('/(tabs)/membership' as any);
+          } else if (notificationType.includes('profile')) {
+            router.push('/(tabs)/profile' as any);
+          } else if (notificationType.includes('announcement')) {
+            router.push('/(tabs)/index' as any);
+          }
+        }
+
+        // Update badge count
+        const currentUnreadCount = useAppStore.getState().unreadCount;
+        if (currentUnreadCount > 0) {
+          setBadgeCount(currentUnreadCount - 1);
+        }
+      };
+
+      // Setup listeners
+      notificationListenerCleanup.current = setupNotificationListeners(
+        handleNotificationReceived,
+        handleNotificationTapped,
+      );
     }
 
     // Set up a simple polling mechanism to check auth state changes
@@ -166,6 +208,11 @@ export default function TabLayout() {
     return () => {
       isActive = false;
       globalTabLayoutInitialized = false;
+      // Clean up notification listeners
+      if (notificationListenerCleanup.current) {
+        notificationListenerCleanup.current();
+        notificationListenerCleanup.current = null;
+      }
       // Don't unsubscribe here - let it persist across tab changes
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

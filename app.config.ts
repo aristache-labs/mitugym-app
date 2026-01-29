@@ -35,9 +35,22 @@ const config: ExpoConfig = {
   plugins: [
     'expo-router',
     'expo-font',
+    [
+      'expo-notifications',
+      {
+        icon: './assets/icon.png',
+        color: '#4DD4D4',
+        sounds: [],
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
+  },
+  extra: {
+    eas: {
+      projectId: 'e460a9af-8bdf-4b7d-bf24-7184a166d3ab',
+    },
   },
 };
 

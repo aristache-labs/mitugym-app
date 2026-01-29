@@ -35,6 +35,11 @@ export interface Notification {
   created_at: string;
 }
 import { generateTOTPCode as generateTOTPCodeUtil, getTOTPTimeRemaining, setupTOTP } from '../utils/totp';
+import {
+  registerForPushNotificationsAsync,
+  savePushTokenToDatabase,
+  deactivatePushToken,
+} from '../utils/pushNotifications';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -147,7 +152,15 @@ interface LanguageState {
   setLanguage: (lang: 'en' | 'ro') => void;
 }
 
-type AppState = AuthState & ServiceState & QRState & CheckinState & AnnouncementState & GymScheduleState & MembershipState & NotificationState & ToastState & LanguageState;
+interface PushNotificationState {
+  pushToken: string | null;
+  pushNotificationsEnabled: boolean;
+  registerPushNotifications: () => Promise<boolean>;
+  unregisterPushNotifications: () => Promise<boolean>;
+  setPushNotificationsEnabled: (enabled: boolean) => void;
+}
+
+type AppState = AuthState & ServiceState & QRState & CheckinState & AnnouncementState & GymScheduleState & MembershipState & NotificationState & ToastState & LanguageState & PushNotificationState;
 
 // Helper function to map notification types to toast types
 const getToastTypeFromNotification = (notificationType: string): 'success' | 'error' | 'warning' | 'info' => {
@@ -2051,5 +2064,85 @@ export const useAppStore = create<AppState>((set, get) => ({
   language: 'en',
   setLanguage: (lang: 'en' | 'ro') => {
     set({ language: lang });
+  },
+
+  // Push Notification state
+  pushToken: null,
+  pushNotificationsEnabled: false,
+
+  registerPushNotifications: async () => {
+    try {
+      const { session } = get();
+      if (!session?.user?.id) {
+        console.log('No user session, cannot register push notifications');
+        get().showToast('Please log in to enable push notifications', 'error');
+        return false;
+      }
+
+      console.log('Registering for push notifications...');
+      const tokenData = await registerForPushNotificationsAsync();
+
+      if (!tokenData) {
+        console.log('Failed to get push token');
+        get().showToast('Unable to enable push notifications. Please check permissions in Settings.', 'error');
+        return false;
+      }
+
+      console.log('Push token obtained:', tokenData.token);
+
+      // Save token to database
+      const saved = await savePushTokenToDatabase(tokenData, session.user.id);
+
+      if (!saved) {
+        console.log('Failed to save push token to database');
+        get().showToast('Failed to save push notification settings', 'error');
+        return false;
+      }
+
+      // Update local state
+      set({
+        pushToken: tokenData.token,
+        pushNotificationsEnabled: true,
+      });
+
+      console.log('Push notifications registered successfully');
+      const t = translations[get().language];
+      get().showToast(t.pushNotificationsEnabled || 'Push notifications enabled', 'success');
+      return true;
+    } catch (error) {
+      console.error('Error registering push notifications:', error);
+      get().showToast('Failed to enable push notifications', 'error');
+      return false;
+    }
+  },
+
+  unregisterPushNotifications: async () => {
+    try {
+      const { pushToken } = get();
+
+      if (pushToken) {
+        // Deactivate token in database
+        await deactivatePushToken(pushToken);
+      }
+
+      // Update local state
+      set({
+        pushToken: null,
+        pushNotificationsEnabled: false,
+      });
+
+      console.log('Push notifications unregistered successfully');
+      const t = translations[get().language];
+      get().showToast(t.pushNotificationsDisabled || 'Push notifications disabled', 'success');
+      return true;
+    } catch (error) {
+      console.error('Error unregistering push notifications:', error);
+      get().showToast('Failed to disable push notifications', 'error');
+      return false;
+    }
+  },
+
+  setPushNotificationsEnabled: (enabled: boolean) => {
+    set({ pushNotificationsEnabled: enabled });
   },
 }));

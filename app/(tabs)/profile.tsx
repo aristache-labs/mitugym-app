@@ -63,7 +63,6 @@ interface Profile {
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(false);
   const [servicesReminders, setServicesReminders] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -103,7 +102,15 @@ export default function ProfileScreen() {
   // Avatar upload state
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
-  const { member, logout, session, showToast } = useAppStore();
+  const {
+    member,
+    logout,
+    session,
+    showToast,
+    pushNotificationsEnabled,
+    registerPushNotifications,
+    unregisterPushNotifications,
+  } = useAppStore();
   const { language, setLanguage, t } = useLanguage();
 
   // Load profile data from Supabase
@@ -498,6 +505,20 @@ export default function ProfileScreen() {
     }
   };
 
+  const handlePushNotificationToggle = async (enabled: boolean) => {
+    if (enabled) {
+      // Enable push notifications
+      const success = await registerPushNotifications();
+      if (!success) {
+        // Registration failed, keep toggle off
+        return;
+      }
+    } else {
+      // Disable push notifications
+      await unregisterPushNotifications();
+    }
+  };
+
   const appSettings: SettingItem[] = [
     {
       id: 'language',
@@ -521,8 +542,8 @@ export default function ProfileScreen() {
       title: t('pushNotifications'),
       icon: Bell,
       type: 'toggle',
-      value: pushNotifications,
-      onToggle: setPushNotifications,
+      value: pushNotificationsEnabled,
+      onToggle: handlePushNotificationToggle,
     },
     {
       id: 'email',

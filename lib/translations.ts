@@ -368,6 +368,8 @@ export const translations = {
     membershipType: 'Membership Type',
 
     // Notifications
+    pushNotificationsEnabled: 'Push notifications enabled',
+    pushNotificationsDisabled: 'Push notifications disabled',
     profileUpdated: 'Profile Updated',
     profileUpdatedDesc: 'Your profile has been successfully updated',
     membershipApproved: 'Membership Approved',
@@ -798,6 +800,8 @@ export const translations = {
     membershipType: 'Tip Abonament',
 
     // Notifications
+    pushNotificationsEnabled: 'Notificări push activate',
+    pushNotificationsDisabled: 'Notificări push dezactivate',
     profileUpdated: 'Profil actualizat',
     profileUpdatedDesc: 'Profilul tău a fost actualizat cu succes',
     membershipApproved: 'Abonament aprobat',
