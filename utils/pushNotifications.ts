@@ -93,55 +93,24 @@ export async function savePushTokenToDatabase(
   userId: string,
 ): Promise<boolean> {
   try {
-    // Check if token already exists
-    const { data: existingToken, error: selectError } = await supabase
-      .from('push_tokens')
-      .select('id, is_active')
-      .eq('push_token', tokenData.token)
-      .maybeSingle();
+    console.log('Upserting push token:', tokenData.token, 'for user:', userId);
 
-    if (selectError) {
-      console.error('Error checking existing push token:', selectError);
-      return false;
-    }
-
-    if (existingToken) {
-      // Token exists, update it to active and refresh last_used_at
-      const { error: updateError } = await supabase
-        .from('push_tokens')
-        .update({
-          is_active: true,
-          last_used_at: new Date().toISOString(),
-          device_name: tokenData.deviceName,
-        })
-        .eq('id', existingToken.id);
-
-      if (updateError) {
-        console.error('Error updating existing push token:', updateError);
-        return false;
-      }
-
-      console.log('Push token updated successfully');
-      return true;
-    }
-
-    // Token doesn't exist, insert new one
-    const { error: insertError } = await supabase
-      .from('push_tokens')
-      .insert({
-        user_id: userId,
-        push_token: tokenData.token,
-        device_platform: tokenData.platform,
-        device_name: tokenData.deviceName,
-        is_active: true,
+    // Use a database function that runs with SECURITY DEFINER to bypass RLS
+    // This allows account switching on the same device
+    const { data, error } = await supabase
+      .rpc('upsert_push_token', {
+        p_user_id: userId,
+        p_push_token: tokenData.token,
+        p_device_platform: tokenData.platform,
+        p_device_name: tokenData.deviceName,
       });
 
-    if (insertError) {
-      console.error('Error saving push token:', insertError);
+    if (error) {
+      console.error('Error upserting push token:', error);
       return false;
     }
 
-    console.log('Push token saved successfully');
+    console.log('Push token saved/updated successfully:', data);
     return true;
   } catch (error) {
     console.error('Error in savePushTokenToDatabase:', error);
@@ -154,17 +123,18 @@ export async function savePushTokenToDatabase(
  */
 export async function deactivatePushToken(token: string): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from('push_tokens')
-      .update({ is_active: false })
-      .eq('push_token', token);
+    // Use database function with SECURITY DEFINER to bypass RLS
+    const { data, error } = await supabase
+      .rpc('deactivate_push_token', {
+        p_push_token: token,
+      });
 
     if (error) {
       console.error('Error deactivating push token:', error);
       return false;
     }
 
-    console.log('Push token deactivated successfully');
+    console.log('Push token deactivated successfully:', data);
     return true;
   } catch (error) {
     console.error('Error in deactivatePushToken:', error);

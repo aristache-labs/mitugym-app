@@ -125,6 +125,9 @@ class AuthManager {
               isAuthenticated: false,
               session: null,
               member: null,
+              // Clear push notification state so it loads fresh for next user
+              pushNotificationsEnabled: false,
+              pushToken: null,
             });
             this.isProcessing = false;
             console.log('AuthManager: Sign out state applied successfully');

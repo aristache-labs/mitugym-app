@@ -518,6 +518,11 @@ export const useAppStore = create<AppState>((set, get) => ({
         console.log('Loaded member profile:', member);
         set({ member });
 
+        // Load push notification preference from database
+        const pushNotifEnabled = data.push_notifications_enabled !== false; // Default to true
+        set({ pushNotificationsEnabled: pushNotifEnabled });
+        console.log('Push notifications preference loaded:', pushNotifEnabled);
+
         // Fetch notifications and subscribe to real-time updates
         await get().fetchNotifications();
         get().subscribeToNotifications();
@@ -2130,6 +2135,16 @@ export const useAppStore = create<AppState>((set, get) => ({
         return false;
       }
 
+      // Update user's push notification preference in database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ push_notifications_enabled: true })
+        .eq('id', session.user.id);
+
+      if (updateError) {
+        console.error('Error updating push notification preference:', updateError);
+      }
+
       // Update local state
       set({
         pushToken: tokenData.token,
@@ -2149,11 +2164,23 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   unregisterPushNotifications: async () => {
     try {
-      const { pushToken } = get();
+      const { pushToken, session } = get();
 
       if (pushToken) {
         // Deactivate token in database
         await deactivatePushToken(pushToken);
+      }
+
+      // Update user's push notification preference in database
+      if (session?.user?.id) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ push_notifications_enabled: false })
+          .eq('id', session.user.id);
+
+        if (updateError) {
+          console.error('Error updating push notification preference:', updateError);
+        }
       }
 
       // Update local state
