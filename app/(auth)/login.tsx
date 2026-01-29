@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Image, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { router, Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Lock, Check } from 'lucide-react-native';
+import { Lock, Check, Fingerprint } from 'lucide-react-native';
 import { useAppStore } from '../../lib/store';
 import { theme } from '../../lib/theme';
 import { isValidEmail } from '../../lib/utils';
@@ -10,6 +10,12 @@ import { SecureStorage } from '../../utils/secureStorage';
 import { useLanguage } from '../../lib/LanguageContext';
 import { StyledInput } from '../../components/StyledInput';
 import { StyledButton } from '../../components/StyledButton';
+import {
+  authenticateWithBiometrics,
+  getBiometricTypeName,
+  recordBiometricFailure,
+  clearBiometricFailure,
+} from '../../utils/biometricAuth';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -19,32 +25,10 @@ export default function LoginScreen() {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricType, setBiometricType] = useState('Biometric');
   const { loginWithSupabase, isAuthenticated, showToast } = useAppStore();
   const { t } = useLanguage();
-
-  // Load remembered email on component mount
-  React.useEffect(() => {
-    const loadRememberedEmail = async () => {
-      try {
-        const rememberMeData = await SecureStorage.getRememberMeData();
-        if (rememberMeData?.email) {
-          setEmail(rememberMeData.email);
-          setRememberMe(true);
-        }
-      } catch (error) {
-        console.log('Failed to load remembered email:', error);
-      }
-    };
-
-    loadRememberedEmail();
-  }, []);
-
-  // Redirect if already authenticated
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      router.replace('/(tabs)');
-    }
-  }, [isAuthenticated]);
 
   const validateEmail = () => {
     if (!email.trim()) {
@@ -71,6 +55,89 @@ export default function LoginScreen() {
     setPasswordError('');
     return true;
   };
+
+  const handleBiometricLogin = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      console.log('Attempting biometric login...');
+
+      // Authenticate with biometrics
+      const result = await authenticateWithBiometrics(t('biometricPrompt'));
+
+      if (result.success) {
+        // Get stored credentials
+        const credentials = await SecureStorage.getBiometricCredentials();
+
+        if (!credentials) {
+          console.log('No biometric credentials found');
+          showToast(t('biometricFailed'), 'error');
+          await recordBiometricFailure();
+          return;
+        }
+
+        // Login with stored credentials
+        console.log('Logging in with biometric credentials...');
+        await loginWithSupabase(credentials.email, credentials.password, false);
+
+        // Clear any previous failure records on success
+        await clearBiometricFailure();
+      } else {
+        // User cancelled or authentication failed
+        console.log('Biometric authentication failed:', result.error);
+        await recordBiometricFailure();
+
+        // Don't show error toast for user cancellation
+        if (result.error && !result.error.includes('cancel')) {
+          showToast(t('biometricFailed'), 'error');
+        }
+      }
+    } catch (error: any) {
+      console.error('Biometric login error:', error);
+      await recordBiometricFailure();
+      showToast(t('biometricFailed'), 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [t, showToast, loginWithSupabase]);
+
+  // Check biometric availability (no auto-prompt, user chooses)
+  React.useEffect(() => {
+    const initializeBiometric = async () => {
+      try {
+        // Check if biometric is available for manual use
+        const typeName = await getBiometricTypeName();
+        setBiometricType(typeName);
+        const enabled = await SecureStorage.isBiometricEnabled();
+        const hasCredentials = await SecureStorage.hasBiometricCredentials();
+        console.log('Biometric check - enabled:', enabled, 'hasCredentials:', hasCredentials);
+        setBiometricAvailable(enabled && hasCredentials);
+      } catch (error) {
+        console.log('Failed to initialize biometric:', error);
+      }
+    };
+
+    const loadRememberedEmail = async () => {
+      try {
+        const rememberMeData = await SecureStorage.getRememberMeData();
+        if (rememberMeData?.email) {
+          setEmail(rememberMeData.email);
+          setRememberMe(true);
+        }
+      } catch (error) {
+        console.log('Failed to load remembered email:', error);
+      }
+    };
+
+    initializeBiometric();
+    loadRememberedEmail();
+  }, []);
+
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated]);
 
   const handleLogin = async () => {
     setLoginError('');
@@ -163,6 +230,66 @@ export default function LoginScreen() {
                 {t('signIn')}
               </Text>
             </View>
+
+            {/* Biometric Login Button - Prominent at top */}
+            {biometricAvailable && !isLoading && (
+              <>
+                <TouchableOpacity
+                  onPress={handleBiometricLogin}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingVertical: theme.spacing.md + 2,
+                    paddingHorizontal: theme.spacing.lg,
+                    borderRadius: theme.borderRadius.lg,
+                    backgroundColor: theme.colors.primary.DEFAULT,
+                    marginBottom: theme.spacing.md,
+                    ...theme.shadows.medium,
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Fingerprint
+                    size={22}
+                    color="#ffffff"
+                    style={{ marginRight: theme.spacing.sm }}
+                  />
+                  <Text style={{
+                    fontSize: theme.typography.body.fontSize,
+                    color: '#ffffff',
+                    fontWeight: '600',
+                  }}>
+                    {t('useBiometric').replace('{type}', biometricType)}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Divider */}
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginVertical: theme.spacing.lg,
+                }}>
+                  <View style={{
+                    flex: 1,
+                    height: 1,
+                    backgroundColor: 'rgba(179, 217, 217, 0.3)',
+                  }} />
+                  <Text style={{
+                    fontSize: theme.typography.caption.fontSize,
+                    color: theme.colors.text.secondary,
+                    marginHorizontal: theme.spacing.md,
+                    fontWeight: '500',
+                  }}>
+                    {t('or')}
+                  </Text>
+                  <View style={{
+                    flex: 1,
+                    height: 1,
+                    backgroundColor: 'rgba(179, 217, 217, 0.3)',
+                  }} />
+                </View>
+              </>
+            )}
 
             {/* Email Input */}
             <View style={{ marginBottom: theme.spacing.lg }}>

@@ -94,11 +94,16 @@ export async function savePushTokenToDatabase(
 ): Promise<boolean> {
   try {
     // Check if token already exists
-    const { data: existingToken } = await supabase
+    const { data: existingToken, error: selectError } = await supabase
       .from('push_tokens')
       .select('id, is_active')
       .eq('push_token', tokenData.token)
-      .single();
+      .maybeSingle();
+
+    if (selectError) {
+      console.error('Error checking existing push token:', selectError);
+      return false;
+    }
 
     if (existingToken) {
       // Token exists, update it to active and refresh last_used_at

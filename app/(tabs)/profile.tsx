@@ -27,6 +27,8 @@ import { PasswordChangeModal } from '../../components/PasswordChangeModal';
 import { NotificationModal } from '../../components/NotificationModal';
 import { supabase } from '../../utils/supabase';
 import { useLanguage, Language } from '../../lib/LanguageContext';
+import { authenticateWithBiometrics } from '../../utils/biometricAuth';
+import { SecureStorage } from '../../utils/secureStorage';
 
 interface SettingItem {
   id: string;
@@ -67,8 +69,6 @@ export default function ProfileScreen() {
   const [servicesReminders, setServicesReminders] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  // App Settings States
-  const [biometricAuth, setBiometricAuth] = useState(false);
 
 // Edit Profile Modal State
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -110,8 +110,17 @@ export default function ProfileScreen() {
     pushNotificationsEnabled,
     registerPushNotifications,
     unregisterPushNotifications,
+    biometricEnabled,
+    biometricAvailable,
+    setBiometricEnabled,
+    checkBiometricAvailability,
   } = useAppStore();
   const { language, setLanguage, t } = useLanguage();
+
+  // Check biometric availability on mount
+  useEffect(() => {
+    checkBiometricAvailability();
+  }, [checkBiometricAvailability]);
 
   // Load profile data from Supabase
   useEffect(() => {
@@ -519,6 +528,44 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleBiometricToggle = async (enabled: boolean) => {
+    if (enabled && !biometricAvailable) {
+      showToast(t('biometricNotAvailable'), 'error');
+      return;
+    }
+
+    if (enabled) {
+      // Prompt user to authenticate once to verify they can use biometrics
+      const result = await authenticateWithBiometrics(t('enableBiometric'));
+
+      if (!result.success) {
+        console.log('Biometric authentication failed, not enabling');
+        return;
+      }
+
+      // Enable biometric - credentials will be stored on next login
+      await setBiometricEnabled(true);
+
+      // Check if user has already stored credentials
+      const hasCredentials = await SecureStorage.hasBiometricCredentials();
+
+      if (!hasCredentials) {
+        // First time enabling - need to login with password once
+        Alert.alert(
+          t('biometricAuth'),
+          'Biometric authentication enabled. Please log out and log in with your password once to complete the setup. Your credentials will be securely stored for future biometric logins.',
+          [{ text: t('ok') }],
+        );
+      }
+
+      showToast(t('biometricEnabled'), 'success');
+    } else {
+      // Disable biometric
+      await setBiometricEnabled(false);
+      showToast(t('biometricDisabled'), 'success');
+    }
+  };
+
   const appSettings: SettingItem[] = [
     {
       id: 'language',
@@ -531,11 +578,11 @@ export default function ProfileScreen() {
     {
       id: 'biometric',
       title: t('biometricAuth'),
-      subtitle: t('biometricSubtitle'),
+      subtitle: biometricAvailable ? t('biometricSubtitle') : t('biometricNotAvailable'),
       icon: Fingerprint,
       type: 'toggle',
-      value: biometricAuth,
-      onToggle: setBiometricAuth,
+      value: biometricEnabled,
+      onToggle: handleBiometricToggle,
     },
     {
       id: 'push',

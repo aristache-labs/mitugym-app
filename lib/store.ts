@@ -40,6 +40,7 @@ import {
   savePushTokenToDatabase,
   deactivatePushToken,
 } from '../utils/pushNotifications';
+import { isBiometricAvailable } from '../utils/biometricAuth';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -160,7 +161,14 @@ interface PushNotificationState {
   setPushNotificationsEnabled: (enabled: boolean) => void;
 }
 
-type AppState = AuthState & ServiceState & QRState & CheckinState & AnnouncementState & GymScheduleState & MembershipState & NotificationState & ToastState & LanguageState & PushNotificationState;
+interface BiometricState {
+  biometricEnabled: boolean;
+  biometricAvailable: boolean;
+  setBiometricEnabled: (enabled: boolean) => Promise<void>;
+  checkBiometricAvailability: () => Promise<void>;
+}
+
+type AppState = AuthState & ServiceState & QRState & CheckinState & AnnouncementState & GymScheduleState & MembershipState & NotificationState & ToastState & LanguageState & PushNotificationState & BiometricState;
 
 // Helper function to map notification types to toast types
 const getToastTypeFromNotification = (notificationType: string): 'success' | 'error' | 'warning' | 'info' => {
@@ -273,6 +281,18 @@ export const useAppStore = create<AppState>((set, get) => ({
           }
         }
 
+        // Store biometric credentials if biometric is enabled
+        const biometricEnabled = await SecureStorage.isBiometricEnabled();
+        if (biometricEnabled) {
+          try {
+            await SecureStorage.storeBiometricCredentials(email, password);
+            console.log('Biometric credentials stored successfully');
+          } catch (storageError) {
+            console.error('Failed to store biometric credentials:', storageError);
+            // Don't fail the login if storage fails
+          }
+        }
+
         // Don't set state here - let authManager handle it to prevent conflicts
         // Removed "Welcome back!" toast - user can see they're logged in from the UI
       }
@@ -338,6 +358,17 @@ export const useAppStore = create<AppState>((set, get) => ({
       console.log('Clearing remember me data...');
       await SecureStorage.clearRememberMeData();
       console.log('Remember me data cleared successfully');
+
+      // Only clear biometric credentials if biometric is NOT enabled
+      // If enabled, keep credentials for biometric login on next session
+      const biometricEnabled = await SecureStorage.isBiometricEnabled();
+      if (!biometricEnabled) {
+        console.log('Clearing biometric credentials...');
+        await SecureStorage.clearBiometricCredentials();
+        console.log('Biometric credentials cleared successfully');
+      } else {
+        console.log('Biometric enabled - keeping credentials for next login');
+      }
 
       console.log('Signing out from Supabase...');
 
@@ -2144,5 +2175,67 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setPushNotificationsEnabled: (enabled: boolean) => {
     set({ pushNotificationsEnabled: enabled });
+  },
+
+  // Biometric Authentication state
+  biometricEnabled: false,
+  biometricAvailable: false,
+
+  setBiometricEnabled: async (enabled: boolean) => {
+    try {
+      const { session } = get();
+      if (!session?.user?.email) {
+        console.log('No user session, cannot enable biometric');
+        const t = translations[get().language];
+        get().showToast(t.loginRequired || 'Please log in first', 'error');
+        return;
+      }
+
+      if (enabled) {
+        // Check if biometric is available
+        const available = await isBiometricAvailable();
+        if (!available) {
+          const t = translations[get().language];
+          get().showToast(t.biometricNotAvailable || 'Biometric authentication not available', 'error');
+          return;
+        }
+
+        // Note: The actual credential storage and biometric prompt
+        // will be handled in the profile screen when user toggles the switch
+        await SecureStorage.setBiometricEnabled(true);
+        set({ biometricEnabled: true });
+        console.log('Biometric authentication enabled');
+      } else {
+        // Disable biometric and clear stored credentials
+        await SecureStorage.setBiometricEnabled(false);
+        await SecureStorage.clearBiometricCredentials();
+        set({ biometricEnabled: false });
+        console.log('Biometric authentication disabled');
+      }
+    } catch (error) {
+      console.error('Error setting biometric enabled:', error);
+      const t = translations[get().language];
+      get().showToast(t.biometricFailed || 'Failed to update biometric settings', 'error');
+    }
+  },
+
+  checkBiometricAvailability: async () => {
+    try {
+      const available = await isBiometricAvailable();
+      const enabled = await SecureStorage.isBiometricEnabled();
+
+      set({
+        biometricAvailable: available,
+        biometricEnabled: enabled,
+      });
+
+      console.log('Biometric availability checked:', { available, enabled });
+    } catch (error) {
+      console.error('Error checking biometric availability:', error);
+      set({
+        biometricAvailable: false,
+        biometricEnabled: false,
+      });
+    }
   },
 }));
