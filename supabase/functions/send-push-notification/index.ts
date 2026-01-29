@@ -1,6 +1,7 @@
 // Supabase Edge Function for sending push notifications via Expo Push API
 // This function is triggered when a notification is inserted into the notifications table
 // @deno-types="https://esm.sh/@supabase/supabase-js@2/dist/module/index.d.ts"
+// @ts-expect-error - Deno uses URL imports which VS Code TypeScript doesn't recognize
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 interface Notification {
