@@ -173,7 +173,18 @@ interface EmailNotificationState {
   setEmailNotificationsEnabled: (enabled: boolean) => Promise<void>;
 }
 
-type AppState = AuthState & ServiceState & QRState & CheckinState & AnnouncementState & GymScheduleState & MembershipState & NotificationState & ToastState & LanguageState & PushNotificationState & BiometricState & EmailNotificationState;
+interface ServicesReminderState {
+  servicesRemindersEnabled: boolean;
+  reminder3DaysEnabled: boolean;
+  reminder1DayEnabled: boolean;
+  reminder2HoursEnabled: boolean;
+  setServicesRemindersEnabled: (enabled: boolean) => Promise<void>;
+  setReminder3DaysEnabled: (enabled: boolean) => Promise<void>;
+  setReminder1DayEnabled: (enabled: boolean) => Promise<void>;
+  setReminder2HoursEnabled: (enabled: boolean) => Promise<void>;
+}
+
+type AppState = AuthState & ServiceState & QRState & CheckinState & AnnouncementState & GymScheduleState & MembershipState & NotificationState & ToastState & LanguageState & PushNotificationState & BiometricState & EmailNotificationState & ServicesReminderState;
 
 // Helper function to map notification types to toast types
 const getToastTypeFromNotification = (notificationType: string): 'success' | 'error' | 'warning' | 'info' => {
@@ -538,6 +549,24 @@ export const useAppStore = create<AppState>((set, get) => ({
         const emailNotifEnabled = data.email_notifications_enabled !== false; // Default to true
         set({ emailNotificationsEnabled: emailNotifEnabled });
         console.log('Email notifications preference loaded:', emailNotifEnabled);
+
+        // Load services reminder preferences from database
+        const servicesRemindersEnabled = data.services_reminders_enabled !== false; // Default to true
+        const reminder3DaysEnabled = data.reminder_3_days_enabled !== false; // Default to true
+        const reminder1DayEnabled = data.reminder_1_day_enabled !== false; // Default to true
+        const reminder2HoursEnabled = data.reminder_2_hours_enabled !== false; // Default to true
+        set({
+          servicesRemindersEnabled,
+          reminder3DaysEnabled,
+          reminder1DayEnabled,
+          reminder2HoursEnabled,
+        });
+        console.log('Services reminder preferences loaded:', {
+          servicesRemindersEnabled,
+          reminder3DaysEnabled,
+          reminder1DayEnabled,
+          reminder2HoursEnabled,
+        });
 
         // Fetch notifications and subscribe to real-time updates
         await get().fetchNotifications();
@@ -2316,6 +2345,124 @@ export const useAppStore = create<AppState>((set, get) => ({
       console.log('Email notifications preference updated:', enabled);
     } catch (error) {
       console.error('Error in setEmailNotificationsEnabled:', error);
+    }
+  },
+
+  // Services Reminder state
+  servicesRemindersEnabled: true,
+  reminder3DaysEnabled: true,
+  reminder1DayEnabled: true,
+  reminder2HoursEnabled: true,
+
+  setServicesRemindersEnabled: async (enabled: boolean) => {
+    try {
+      const session = get().session;
+      if (!session?.user?.id) {
+        console.log('No user session, cannot update services reminders preference');
+        return;
+      }
+
+      // Update user's services reminders preference in database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ services_reminders_enabled: enabled })
+        .eq('id', session.user.id);
+
+      if (updateError) {
+        console.error('Error updating services reminders preference:', updateError);
+        get().showToast('Failed to update preference', 'error');
+        return;
+      }
+
+      // Update local state
+      set({ servicesRemindersEnabled: enabled });
+      console.log('Services reminders preference updated:', enabled);
+    } catch (error) {
+      console.error('Error in setServicesRemindersEnabled:', error);
+    }
+  },
+
+  setReminder3DaysEnabled: async (enabled: boolean) => {
+    try {
+      const session = get().session;
+      if (!session?.user?.id) {
+        console.log('No user session, cannot update 3-day reminder preference');
+        return;
+      }
+
+      // Update user's 3-day reminder preference in database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ reminder_3_days_enabled: enabled })
+        .eq('id', session.user.id);
+
+      if (updateError) {
+        console.error('Error updating 3-day reminder preference:', updateError);
+        get().showToast('Failed to update preference', 'error');
+        return;
+      }
+
+      // Update local state
+      set({ reminder3DaysEnabled: enabled });
+      console.log('3-day reminder preference updated:', enabled);
+    } catch (error) {
+      console.error('Error in setReminder3DaysEnabled:', error);
+    }
+  },
+
+  setReminder1DayEnabled: async (enabled: boolean) => {
+    try {
+      const session = get().session;
+      if (!session?.user?.id) {
+        console.log('No user session, cannot update 1-day reminder preference');
+        return;
+      }
+
+      // Update user's 1-day reminder preference in database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ reminder_1_day_enabled: enabled })
+        .eq('id', session.user.id);
+
+      if (updateError) {
+        console.error('Error updating 1-day reminder preference:', updateError);
+        get().showToast('Failed to update preference', 'error');
+        return;
+      }
+
+      // Update local state
+      set({ reminder1DayEnabled: enabled });
+      console.log('1-day reminder preference updated:', enabled);
+    } catch (error) {
+      console.error('Error in setReminder1DayEnabled:', error);
+    }
+  },
+
+  setReminder2HoursEnabled: async (enabled: boolean) => {
+    try {
+      const session = get().session;
+      if (!session?.user?.id) {
+        console.log('No user session, cannot update 2-hour reminder preference');
+        return;
+      }
+
+      // Update user's 2-hour reminder preference in database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ reminder_2_hours_enabled: enabled })
+        .eq('id', session.user.id);
+
+      if (updateError) {
+        console.error('Error updating 2-hour reminder preference:', updateError);
+        get().showToast('Failed to update preference', 'error');
+        return;
+      }
+
+      // Update local state
+      set({ reminder2HoursEnabled: enabled });
+      console.log('2-hour reminder preference updated:', enabled);
+    } catch (error) {
+      console.error('Error in setReminder2HoursEnabled:', error);
     }
   },
 }));

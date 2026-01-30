@@ -65,7 +65,6 @@ interface Profile {
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const [servicesReminders, setServicesReminders] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -115,6 +114,14 @@ export default function ProfileScreen() {
     checkBiometricAvailability,
     emailNotificationsEnabled,
     setEmailNotificationsEnabled,
+    servicesRemindersEnabled,
+    reminder3DaysEnabled,
+    reminder1DayEnabled,
+    reminder2HoursEnabled,
+    setServicesRemindersEnabled,
+    setReminder3DaysEnabled,
+    setReminder1DayEnabled,
+    setReminder2HoursEnabled,
   } = useAppStore();
   const { language, setLanguage, t } = useLanguage();
 
@@ -615,9 +622,63 @@ export default function ProfileScreen() {
       title: t('servicesReminders'),
       icon: Bell,
       type: 'toggle',
-      value: servicesReminders,
-      onToggle: setServicesReminders,
+      value: servicesRemindersEnabled,
+      onToggle: async (enabled: boolean) => {
+        await setServicesRemindersEnabled(enabled);
+        showToast(
+          enabled ? t('servicesRemindersEnabled') : t('servicesRemindersDisabled'),
+          'success',
+        );
+      },
     },
+    // Sub-toggles for services reminders (shown when master toggle is enabled)
+    ...(servicesRemindersEnabled ? [
+      {
+        id: 'reminder-3-days',
+        title: t('reminder3Days'),
+        icon: Bell,
+        type: 'toggle' as const,
+        value: reminder3DaysEnabled,
+        onToggle: async (enabled: boolean) => {
+          await setReminder3DaysEnabled(enabled);
+          showToast(
+            enabled ? t('reminder3DaysEnabled') : t('reminder3DaysDisabled'),
+            'success',
+          );
+        },
+        subtitle: t('reminderEmailAndPush'),
+      },
+      {
+        id: 'reminder-1-day',
+        title: t('reminder1Day'),
+        icon: Bell,
+        type: 'toggle' as const,
+        value: reminder1DayEnabled,
+        onToggle: async (enabled: boolean) => {
+          await setReminder1DayEnabled(enabled);
+          showToast(
+            enabled ? t('reminder1DayEnabled') : t('reminder1DayDisabled'),
+            'success',
+          );
+        },
+        subtitle: t('reminderEmailAndPush'),
+      },
+      {
+        id: 'reminder-2-hours',
+        title: t('reminder2Hours'),
+        icon: Bell,
+        type: 'toggle' as const,
+        value: reminder2HoursEnabled,
+        onToggle: async (enabled: boolean) => {
+          await setReminder2HoursEnabled(enabled);
+          showToast(
+            enabled ? t('reminder2HoursEnabled') : t('reminder2HoursDisabled'),
+            'success',
+          );
+        },
+        subtitle: t('reminderPushOnly'),
+      },
+    ] : []),
   ];
 
   const legalSettings: SettingItem[] = [
