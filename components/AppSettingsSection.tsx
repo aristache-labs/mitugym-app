@@ -13,6 +13,7 @@ interface SettingItem {
   value?: boolean;
   onPress?: () => void;
   onToggle?: (value: boolean) => void;
+  isNested?: boolean;
 }
 
 interface AppSettingsSectionProps {
@@ -61,8 +62,14 @@ export const AppSettingsSection: React.FC<AppSettingsSectionProps> = ({ settings
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 paddingVertical: theme.spacing.md,
+                paddingLeft: setting.isNested ? theme.spacing.xl : 0,
                 borderBottomWidth: index < settings.length - 1 ? 1 : 0,
                 borderBottomColor: 'rgba(167, 195, 186, 0.1)',
+                backgroundColor: setting.isNested ? 'rgba(30, 155, 113, 0.05)' : 'transparent',
+                marginLeft: setting.isNested ? theme.spacing.md : 0,
+                marginRight: setting.isNested ? theme.spacing.md : 0,
+                borderRadius: setting.isNested ? theme.borderRadius.md : 0,
+                marginTop: setting.isNested ? theme.spacing.xs : 0,
               }}
             >
               <View style={{
@@ -71,20 +78,21 @@ export const AppSettingsSection: React.FC<AppSettingsSectionProps> = ({ settings
                 flex: 1,
               }}>
                 <setting.icon
-                  size={20}
-                  color={theme.colors.text.secondary}
+                  size={setting.isNested ? 16 : 20}
+                  color={setting.isNested ? theme.colors.primary.DEFAULT : theme.colors.text.secondary}
                   style={{ marginRight: theme.spacing.md }}
                 />
                 <View style={{ flex: 1 }}>
                   <Text style={{
-                    fontSize: theme.typography.body.fontSize,
+                    fontSize: setting.isNested ? theme.typography.caption.fontSize : theme.typography.body.fontSize,
                     color: theme.colors.text.primary,
+                    fontWeight: setting.isNested ? '500' : '400',
                   }}>
                     {setting.title}
                   </Text>
                   {setting.subtitle && (
                     <Text style={{
-                      fontSize: theme.typography.caption.fontSize,
+                      fontSize: theme.typography.caption.fontSize - 1,
                       color: theme.colors.text.secondary,
                       marginTop: 2,
                     }}>
@@ -101,6 +109,7 @@ export const AppSettingsSection: React.FC<AppSettingsSectionProps> = ({ settings
                   true: theme.colors.primary.DEFAULT,
                 }}
                 thumbColor={'#ffffff'}
+                style={{ transform: setting.isNested ? [{ scale: 0.9 }] : [] }}
               />
             </View>
           );

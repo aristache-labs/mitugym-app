@@ -39,6 +39,7 @@ interface SettingItem {
   value?: boolean;
   onPress?: () => void;
   onToggle?: (value: boolean) => void;
+  isNested?: boolean;
 }
 
 interface Profile {
@@ -647,6 +648,7 @@ export default function ProfileScreen() {
           );
         },
         subtitle: t('reminderEmailAndPush'),
+        isNested: true,
       },
       {
         id: 'reminder-1-day',
@@ -662,6 +664,7 @@ export default function ProfileScreen() {
           );
         },
         subtitle: t('reminderEmailAndPush'),
+        isNested: true,
       },
       {
         id: 'reminder-2-hours',
@@ -677,6 +680,7 @@ export default function ProfileScreen() {
           );
         },
         subtitle: t('reminderPushOnly'),
+        isNested: true,
       },
     ] : []),
   ];
