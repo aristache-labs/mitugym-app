@@ -309,7 +309,7 @@ Deno.serve(async (req: Request) => {
 
     // Prepare email payload
     const emailPayload: ResendEmailPayload = {
-      from: 'MITUGYM <notifications@mitugym.com>',
+      from: 'MITUGYM <onboarding@resend.dev>',
       to: profile.email,
       subject: `${reminderEmoji} Reminder: ${serviceName} session ${reminderTiming}`,
       html: emailHtml,
